@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/* Custom Glassmorphism Lux color palette */
+:root {
+  --color-onyx: #0A090C;
+  --color-accent: #D16014;
+  --color-evergreen: #00241B;
+  --color-sage: #659B5E;
+  --color-cream: #F8FFE5;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
+}
+
+body {
+  background-color: var(--color-onyx);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
