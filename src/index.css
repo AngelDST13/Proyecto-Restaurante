@@ -1,18 +1,45 @@
 @import "tailwindcss";
 
-/* Custom Glassmorphism Lux color palette */
-:root {
-  --color-onyx: #0A090C;
-  --color-accent: #D16014;
-  --color-evergreen: #00241B;
-  --color-sage: #659B5E;
-  --color-cream: #F8FFE5;
-  --font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
+@layer base {
+  :root {
+    --bg-onyx: #0A090C;
+    --glass-pine: #00241B;
+    --accent-amber: #D16014;
+    --success-sage: #659B5E;
+    --text-agave: #F8FFE5;
+  }
+
+  body {
+    background-color: var(--bg-onyx);
+    color: var(--text-agave);
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
 }
 
-body {
-  background-color: var(--color-onyx);
-  color: var(--color-cream);
-  font-family: var(--font-sans);
-  overflow-x: hidden;
+/* Clases de utilidad para Glassmorphism */
+.glass-card {
+  background: rgba(0, 36, 27, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(248, 255, 229, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.glass-drawer {
+  background: rgba(0, 36, 27, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-left: 1px solid rgba(248, 255, 229, 0.18);
+}
+
+.btn-amber {
+  background-color: #D16014;
+  color: #F8FFE5;
+  transition: all 0.3s ease;
+}
+
+.btn-amber:hover {
+  background-color: #b8510f;
+  box-shadow: 0 4px 20px rgba(209, 96, 20, 0.4);
 }

@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 
+/* eslint-disable react-refresh/only-export-components */
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -8,7 +9,7 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : { email: 'admin@gourmetsync.com', rol: 'administrador' };
   });
 
-  const login = (email, password) => {
+  const login = (email) => {
     let rol = 'cliente';
     if (email.includes('admin')) rol = 'administrador';
     else if (email.includes('mesero')) rol = 'mesero';
@@ -40,3 +41,4 @@ export const useAuth = () => {
   }
   return context;
 };
+/* eslint-enable react-refresh/only-export-components */
