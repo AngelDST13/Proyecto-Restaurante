@@ -24,7 +24,6 @@ export default function AdminDashboard() {
         <p className="text-xs text-[#F8FFE5]/70">Métricas clave y control del restaurante</p>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-[#00241B]/80 border border-[#F8FFE5]/10">
           <span className="text-xs text-[#F8FFE5]/60">Ventas del Día</span>
@@ -34,9 +33,12 @@ export default function AdminDashboard() {
           <span className="text-xs text-[#F8FFE5]/60">Mesas Activas</span>
           <div className="text-2xl font-bold text-[#659B5E]">8 / 12</div>
         </div>
+        <div className="p-5 rounded-2xl bg-[#00241B]/80 border border-[#F8FFE5]/10">
+          <span className="text-xs text-[#F8FFE5]/60">Ítems en Inventario</span>
+          <div className="text-2xl font-bold text-[#D16014]">{inventario.length} Registrados</div>
+        </div>
       </div>
 
-      {/* Gráficos Recharts (Requisito Obligatorio FWD) */}
       <div className="p-6 rounded-2xl bg-[#00241B]/80 border border-[#F8FFE5]/10 space-y-4">
         <h3 className="font-bold text-sm text-[#F8FFE5]">Evolución Horaria de Facturación (Recharts)</h3>
         <div className="h-64 w-full">

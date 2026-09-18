@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useAccessibility } from '../hooks/useAccessibility';
-import { Utensils, ShoppingBag, LogOut, Sun, Type } from 'lucide-[#F8FFE5]' || 'lucide-react';
+import { useAccessibility } from "../context/AccessibilityContext";
+import { Utensils, ShoppingBag, LogOut, Type } from 'lucide-react';
 
 export default function Navbar({ onToggleCart, cartCount }) {
   const { user, logout } = useAuth();
@@ -16,7 +16,6 @@ export default function Navbar({ onToggleCart, cartCount }) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 w-full border-b border-[#F8FFE5]/10 bg-[#0A090C]/90 backdrop-blur-xl shadow-2xl">
       <div className="flex items-center gap-8">
-        {/* Logo GourmetSync */}
         <Link to="/" className="flex items-center gap-3 group">
           <div className="w-9 h-9 rounded-xl bg-[#D16014] flex items-center justify-center shadow-lg shadow-[#D16014]/30 border border-[#D16014]/60 group-hover:scale-105 transition-transform">
             <Utensils className="w-5 h-5 text-[#F8FFE5]" />
@@ -27,7 +26,6 @@ export default function Navbar({ onToggleCart, cartCount }) {
           </div>
         </Link>
 
-        {/* Links Principales */}
         <nav className="hidden md:flex items-center gap-1.5 text-xs font-semibold">
           <Link to="/" className="px-3.5 py-1.5 rounded-lg text-[#F8FFE5]/70 hover:text-[#F8FFE5] hover:bg-[#00241B]">Inicio</Link>
           {user && (
@@ -39,9 +37,7 @@ export default function Navbar({ onToggleCart, cartCount }) {
         </nav>
       </div>
 
-      {/* Acciones y Accesibilidad */}
       <div className="flex items-center gap-3">
-        {/* Botón Accesibilidad: Cambiar Tamaño de Letra (Requisito FWD) */}
         <button 
           onClick={toggleFontSize}
           title="Ajustar tamaño de texto (Accesibilidad)"
@@ -52,7 +48,6 @@ export default function Navbar({ onToggleCart, cartCount }) {
           <span className="hidden sm:inline">Texto</span>
         </button>
 
-        {/* Drawer de Comanda */}
         {user && (
           <button 
             onClick={onToggleCart}
@@ -66,7 +61,6 @@ export default function Navbar({ onToggleCart, cartCount }) {
           </button>
         )}
 
-        {/* Usuario Sesión */}
         {user ? (
           <div className="flex items-center gap-2 pl-2 border-l border-[#F8FFE5]/15">
             <div className="flex items-center gap-2 bg-[#00241B] px-2.5 py-1 rounded-lg border border-[#F8FFE5]/10 text-xs">
