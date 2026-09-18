@@ -1,29 +1,37 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Landing from '../pages/Landing';
 import Login from '../pages/Login';
 import Menu from '../pages/Menu';
 import AdminDashboard from '../pages/AdminDashboard';
 import Unauthorized from '../pages/Unauthorized';
-import { ProtectedRoute } from '../components/ProtectedRoute';
+import ProtectedRoute from '../components/ProtectedRoute';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
-export const AppRouter = () => {
+export function AppRouter() {
   return (
-    <Routes>
-      {/* Rutas Públicas */}
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <div className="flex-grow">
+        <Routes>
+          {/* Rutas Públicas */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/menu" element={<Menu />} /> {/* Acceso público sin login */}
+          <Route path="/unauthorized" element={<Unauthorized />} />
 
-      {/* Rutas Privadas */}
-      <Route element={<ProtectedRoute allowedRoles={['cliente', 'mesero', 'administrador']} />}>
-        <Route path="/menu" element={<Menu />} />
-      </Route>
-
-      <Route element={<ProtectedRoute allowedRoles={['administrador']} />}>
-        <Route path="/admin" element={<AdminDashboard />} />
-      </Route>
-
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+          {/* Rutas Protegidas para Administrador */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute allowedRoles={['administrador']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </div>
+      <Footer />
+    </div>
   );
-};
+}

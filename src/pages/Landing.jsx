@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getWeatherByLocation } from '../services/weatherService';
 import { 
   Utensils, Calendar, ChevronRight, ChevronLeft, Flame, Share2, 
-  Award, ShieldCheck, Clock, MapPin, Phone, Star, CheckCircle2 
+  Award, ShieldCheck, Clock, MapPin, Phone, Star, CloudSun 
 } from 'lucide-react';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [activeSedeKey, setActiveSedeKey] = useState('escazu');
+  const [sedeWeather, setSedeWeather] = useState(null);
 
-  // COORDENADAS Y URLS DE EMBED GOOGLE MAPS PARA LAS SEDES
+  // COORDENADAS Y URLS DE EMBED GOOGLE MAPS PARA LAS SEDES DE EL CACIQUE
   const sedesMap = {
     escazu: {
       nombre: 'Sede Escazú • Centro Culinario',
@@ -32,7 +35,10 @@ export default function Landing() {
     }
   };
 
-  const [activeSedeKey, setActiveSedeKey] = useState('escazu');
+  // Consultar clima en tiempo real según la sede seleccionada
+  useEffect(() => {
+    getWeatherByLocation(activeSedeKey).then(res => setSedeWeather(res));
+  }, [activeSedeKey]);
 
   const heroSlides = [
     {
@@ -122,7 +128,7 @@ export default function Landing() {
               className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#D16014] text-white font-bold text-sm shadow-2xl shadow-[#D16014]/40 hover:bg-[#b8510f] transition-all flex items-center justify-center gap-2"
             >
               <Utensils className="w-4 h-4" />
-              <span>Ver Menú Digital</span>
+              <span>Ver Menú Digital (Público)</span>
             </button>
             <button
               onClick={() => navigate('/login')}
@@ -161,7 +167,7 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* 3. PROPUESTA DE VALOR / POR QUÉ ELEGIRNOS */}
+      {/* 3. PROPUESTA DE VALOR */}
       <section className="py-20 px-6 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-3">
           <span className="text-xs font-bold text-[#D16014] uppercase tracking-widest">Nuestra Promesa</span>
@@ -201,13 +207,13 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4. MAPA INTERACTIVO GOOGLE MAPS CON SELECTOR DE SEDES */}
+      {/* 4. MAPA DE GOOGLE MAPS + CLIMA EN TIEMPO REAL SEGÚN EL LOCAL SELECCIONADO */}
       <section className="py-16 px-6 bg-[#050507] border-y border-[#F8FFE5]/10 space-y-8">
         <div className="max-w-7xl mx-auto space-y-4 text-center">
-          <span className="text-xs font-bold text-[#659B5E] uppercase tracking-widest">Ubicación Geográfica</span>
-          <h2 className="text-3xl font-extrabold text-[#F8FFE5]">Encuentra Tu Sede El Cacique</h2>
+          <span className="text-xs font-bold text-[#659B5E] uppercase tracking-widest">Ubicación Geográfica &amp; Clima</span>
+          <h2 className="text-3xl font-extrabold text-[#F8FFE5]">Nuestras Sedes El Cacique</h2>
           <p className="text-xs text-[#F8FFE5]/60 max-w-xl mx-auto">
-            Selecciona la sede más cercana a ti para explorar su ubicación exacta en Google Maps:
+            Selecciona un local para ver su ubicación en tiempo real y las condiciones climáticas actuales de la zona:
           </p>
 
           {/* BOTONES SELECTORES DE SEDE */}
@@ -229,7 +235,7 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* CONTENEDOR DEL IFRAME DE GOOGLE MAPS */}
+        {/* CONTENEDOR DE INFORMACIÓN DE SEDE + CLIMA API + IFRAME MAPS */}
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
           <div className="lg:col-span-1 space-y-4 bg-[#00241B]/60 p-6 rounded-2xl border border-[#F8FFE5]/10">
             <h3 className="font-bold text-lg text-[#F8FFE5] flex items-center gap-2">
@@ -239,6 +245,20 @@ export default function Landing() {
             <p className="text-xs text-[#F8FFE5]/70 leading-relaxed">
               {sedesMap[activeSedeKey].direccion}
             </p>
+
+            {/* WIDGET DEL CLIMA API EN TIEMPO REAL */}
+            <div className="bg-[#0A090C]/60 border border-[#659B5E]/30 p-3.5 rounded-xl flex items-center gap-3">
+              <CloudSun className="w-6 h-6 text-[#16A34A] animate-pulse" />
+              <div className="text-xs">
+                <span className="block font-bold text-[#F8FFE5]">
+                  Clima Actual: {sedeWeather ? `${sedeWeather.temp}°C` : 'Cargando...'}
+                </span>
+                <span className="text-[10px] text-[#659B5E]">
+                  Viento: {sedeWeather?.windspeed || 0} km/h • {sedesMap[activeSedeKey].nombre.split('•')[0]}
+                </span>
+              </div>
+            </div>
+
             <div className="pt-2 space-y-2 text-xs">
               <div className="flex items-center gap-2 text-[#659B5E]">
                 <Clock className="w-4 h-4" />
@@ -251,7 +271,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="lg:col-span-2 h-[350px] w-full rounded-2xl overflow-hidden border border-[#F8FFE5]/15 shadow-2xl">
+          <div className="lg:col-span-2 h-[380px] w-full rounded-2xl overflow-hidden border border-[#F8FFE5]/15 shadow-2xl">
             <iframe
               title="Google Maps El Cacique"
               src={sedesMap[activeSedeKey].mapUrl}
