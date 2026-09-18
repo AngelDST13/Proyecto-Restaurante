@@ -17,7 +17,7 @@ export function AppRouter() {
           {/* Rutas Públicas */}
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/menu" element={<Menu />} /> {/* Acceso público sin login */}
+          <Route path="/menu" element={<Menu />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* Rutas Protegidas para Administrador */}

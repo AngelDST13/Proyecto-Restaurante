@@ -1,78 +1,118 @@
 import { useState } from 'react';
+import Toast from '../components/Toast';
+import ReservationModal from '../components/ReservationModal';
+import { Utensils, Plus, ShoppingBag, Calendar, CheckCircle2 } from 'lucide-react';
 
 export default function Menu() {
-  const [activeTable, setActiveTable] = useState(12);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCat, setSelectedCat] = useState('todos');
+  const [cart, setCart] = useState([]);
+  const [isReservationOpen, setIsReservationOpen] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
 
-  const tableState = [
-    { n: 1, status: 'free' }, { n: 2, status: 'occupied' }, { n: 3, status: 'free' },
-    { n: 4, status: 'paid' }, { n: 5, status: 'occupied' }, { n: 6, status: 'free' },
-    { n: 7, status: 'occupied' }, { n: 8, status: 'paid' }, { n: 9, status: 'free' },
-    { n: 10, status: 'free' }, { n: 11, status: 'occupied' }, { n: 12, status: 'occupied' },
-    { n: 13, status: 'free' }, { n: 14, status: 'paid' }, { n: 15, status: 'occupied' },
-    { n: 16, status: 'free' }, { n: 17, status: 'free' }, { n: 18, status: 'occupied' }
+  const platillos = [
+    { id: 1, nombre: 'Chifrijo Especial de Paila', cat: 'bocas', precio: 6800, img: 'https://images.unsplash.com/photo-1544025162-d76694265947', desc: 'Chicharrones crujientes, frijoles tiernos, arroz, pico de gallo y aguacate.' },
+    { id: 2, nombre: 'Vigorón Criollo (1kg)', cat: 'platos', precio: 14500, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1', desc: 'Surtido de chicharrón con yuca cocida al vapor y ensalada de repollo arreglada.' },
+    { id: 3, nombre: 'Costilla a la Leña', cat: 'cortes', precio: 9200, img: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b', desc: 'Costilla de cerdo bañado en salsa barbacoa de la casa con tortillas palmeadas.' }
   ];
 
-  const dishes = [
-    { id: 1, name: 'Chifrijo Especial de Paila', cat: 'bocas', price: 6800, img: 'https://images.unsplash.com/photo-1544025162-d76694265947' },
-    { id: 2, name: 'Vigorón Criollo (1kg)', cat: 'platos', price: 14500, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1' },
-    { id: 3, name: 'Costilla a la Leña', cat: 'cortes', price: 9200, img: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b' }
-  ];
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+  };
 
-  const filteredDishes = dishes.filter(d => selectedCategory === 'all' || d.cat === selectedCategory);
+  const addToCart = (item) => {
+    setCart(prev => [...prev, item]);
+    showToast(`${item.nombre} agregado a la comanda`, 'success');
+  };
+
+  const filteredPlatillos = selectedCat === 'todos' 
+    ? platillos 
+    : platillos.filter(p => p.cat === selectedCat);
 
   return (
-    <div className="pt-24 pb-12 px-6 max-w-7xl mx-auto space-y-6">
-      <div className="p-6 rounded-2xl bg-[#00241B]/80 border border-[#F8FFE5]/15">
-        <h2 className="text-xl font-bold text-[#F8FFE5]">Menú Digital & Terminal de Comandas</h2>
-        <p className="text-xs text-[#F8FFE5]/70">Mesa activa asignada: #{activeTable}</p>
-      </div>
+    <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] pt-24 pb-16 px-4 font-sans">
+      
+      {toast.show && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast({ ...toast, show: false })} 
+        />
+      )}
 
-      <div className="p-5 rounded-2xl bg-[#00241B]/60 border border-[#F8FFE5]/10 space-y-3">
-        <h3 className="font-bold text-xs text-[#F8FFE5]">Matriz de Salón en Vivo (18 Mesas)</h3>
-        <div className="grid grid-cols-6 lg:grid-cols-9 gap-2">
-          {tableState.map(t => (
+      {/* MODAL DE RESERVA CON WHATSAPP Y WEB */}
+      <ReservationModal 
+        isOpen={isReservationOpen} 
+        onClose={() => setIsReservationOpen(false)} 
+        onShowToast={showToast} 
+      />
+
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* ENCABEZADO MEJORADO */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#00241B]/80 p-6 rounded-2xl border border-[#F8FFE5]/15 backdrop-blur-md">
+          <div>
+            <span className="text-xs font-bold text-[#D16014] uppercase tracking-widest">Chicharronera El Cacique</span>
+            <h1 className="text-3xl font-extrabold text-[#F8FFE5]">Menú Digital &amp; Terminal de Comandas</h1>
+            <p className="text-xs text-[#F8FFE5]/70 mt-1">Explora nuestras especialidades criollas o agenda tu mesa en vivo</p>
+          </div>
+
+          <div className="flex gap-3 w-full md:w-auto">
             <button
-              key={t.n}
-              onClick={() => setActiveTable(t.n)}
-              className={`p-2 rounded-xl text-center text-xs font-bold border transition-all ${
-                t.n === activeTable ? 'border-[#D16014] bg-[#D16014]/30' : 'bg-[#00241B] border-[#F8FFE5]/10'
+              onClick={() => setIsReservationOpen(true)}
+              className="flex-1 md:flex-none px-5 py-3 rounded-xl bg-[#D16014] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#D16014]/30 hover:bg-[#b8510f]"
+            >
+              <Calendar className="w-4 h-4" /> Reservar Mesa
+            </button>
+            <div className="px-4 py-3 rounded-xl bg-[#001812] border border-[#659B5E]/40 text-xs font-bold flex items-center gap-2 text-[#659B5E]">
+              <ShoppingBag className="w-4 h-4 text-[#D16014]" />
+              <span>Comanda: {cart.length} items</span>
+            </div>
+          </div>
+        </div>
+
+        {/* FILTROS DE CATEGORÍAS */}
+        <div className="flex gap-2 overflow-x-auto pb-2 text-xs font-bold">
+          {['todos', 'bocas', 'platos', 'cortes'].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCat(cat)}
+              className={`px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all ${
+                selectedCat === cat 
+                  ? 'bg-[#D16014] text-white shadow-md' 
+                  : 'bg-[#00241B] text-[#F8FFE5]/60 hover:text-[#F8FFE5]'
               }`}
             >
-              Mesa {String(t.n).padStart(2, '0')}
+              {cat === 'todos' ? 'Todos los Platillos' : cat}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* FILTROS POR CATEGORÍA */}
-      <div className="flex gap-2 text-xs">
-        {['all', 'bocas', 'platos', 'cortes'].map(cat => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-1.5 rounded-full font-bold capitalize transition-all ${
-              selectedCategory === cat ? 'bg-[#D16014] text-[#F8FFE5]' : 'bg-[#00241B] text-[#F8FFE5]/70'
-            }`}
-          >
-            {cat === 'all' ? 'Todos los Platillos' : cat}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {filteredDishes.map(dish => (
-          <div key={dish.id} className="p-4 rounded-2xl bg-[#00241B]/60 border border-[#F8FFE5]/10 space-y-3">
-            <img className="h-40 w-full object-cover rounded-xl" src={dish.img} alt={dish.name} />
-            <h3 className="font-bold text-sm text-[#F8FFE5]">{dish.name}</h3>
-            <div className="flex justify-between items-center">
-              <span className="text-base font-bold text-[#D16014]">₡{dish.price.toLocaleString()}</span>
-              <button className="px-3 py-1.5 rounded-lg bg-[#D16014] text-xs font-bold text-[#F8FFE5]">
-                + Agregar
-              </button>
+        {/* CATÁLOGO DE PLATILLOS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {filteredPlatillos.map((p) => (
+            <div key={p.id} className="bg-[#00241B]/40 border border-[#F8FFE5]/10 rounded-2xl overflow-hidden hover:border-[#D16014]/50 transition-all flex flex-col justify-between">
+              <div className="relative h-48">
+                <img src={p.img} alt={p.nombre} className="w-full h-full object-cover" />
+                <span className="absolute top-3 right-3 px-3 py-1 bg-[#0A090C]/80 backdrop-blur-md rounded-full text-xs font-extrabold text-[#D16014]">
+                  ₡{p.precio.toLocaleString()}
+                </span>
+              </div>
+              <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-base text-[#F8FFE5]">{p.nombre}</h3>
+                  <p className="text-xs text-[#F8FFE5]/70 mt-1">{p.desc}</p>
+                </div>
+                <button
+                  onClick={() => addToCart(p)}
+                  className="w-full py-2.5 rounded-xl bg-[#D16014] text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#b8510f] transition-all"
+                >
+                  <Plus className="w-4 h-4" /> Agregar a Comanda
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
       </div>
     </div>
   );
