@@ -1,13 +1,14 @@
 # 🍽️ GourmetSync — Sistema Integrado de Gestión Operativa y Experiencia Gastronómica
 
-Plataforma web integral desarrollada con **React** y **Tailwind CSS** enfocada en automatizar los flujos de atención al cliente (interfaz pública) y la gestión interna del restaurante (Backoffice/POS)[cite: 2].
+Plataforma web integral desarrollada con **React** y **Tailwind CSS** enfocada en automatizar los flujos de atención al cliente (Frontend Externo) y la administración interna de restaurante (Backoffice/POS).
 
 ---
 
 ## 👥 Equipo de Desarrollo & Créditos
 
-* **Angel D. Salazar T.** (Desarrollador Principal — Prototipo Gastronómico & Backoffice)
-
+* **Angel Daniela Salazar T.** (Desarrolladora Principal — Prototipo Gastronómico & Backoffice)
+* **Bryan Gómez** (Integración de Procesos Empresariales)
+* **Víctor González** (Gestión Operativa y Control)
 
 > **Nota de Propiedad:** Esta solución representa un desarrollo original ideado y diseñado como un proyecto empresarial propio para su comercialización en el sector gastronómico.
 
@@ -23,6 +24,7 @@ Plataforma web integral desarrollada con **React** y **Tailwind CSS** enfocada e
 * **JSON Server** (Backend REST Simulado en `db.json`)[cite: 2, 3, 4]
 * **Recharts** (Visualización de Métricas y Gráficos Administrativos)
 * **Lucide React** (Iconografía Semántica)
+* **N8N** (Automatización de Flujos por Webhooks)
 
 ### 📦 Guía de Instalación de Dependencias
 

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useAccessibility } from "../context/AccessibilityContext";
+import { useAccessibility } from '../hooks/useAccessibility';
 import { Utensils, ShoppingBag, LogOut, Type } from 'lucide-react';
 
 export default function Navbar({ onToggleCart, cartCount }) {
