@@ -8,6 +8,7 @@ import {
   Package, ShieldAlert, Plus
 } from 'lucide-react';
 
+export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [weather, setWeather] = useState(null);
@@ -22,7 +23,7 @@ import {
     { id: 1, ingrediente: 'Chicharrón de Paila', cat: 'Carnes', stock: 45, max: 100, unidad: 'kg', estado: 'Normal', valor: '₡225,000' },
     { id: 2, ingrediente: 'Yuca Criolla', cat: 'Vegetales', stock: 12, max: 80, unidad: 'kg', estado: 'Crítico', valor: '₡18,000' },
     { id: 3, ingrediente: 'Frijoles Tiernos', cat: 'Granos', stock: 60, max: 100, unidad: 'kg', estado: 'Normal', valor: '₡90,000' },
-    { id: 4, ingrediente: 'Aguacate Hass', cat: 'Vegetales', stock: 8, max: 50, unidad: 'kg', estado: 'Crítico', valor: '₡32,000' },
+    { id: 4, ingrediente: 'Aguacate Hass', cat: 'Vegetales', stock: 8, max: 50, unidad: 'kg', estado: 'Crítico', valor: '₡32,000' }
   ]);
 
   // 2. ESTADO DE EMPLEADOS & HORARIOS
@@ -100,7 +101,7 @@ import {
       {/* MODAL VER DETALLES */}
       {modalItem && (
         <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-scale-up">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <h3 className="font-bold text-lg text-gray-900 border-b pb-2">Detalles del Registro</h3>
             <pre className="text-xs bg-gray-50 p-4 rounded-xl text-gray-700 overflow-x-auto">
               {JSON.stringify(modalItem, null, 2)}
@@ -222,7 +223,7 @@ import {
 
         {/* MÓDULO 1: DASHBOARD GENERAL */}
         {activeTab === 'dashboard' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-[#FEF3C7]/50 border border-[#FDE68A] p-5 rounded-2xl space-y-2">
                 <span className="text-xs font-bold text-amber-800">Pedidos Hoy</span>
@@ -291,9 +292,9 @@ import {
           </div>
         )}
 
-        {/* MÓDULO 2: CONTROL DE INVENTARIO (CON BOTONES VER, EDITAR, BORRAR) */}
+        {/* MÓDULO 2: CONTROL DE INVENTARIO */}
         {activeTab === 'inventory' && (
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6 animate-fade-in">
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h3 className="font-bold text-base text-gray-900">Gestión de Inventario &amp; Stock</h3>
@@ -376,10 +377,9 @@ import {
           </div>
         )}
 
-        {/* MÓDULO 3: EMPLEADOS & HORARIOS DE LA SEMANA */}
+        {/* MÓDULO 3: EMPLEADOS & HORARIOS */}
         {activeTab === 'employees' && (
-          <div className="space-y-6 animate-fade-in">
-            {/* FORMULARIO AGREGAR EMPLEADO */}
+          <div className="space-y-6">
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
               <h3 className="font-bold text-sm text-gray-900">Registrar Nuevo Empleado / Asignar Horario</h3>
               <form onSubmit={handleAddEmployee} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
@@ -416,7 +416,6 @@ import {
               </form>
             </div>
 
-            {/* TABLA DE EMPLEADOS */}
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
               <h3 className="font-bold text-base text-gray-900">Personal Registrado &amp; Horarios Semanales</h3>
               <div className="overflow-x-auto text-xs">
@@ -463,9 +462,9 @@ import {
           </div>
         )}
 
-        {/* MÓDULO 4: CONTROL DE SESIONES ACTIVAS (CIERRE DE SESIÓN FORZADO) */}
+        {/* MÓDULO 4: CONTROL DE SESIONES ACTIVAS */}
         {activeTab === 'sessions' && (
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6 animate-fade-in">
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
             <div>
               <h3 className="font-bold text-base text-gray-900">Control de Sesiones de Usuario Activas</h3>
               <p className="text-xs text-gray-400">Monitoreo de accesos concurrentes y cierre forzado de seguridad</p>
@@ -513,7 +512,7 @@ import {
 
         {/* MÓDULO 5: ENVÍO DE CORREOS */}
         {activeTab === 'email' && (
-          <div className="max-w-xl bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 animate-fade-in">
+          <div className="max-w-xl bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
             <h3 className="font-bold text-base text-gray-900">Envío de Correos Institucionales</h3>
             <form onSubmit={handleSendEmail} className="space-y-3 text-xs">
               <div>
