@@ -1,28 +1,57 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Utensils, Calendar, ChevronRight, ChevronLeft, Flame, Share2, Award, ShieldCheck, Clock, MapPin } from 'lucide-react';
+import { 
+  Utensils, Calendar, ChevronRight, ChevronLeft, Flame, Share2, 
+  Award, ShieldCheck, Clock, MapPin, Phone, Star, CheckCircle2 
+} from 'lucide-react';
 
 export default function Landing() {
   const navigate = useNavigate();
+
+  // COORDENADAS Y URLS DE EMBED GOOGLE MAPS PARA LAS SEDES
+  const sedesMap = {
+    escazu: {
+      nombre: 'Sede Escazú • Centro Culinario',
+      direccion: 'San José, Escazú Centro, Costa Rica',
+      mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3929.982390238495!2d-84.1420!3d9.9304!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e3639a0937a7%3A0x8ad970d4f3e6e87d!2sEscaz%C3%BA%2C%20San%20Jos%C3%A9!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr'
+    },
+    santa_ana: {
+      nombre: 'Sede Santa Ana • Plaza Real',
+      direccion: 'San José, Santa Ana, Costa Rica',
+      mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3929.9542103849!2d-84.1826!3d9.9326!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e3020b6d5f7b%3A0x4386bf6beecf5fa8!2sSanta%20Ana%2C%20San%20Jos%C3%A9!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr'
+    },
+    cartago: {
+      nombre: 'Sede Cartago • Paso Ancho',
+      direccion: 'Cartago Centro, Costa Rica',
+      mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3930.6842103849!2d-83.9162!3d9.8638!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e1815db4bfbd%3A0x9d11fa84c3043813!2sCartago!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr'
+    },
+    heredia: {
+      nombre: 'Sede Heredia • Vía Central',
+      direccion: 'Heredia Centro, Costa Rica',
+      mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3929.2842103849!2d-84.1169!3d9.9984!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e3b97b0937a7%3A0x6b9070d4f3e6e87d!2sHeredia!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr'
+    }
+  };
+
+  const [activeSedeKey, setActiveSedeKey] = useState('escazu');
 
   const heroSlides = [
     {
       url: 'https://images.unsplash.com/photo-1544025162-d76694265947',
       tag: 'Tradición & Fuego Culinario',
-      title: 'Chicharronera Gourmet & Cervecería',
-      sub: 'Chicharrones crujientes de la purita paila, ceviches arreglados y cortes a la leña con la mejor vibra tica.'
+      title: 'Chicharronera El Cacique',
+      sub: 'Chicharrones crujientes de la purita paila, ceviches arreglados y cortes a la leña con el auténtico sabor costarricense.'
     },
     {
       url: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1',
       tag: 'Especialidad de la Casa',
       title: 'Sabor Criollo a la Leña',
-      sub: 'Ingredientes seleccionados, tortillas palmeadas al momento y recetas tradicionales de nuestros abuelos.'
+      sub: 'Ingredientes seleccionados, tortillas palmeadas al momento y recetas tradicionales criollas de nuestros abuelos.'
     },
     {
       url: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b',
       tag: 'Maridaje & Coctelería',
       title: 'Cervezas Artesanales & Tragos de Autor',
-      sub: 'La combinación perfecta para acompañar tu surtido de chicharrones con limón mesino fresco.'
+      sub: 'La combinación perfecta para acompañar tu surtido de chicharrones con limón mesino fresco y pico de gallo.'
     }
   ];
 
@@ -40,8 +69,9 @@ export default function Landing() {
 
   return (
     <div className="bg-[#0A090C] text-[#F8FFE5] overflow-x-hidden font-sans">
-      {/* HERO SLIDER */}
-      <section className="relative h-screen min-h-[620px] flex items-center justify-center overflow-hidden">
+      
+      {/* 1. HERO SLIDER */}
+      <section className="relative h-screen min-h-[640px] flex items-center justify-center overflow-hidden">
         {heroSlides.map((slide, index) => (
           <div
             key={index}
@@ -117,64 +147,169 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* BANNER INFORMATIVO */}
+      {/* 2. CINTILLO DISTINTIVO */}
       <div className="bg-[#00241B] border-y border-[#659B5E]/30 py-4 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-[#659B5E] uppercase tracking-wider text-center md:text-left">
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5 text-[#D16014]" />
-            <span>Premio Gastronómico 2026: Mejor Chifrijo del País</span>
+            <span>Chicharronera El Cacique • Premio Culinario 2026</span>
           </div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-[#659B5E]" />
-            <span>Ingredientes 100% Frescos de Productores Locales</span>
+            <span>Ingredientes 100% Nacionales & Preparación al Instante</span>
           </div>
         </div>
       </div>
 
-      {/* CARACTERÍSTICAS PRINCIPALES */}
+      {/* 3. PROPUESTA DE VALOR / POR QUÉ ELEGIRNOS */}
       <section className="py-20 px-6 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-3">
           <span className="text-xs font-bold text-[#D16014] uppercase tracking-widest">Nuestra Promesa</span>
-          <h2 className="text-3xl font-extrabold text-[#F8FFE5]">¿Por qué elegir GourmetSync?</h2>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F8FFE5]">La Experiencia Criolla El Cacique</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-[#00241B]/40 border border-[#F8FFE5]/10 p-8 rounded-2xl space-y-4 text-center">
+          <div className="bg-[#00241B]/40 border border-[#F8FFE5]/10 p-8 rounded-2xl space-y-4 text-center hover:border-[#D16014]/50 transition-all">
             <div className="w-12 h-12 bg-[#D16014]/20 text-[#D16014] rounded-2xl flex items-center justify-center mx-auto">
               <Flame className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-[#F8FFE5]">Cocción Tradicional</h3>
+            <h3 className="text-lg font-bold text-[#F8FFE5]">Cocción Tradicional en Paila</h3>
             <p className="text-xs text-[#F8FFE5]/70 leading-relaxed">
-              Pailas de hierro fundido a fuego de leña que garantizan una crocancia perfecta y el sabor auténtico costarricense.
+              Mantener el secreto criollo con pailas de hierro fundido a fuego de leña que aseguran la textura crocante ideal.
             </p>
           </div>
 
-          <div className="bg-[#00241B]/40 border border-[#F8FFE5]/10 p-8 rounded-2xl space-y-4 text-center">
+          <div className="bg-[#00241B]/40 border border-[#F8FFE5]/10 p-8 rounded-2xl space-y-4 text-center hover:border-[#659B5E]/50 transition-all">
             <div className="w-12 h-12 bg-[#659B5E]/20 text-[#659B5E] rounded-2xl flex items-center justify-center mx-auto">
               <Clock className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-[#F8FFE5]">Servicio en Tiempo Real</h3>
+            <h3 className="text-lg font-bold text-[#F8FFE5]">Atención & Comanda Digital</h3>
             <p className="text-xs text-[#F8FFE5]/70 leading-relaxed">
-              Tu pedido entra directo a la comanda digital de la cocina al momento de ordenar, evitando tiempos muertos.
+              Integración tecnológica en tiempo real que traslada tu pedido directo a cocina sin demoras ni errores.
             </p>
           </div>
 
-          <div className="bg-[#00241B]/40 border border-[#F8FFE5]/10 p-8 rounded-2xl space-y-4 text-center">
+          <div className="bg-[#00241B]/40 border border-[#F8FFE5]/10 p-8 rounded-2xl space-y-4 text-center hover:border-amber-500/50 transition-all">
             <div className="w-12 h-12 bg-amber-500/20 text-amber-500 rounded-2xl flex items-center justify-center mx-auto">
               <MapPin className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-[#F8FFE5]">4 Sedes Estratégicas</h3>
+            <h3 className="text-lg font-bold text-[#F8FFE5]">Cobertura en 4 Sedes</h3>
             <p className="text-xs text-[#F8FFE5]/70 leading-relaxed">
-              Encuéntranos en Escazú, Santa Ana, Cartago y Heredia con el mismo estándar de calidad y frescura.
+              Encuéntranos en Escazú, Santa Ana, Cartago y Heredia manteniendo la misma sazón en cada rincón.
             </p>
           </div>
         </div>
       </section>
 
-      {/* FOOTER DE REDES SOCIALES */}
+      {/* 4. MAPA INTERACTIVO GOOGLE MAPS CON SELECTOR DE SEDES */}
+      <section className="py-16 px-6 bg-[#050507] border-y border-[#F8FFE5]/10 space-y-8">
+        <div className="max-w-7xl mx-auto space-y-4 text-center">
+          <span className="text-xs font-bold text-[#659B5E] uppercase tracking-widest">Ubicación Geográfica</span>
+          <h2 className="text-3xl font-extrabold text-[#F8FFE5]">Encuentra Tu Sede El Cacique</h2>
+          <p className="text-xs text-[#F8FFE5]/60 max-w-xl mx-auto">
+            Selecciona la sede más cercana a ti para explorar su ubicación exacta en Google Maps:
+          </p>
+
+          {/* BOTONES SELECTORES DE SEDE */}
+          <div className="flex flex-wrap justify-center gap-3 pt-2">
+            {Object.keys(sedesMap).map((key) => (
+              <button
+                key={key}
+                onClick={() => setActiveSedeKey(key)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                  activeSedeKey === key 
+                    ? 'bg-[#D16014] text-white shadow-lg shadow-[#D16014]/30 scale-105' 
+                    : 'bg-[#00241B] text-[#F8FFE5]/70 hover:bg-[#00241B]/80'
+                }`}
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                <span>{sedesMap[key].nombre.split('•')[0]}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* CONTENEDOR DEL IFRAME DE GOOGLE MAPS */}
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+          <div className="lg:col-span-1 space-y-4 bg-[#00241B]/60 p-6 rounded-2xl border border-[#F8FFE5]/10">
+            <h3 className="font-bold text-lg text-[#F8FFE5] flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-[#D16014]" />
+              {sedesMap[activeSedeKey].nombre}
+            </h3>
+            <p className="text-xs text-[#F8FFE5]/70 leading-relaxed">
+              {sedesMap[activeSedeKey].direccion}
+            </p>
+            <div className="pt-2 space-y-2 text-xs">
+              <div className="flex items-center gap-2 text-[#659B5E]">
+                <Clock className="w-4 h-4" />
+                <span>Lun - Dom: 11:30 AM - 11:00 PM</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#D16014]">
+                <Phone className="w-4 h-4" />
+                <span>Central: +506 2200-8888</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-2 h-[350px] w-full rounded-2xl overflow-hidden border border-[#F8FFE5]/15 shadow-2xl">
+            <iframe
+              title="Google Maps El Cacique"
+              src={sedesMap[activeSedeKey].mapUrl}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. TESTIMONIOS DE CLIENTES */}
+      <section className="py-20 px-6 max-w-7xl mx-auto space-y-12">
+        <div className="text-center space-y-2">
+          <span className="text-xs font-bold text-[#D16014] uppercase tracking-widest">Experiencias</span>
+          <h2 className="text-3xl font-extrabold text-[#F8FFE5]">Lo que dicen nuestros comensales</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+          <div className="p-6 rounded-2xl bg-[#00241B]/30 border border-[#F8FFE5]/10 space-y-3">
+            <div className="flex text-amber-400 gap-1">
+              {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
+            </div>
+            <p className="text-[#F8FFE5]/80 italic">
+              "El mejor chifrijo de Escazú por mucho. El chicharrón es súper crujiente y la atención inmediata mediante la mesa digital."
+            </p>
+            <div className="font-bold text-[#F8FFE5]">— Carlos A.</div>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-[#00241B]/30 border border-[#F8FFE5]/10 space-y-3">
+            <div className="flex text-amber-400 gap-1">
+              {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
+            </div>
+            <p className="text-[#F8FFE5]/80 italic">
+              "Los chicharrones en paila tienen el toque criollo verdadero. Excelente ambiente familiar en la sede de Cartago."
+            </p>
+            <div className="font-bold text-[#F8FFE5]">— María José R.</div>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-[#00241B]/30 border border-[#F8FFE5]/10 space-y-3">
+            <div className="flex text-amber-400 gap-1">
+              {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
+            </div>
+            <p className="text-[#F8FFE5]/80 italic">
+              "La cerveza artesanal fría combinación perfecta con las yucas y la carne de cerdo a la leña. Volveré siempre."
+            </p>
+            <div className="font-bold text-[#F8FFE5]">— Esteban V.</div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. PIE DE PÁGINA Y REDES SOCIALES */}
       <section className="bg-[#050507] border-t border-[#F8FFE5]/10 py-12 px-6 text-center space-y-6">
         <h3 className="text-xl font-extrabold text-[#F8FFE5] tracking-widest uppercase">
-          #ChicharroneraGourmet
+          #ChicharroneraElCacique
         </h3>
         <p className="text-xs text-[#F8FFE5]/60">Síguenos y comparte tus fotografías en nuestras instalaciones</p>
         <div className="flex justify-center gap-4">
