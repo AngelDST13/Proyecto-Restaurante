@@ -3,12 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { getWeatherByLocation } from '../services/weatherService';
 import Toast from '../components/Toast';
 import { 
-  LayoutDashboard, ShoppingBag, CreditCard, Users, 
+  LayoutDashboard, CreditCard, Users, 
   Mail, LogOut, CloudSun, Send, Eye, Edit3, Trash2, 
-  Package, Clock, CheckCircle2, AlertTriangle, ShieldAlert, Plus, Search, Filter
+  Package, ShieldAlert, Plus
 } from 'lucide-react';
 
-export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [weather, setWeather] = useState(null);
