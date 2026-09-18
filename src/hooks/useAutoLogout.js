@@ -1,16 +1,21 @@
 import { useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export const useAutoLogout = (timeoutInMinutes = 5) => {
+export const useAutoLogout = (onLogoutNotify, timeoutInMinutes = 5) => {
   const { user, logout } = useAuth();
 
   const handleLogout = useCallback(() => {
-    alert('Su sesión ha caducado por inactividad (5 minutos). Por favor, inicie sesión nuevamente.');
-    logout();
-  }, [logout]);
+    if (user?.rol === 'cliente') {
+      logout();
+      if (onLogoutNotify) {
+        onLogoutNotify('Su sesión ha caducado por inactividad (5 minutos).', 'info');
+      }
+    }
+  }, [user, logout, onLogoutNotify]);
 
   useEffect(() => {
-    if (!user) return;
+    // CONDICIONAL: Solo activa el temporizador si el usuario existe y su rol es CLIENTE
+    if (!user || user.rol !== 'cliente') return;
 
     let timer = setTimeout(handleLogout, timeoutInMinutes * 60 * 1000);
 
