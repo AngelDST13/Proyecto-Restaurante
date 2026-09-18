@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { UserPlus, LogIn, Lock, Mail, User, Phone, IdCard } from 'lucide-react';
+import { Lock, Mail, User, Phone, IdCard } from 'lucide-react';
 
 export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -11,9 +11,8 @@ export default function Login() {
   const handleAuthSubmit = (e) => {
     e.preventDefault();
     const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
 
-    const loggedUser = login(email, password);
+    const loggedUser = login(email);
     alert(isRegistering ? '¡Registro completado con éxito!' : '¡Sesión iniciada correctamente!');
     
     if (loggedUser.rol === 'administrador') navigate('/admin');
@@ -33,7 +32,6 @@ export default function Login() {
           </p>
         </div>
 
-        {/* SWAPPER DE LOGIN / REGISTRO */}
         <div className="flex bg-[#0A090C] p-1 rounded-xl border border-[#F8FFE5]/10 text-xs font-bold">
           <button
             onClick={() => setIsRegistering(false)}
@@ -50,7 +48,6 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleAuthSubmit} className="space-y-4 text-xs">
-          
           {isRegistering && (
             <>
               <div>

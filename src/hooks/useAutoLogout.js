@@ -1,32 +1,30 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export const useAutoLogout = (timeoutInMinutes = 5) => {
   const { user, logout } = useAuth();
-  const timerRef = useRef(null);
 
-  const resetTimer = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (user) {
-      timerRef.current = setTimeout(() => {
-        alert('Su sesión ha caducado por inactividad (5 minutos). Por favor, inicie sesión nuevamente.');
-        logout();
-      }, timeoutInMinutes * 60 * 1000);
-    }
-  };
+  const handleLogout = useCallback(() => {
+    alert('Su sesión ha caducado por inactividad (5 minutos). Por favor, inicie sesión nuevamente.');
+    logout();
+  }, [logout]);
 
   useEffect(() => {
-    const events = ['mousemove', 'keydown', 'click', 'scroll'];
-    const handleActivity = () => resetTimer();
+    if (!user) return;
 
-    if (user) {
-      resetTimer();
-      events.forEach((evt) => window.addEventListener(evt, handleActivity));
-    }
+    let timer = setTimeout(handleLogout, timeoutInMinutes * 60 * 1000);
+
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(handleLogout, timeoutInMinutes * 60 * 1000);
+    };
+
+    const events = ['mousemove', 'keydown', 'click', 'scroll'];
+    events.forEach((evt) => window.addEventListener(evt, resetTimer));
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      events.forEach((evt) => window.removeEventListener(evt, handleActivity));
+      clearTimeout(timer);
+      events.forEach((evt) => window.removeEventListener(evt, resetTimer));
     };
-  }, [user]);
+  }, [user, timeoutInMinutes, handleLogout]);
 };
