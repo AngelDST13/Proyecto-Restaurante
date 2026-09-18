@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, Phone, Calendar, Clock, MapPin, Users, X, Send } from 'lucide-react';
+import { MessageSquare, Phone, Calendar, MapPin, X, Send } from 'lucide-react';
 
 export default function ReservationModal({ isOpen, onClose, onShowToast }) {
   const [method, setMethod] = useState('web'); // 'web' | 'whatsapp' | 'phone'
@@ -15,10 +15,9 @@ export default function ReservationModal({ isOpen, onClose, onShowToast }) {
 
   if (!isOpen) return null;
 
-  // Lógica para enviar reserva vía WhatsApp API direct link
   const handleWhatsAppSubmit = (e) => {
     e.preventDefault();
-    const phone = '50622008888'; // Número central de Chicharronera El Cacique
+    const phone = '50622008888';
     const text = encodeURIComponent(
       `¡Hola Chicharronera El Cacique! Deseo reservar una mesa con los siguientes datos:\n` +
       `• Nombre: ${formData.nombre}\n` +
@@ -52,7 +51,7 @@ export default function ReservationModal({ isOpen, onClose, onShowToast }) {
           <p className="text-xs text-[#F8FFE5]/60">Selecciona tu método preferido para agendar tu visita:</p>
         </div>
 
-        {/* SELECTOR DE MÉTODOS DE RESERVA */}
+        {/* SELECTOR DE MÉTODOS */}
         <div className="grid grid-cols-3 gap-2 bg-[#001812] p-1.5 rounded-xl border border-[#F8FFE5]/10 text-xs font-bold">
           <button
             onClick={() => setMethod('web')}
@@ -82,7 +81,7 @@ export default function ReservationModal({ isOpen, onClose, onShowToast }) {
           </button>
         </div>
 
-        {/* MÉTODO 1: FORMULARIO EN LÍNEA */}
+        {/* MÉTODO 1: EN LÍNEA */}
         {method === 'web' && (
           <form onSubmit={handleWebSubmit} className="space-y-4 text-xs">
             <div className="grid grid-cols-2 gap-3">
@@ -168,10 +167,10 @@ export default function ReservationModal({ isOpen, onClose, onShowToast }) {
           </form>
         )}
 
-        {/* MÉTODO 2: WHATSAPP API */}
+        {/* MÉTODO 2: WHATSAPP */}
         {method === 'whatsapp' && (
           <form onSubmit={handleWhatsAppSubmit} className="space-y-4 text-xs">
-            <p className="text-[#F8FFE5]/70">Ingresa tus datos y te redirigiremos a WhatsApp con un mensaje estructurado:</p>
+            <p className="text-[#F8FFE5]/70">Ingresa tus datos y te redirigiremos a WhatsApp con tu mensaje listo:</p>
             <input
               type="text"
               required
@@ -205,12 +204,12 @@ export default function ReservationModal({ isOpen, onClose, onShowToast }) {
           </form>
         )}
 
-        {/* MÉTODO 3: VÍA TELEFÓNICA */}
+        {/* MÉTODO 3: TELÉFONO */}
         {method === 'phone' && (
           <div className="space-y-4 text-xs text-center py-4 bg-[#001812]/80 p-6 rounded-2xl border border-[#F8FFE5]/10">
             <Phone className="w-8 h-8 text-amber-500 mx-auto" />
             <h4 className="font-bold text-sm text-[#F8FFE5]">Central Telefónica Directa</h4>
-            <p className="text-[#F8FFE5]/70">Llama directamente a nuestro centro de reservaciones de Lunes a Domingo de 11:00 AM a 10:00 PM:</p>
+            <p className="text-[#F8FFE5]/70">Llama a nuestro centro de reservaciones (Lun - Dom: 11:00 AM - 10:00 PM):</p>
             <a href="tel:+50622008888" className="inline-block px-6 py-3 bg-amber-600 text-white font-bold rounded-xl text-sm hover:bg-amber-700">
               Llamar Ahora: +506 2200-8888
             </a>

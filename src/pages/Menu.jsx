@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Toast from '../components/Toast';
 import ReservationModal from '../components/ReservationModal';
-import { Utensils, Plus, ShoppingBag, Calendar, CheckCircle2 } from 'lucide-react';
+import { Plus, ShoppingBag, Calendar } from 'lucide-react';
 
 export default function Menu() {
   const [selectedCat, setSelectedCat] = useState('todos');
@@ -39,7 +39,6 @@ export default function Menu() {
         />
       )}
 
-      {/* MODAL DE RESERVA CON WHATSAPP Y WEB */}
       <ReservationModal 
         isOpen={isReservationOpen} 
         onClose={() => setIsReservationOpen(false)} 
@@ -48,7 +47,6 @@ export default function Menu() {
 
       <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* ENCABEZADO MEJORADO */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#00241B]/80 p-6 rounded-2xl border border-[#F8FFE5]/15 backdrop-blur-md">
           <div>
             <span className="text-xs font-bold text-[#D16014] uppercase tracking-widest">Chicharronera El Cacique</span>
@@ -70,7 +68,6 @@ export default function Menu() {
           </div>
         </div>
 
-        {/* FILTROS DE CATEGORÍAS */}
         <div className="flex gap-2 overflow-x-auto pb-2 text-xs font-bold">
           {['todos', 'bocas', 'platos', 'cortes'].map((cat) => (
             <button
@@ -87,7 +84,6 @@ export default function Menu() {
           ))}
         </div>
 
-        {/* CATÁLOGO DE PLATILLOS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {filteredPlatillos.map((p) => (
             <div key={p.id} className="bg-[#00241B]/40 border border-[#F8FFE5]/10 rounded-2xl overflow-hidden hover:border-[#D16014]/50 transition-all flex flex-col justify-between">
