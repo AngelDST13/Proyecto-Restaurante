@@ -1,16 +1,36 @@
-# React + Vite
+# 🍽️ GourmetSync — Sistema Integrado de Gestión Operativa y Experiencia Gastronómica
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Plataforma web integral desarrollada con **React** y **Tailwind CSS** enfocada en automatizar los flujos de atención al cliente (interfaz pública) y la gestión interna del restaurante (Backoffice/POS)[cite: 2].
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 👥 Equipo de Desarrollo & Créditos
 
-## React Compiler
+* **Angel D. Salazar T.** (Desarrollador Principal — Prototipo Gastronómico & Backoffice)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+> **Nota de Propiedad:** Esta solución representa un desarrollo original ideado y diseñado como un proyecto empresarial propio para su comercialización en el sector gastronómico.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠️ Tecnologías e Instalaciones
+
+### Tecnologías Base
+
+* **React 18** (Vite)
+* **React Router DOM v6** (Enrutamiento y Rutas Privadas por Rol)
+* **Tailwind CSS v4** (Diseño Responsive Glassmorphism Lux)
+* **JSON Server** (Backend REST Simulado en `db.json`)[cite: 2, 3, 4]
+* **Recharts** (Visualización de Métricas y Gráficos Administrativos)
+* **Lucide React** (Iconografía Semántica)
+
+### 📦 Guía de Instalación de Dependencias
+
+Para replicar el entorno de desarrollo desde cero en la terminal de VS Code:
+
+```bash
+# 1. Dependencias de producción
+npm install react-router-dom axios recharts lucide-react
+
+# 2. Dependencias de desarrollo e integración de Tailwind v4
+npm install -D json-server tailwindcss postcss autoprefixer @tailwindcss/vite
