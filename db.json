@@ -1,1 +1,52 @@
-{}
+{
+  "usuarios": [
+    {
+      "id": "1",
+      "email": "admin@gourmetsync.com",
+      "nombre": "Angel Salazar",
+      "rol": "administrador"
+    },
+    {
+      "id": "2",
+      "email": "mesero@gourmetsync.com",
+      "nombre": "Bryan Gómez",
+      "rol": "mesero"
+    },
+    {
+      "id": "3",
+      "email": "cliente@gourmetsync.com",
+      "nombre": "Víctor González",
+      "rol": "cliente"
+    }
+  ],
+  "platillos": [
+    {
+      "id": "1",
+      "nombre": "Tartar de Atún Rojo Bluefin",
+      "categoria": "entradas",
+      "precio": 32.0,
+      "stock": "En Stock",
+      "descripcion": "Lomo balear marinado con aceite de sésamo y aguacate hass.",
+      "imagen": "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb"
+    },
+    {
+      "id": "2",
+      "nombre": "Ribeye Black Angus Prime 400g",
+      "categoria": "cortes",
+      "precio": 68.0,
+      "stock": "Maduración 30D",
+      "descripcion": "Papas trufadas y reducción de vino tinto Malbec.",
+      "imagen": "https://images.unsplash.com/photo-1558030006-450675393462"
+    },
+    {
+      "id": "3",
+      "nombre": "Langosta Caribeña al Gratén",
+      "categoria": "mariscos",
+      "precio": 84.0,
+      "stock": "Pesca Sostenible",
+      "descripcion": "Glaseada con bechamel de eneldo y queso suizo Gruyère.",
+      "imagen": "https://images.unsplash.com/photo-1565680018434-b513d5e5fd47"
+    }
+  ],
+  "comandas": []
+}

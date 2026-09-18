@@ -1,53 +1,56 @@
-import { useState, useEffect } from 'react';
-import { api } from '../services/api';
-import { aiService } from '../services/aiService';
+import React, { useState } from 'react';
 
-export default function Menu({ onAddToCart }) {
-  const [menu, setMenu] = useState([]);
+export default function Menu() {
   const [activeTable, setActiveTable] = useState(12);
-  const [aiRecomendacion, setAiRecomendacion] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  useEffect(() => {
-    api.getMenu().then(data => setMenu(data));
-  }, []);
+  const tableState = [
+    { n: 1, status: 'free' }, { n: 2, status: 'occupied' }, { n: 3, status: 'free' },
+    { n: 4, status: 'paid' }, { n: 5, status: 'occupied' }, { n: 6, status: 'free' },
+    { n: 7, status: 'occupied' }, { n: 8, status: 'paid' }, { n: 9, status: 'free' },
+    { n: 10, status: 'free' }, { n: 11, status: 'occupied' }, { n: 12, status: 'occupied' },
+    { n: 13, status: 'free' }, { n: 14, status: 'paid' }, { n: 15, status: 'occupied' },
+    { n: 16, status: 'free' }, { n: 17, status: 'free' }, { n: 18, status: 'occupied' }
+  ];
 
-  const solicitarIA = async () => {
-    const res = await aiService.getRecommendation('Corte noble', 70000, menu);
-    setAiRecomendacion(res);
-  };
+  const dishes = [
+    { id: 1, name: 'Tartar de Atún Rojo Bluefin', cat: 'entradas', price: 32.00, img: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb' },
+    { id: 2, name: 'Ribeye Black Angus Prime 400g', cat: 'cortes', price: 68.00, img: 'https://images.unsplash.com/photo-1558030006-450675393462' },
+    { id: 3, name: 'Langosta Caribeña al Gratén', cat: 'mariscos', price: 84.00, img: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47' }
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-      {/* Subheader */}
-      <div className="flex justify-between items-center p-6 rounded-2xl bg-[#00241B]/80 border border-[#F8FFE5]/15">
-        <div>
-          <h1 className="text-2xl font-bold text-[#F8FFE5]">Menú Digital & Terminal de Comandas</h1>
-          <p className="text-xs text-[#F8FFE5]/70">Mesa activa seleccionada: #{activeTable}</p>
-        </div>
-        <button onClick={solicitarIA} className="px-4 py-2 rounded-xl bg-[#659B5E] text-[#F8FFE5] text-xs font-bold">
-          ✨ Sugerencia Asistente IA
-        </button>
+    <div className="pt-24 pb-12 px-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-6 rounded-2xl bg-[#00241B]/80 border border-[#F8FFE5]/15">
+        <h2 className="text-xl font-bold text-[#F8FFE5]">Menú Digital & Terminal de Comandas</h2>
+        <p className="text-xs text-[#F8FFE5]/70">Mesa activa asignada: #{activeTable}</p>
       </div>
 
-      {aiRecomendacion && (
-        <div className="p-4 rounded-xl bg-[#D16014]/20 border border-[#D16014] text-xs">
-          <p className="font-bold text-[#F8FFE5]">{aiRecomendacion.sugerencia}</p>
-          <p className="text-[#659B5E] mt-1">Maridaje recomendado: {aiRecomendacion.maridaje}</p>
+      <div className="p-5 rounded-2xl bg-[#00241B]/60 border border-[#F8FFE5]/10 space-y-3">
+        <h3 className="font-bold text-xs text-[#F8FFE5]">Matriz de Salón en Vivo (18 Mesas)</h3>
+        <div className="grid grid-cols-6 lg:grid-cols-9 gap-2">
+          {tableState.map(t => (
+            <button
+              key={t.n}
+              onClick={() => setActiveTable(t.n)}
+              className={`p-2 rounded-xl text-center text-xs font-bold border ${
+                t.n === activeTable ? 'border-[#D16014] bg-[#D16014]/30' : 'bg-[#00241B] border-[#F8FFE5]/10'
+              }`}
+            >
+              Mesa {String(t.n).padStart(2, '0')}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Grid de Platillos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {menu.map((dish) => (
-          <div key={dish.id} className="rounded-2xl bg-[#00241B]/60 border border-[#F8FFE5]/10 overflow-hidden p-4 space-y-3">
-            <img src={dish.imagen} alt={dish.nombre} className="h-40 w-full object-cover rounded-xl" />
-            <h3 className="font-bold text-sm text-[#F8FFE5]">{dish.nombre}</h3>
+        {dishes.map(dish => (
+          <div key={dish.id} className="p-4 rounded-2xl bg-[#00241B]/60 border border-[#F8FFE5]/10 space-y-3">
+            <img className="h-40 w-full object-cover rounded-xl" src={dish.img} alt={dish.name} />
+            <h3 className="font-bold text-sm text-[#F8FFE5]">{dish.name}</h3>
             <div className="flex justify-between items-center">
-              <span className="text-lg font-bold text-[#D16014]">₡{dish.precio.toLocaleString()}</span>
-              <button 
-                onClick={() => onAddToCart({ id: dish.id, nombre: dish.nombre, precio: dish.precio })}
-                className="px-3 py-1.5 rounded-lg bg-[#D16014] text-xs font-bold text-[#F8FFE5]"
-              >
+              <span className="text-base font-bold text-[#D16014]">${dish.price.toFixed(2)}</span>
+              <button className="px-3 py-1.5 rounded-lg bg-[#D16014] text-xs font-bold text-[#F8FFE5]">
                 + Agregar
               </button>
             </div>
