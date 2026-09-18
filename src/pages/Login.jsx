@@ -1,28 +1,43 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Toast from '../components/Toast';
 import { Lock, Mail, User, Phone, IdCard } from 'lucide-react';
 
 export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+  };
 
   const handleAuthSubmit = (e) => {
     e.preventDefault();
     const email = document.getElementById('auth-email').value;
 
     const loggedUser = login(email);
-    alert(isRegistering ? '¡Registro completado con éxito!' : '¡Sesión iniciada correctamente!');
+    showToast(isRegistering ? '¡Registro completado con éxito!' : '¡Sesión iniciada correctamente!', 'success');
     
-    if (loggedUser.rol === 'administrador') navigate('/admin');
-    else navigate('/menu');
+    setTimeout(() => {
+      if (loggedUser.rol === 'administrador') navigate('/admin');
+      else navigate('/menu');
+    }, 1000);
   };
 
   return (
     <div className="min-h-screen pt-24 pb-16 px-4 flex items-center justify-center bg-[#0A090C]">
+      {toast.show && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast({ ...toast, show: false })} 
+        />
+      )}
+
       <div className="w-full max-w-md bg-[#00241B]/80 backdrop-blur-2xl border border-[#F8FFE5]/15 rounded-2xl p-8 space-y-6 shadow-2xl">
-        
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-extrabold text-[#F8FFE5]">
             {isRegistering ? 'Registro de Cliente' : 'Acceso al Sistema'}
@@ -34,12 +49,14 @@ export default function Login() {
 
         <div className="flex bg-[#0A090C] p-1 rounded-xl border border-[#F8FFE5]/10 text-xs font-bold">
           <button
+            type="button"
             onClick={() => setIsRegistering(false)}
             className={`flex-1 py-2 rounded-lg transition-all ${!isRegistering ? 'bg-[#D16014] text-white' : 'text-[#F8FFE5]/60'}`}
           >
             Iniciar Sesión
           </button>
           <button
+            type="button"
             onClick={() => setIsRegistering(true)}
             className={`flex-1 py-2 rounded-lg transition-all ${isRegistering ? 'bg-[#D16014] text-white' : 'text-[#F8FFE5]/60'}`}
           >

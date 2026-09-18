@@ -3,22 +3,25 @@ import { useAuth } from '../context/AuthContext';
 import { getWeatherByLocation } from '../services/weatherService';
 import Toast from '../components/Toast';
 import { 
-  LayoutDashboard, CreditCard, Users, 
-  Mail, LogOut, CloudSun, Send, Eye, Edit3, Trash2, 
-  Package, ShieldAlert, Plus
+  LayoutDashboard, ShoppingBag, Monitor, Package, 
+  Layers, Users, ShieldAlert, Mail, Search, CloudSun, Send, 
+  Eye, Edit3, Trash2, Plus, DollarSign, Clock, LogOut, 
+  Folder, PlusSquare, UserCheck, UtensilsCrossed
 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [timeFilter, setTimeFilter] = useState('hoy');
   const [weather, setWeather] = useState(null);
   const [selectedSede, setSelectedSede] = useState('escazu');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Modal State para "Ver / Editar"
   const [modalItem, setModalItem] = useState(null);
 
-  // 1. ESTADO DE INVENTARIO (CONTROL DE STOCK)
+  // INVENTARIO & STOCK
   const [inventory, setInventory] = useState([
     { id: 1, ingrediente: 'Chicharrón de Paila', cat: 'Carnes', stock: 45, max: 100, unidad: 'kg', estado: 'Normal', valor: '₡225,000' },
     { id: 2, ingrediente: 'Yuca Criolla', cat: 'Vegetales', stock: 12, max: 80, unidad: 'kg', estado: 'Crítico', valor: '₡18,000' },
@@ -26,7 +29,14 @@ export default function AdminDashboard() {
     { id: 4, ingrediente: 'Aguacate Hass', cat: 'Vegetales', stock: 8, max: 50, unidad: 'kg', estado: 'Crítico', valor: '₡32,000' }
   ]);
 
-  // 2. ESTADO DE EMPLEADOS & HORARIOS
+  // PRODUCTOS / PLATILLOS
+  const [products] = useState([
+    { id: 101, nombre: 'Chifrijo Especial de Paila', cat: 'Bocas', precio: 6800, stock: 84, estado: 'Disponible' },
+    { id: 102, nombre: 'Vigorón Criollo (1kg)', cat: 'Platos Fuertes', precio: 14500, stock: 42, estado: 'Disponible' },
+    { id: 103, nombre: 'Costilla a la Leña', cat: 'Cortes', precio: 9200, stock: 29, estado: 'Poco Stock' }
+  ]);
+
+  // EMPLEADOS & HORARIOS
   const [employees, setEmployees] = useState([
     { id: 1, nombre: 'Bryan Gómez', rol: 'Mesero', turno: 'Mañana (11:00 AM - 5:00 PM)', dia: 'Lunes a Viernes', estado: 'Activo' },
     { id: 2, nombre: 'Víctor González', rol: 'Cocinero Jefe', turno: 'Tarde (4:00 PM - 11:00 PM)', dia: 'Miércoles a Domingo', estado: 'Activo' },
@@ -34,14 +44,14 @@ export default function AdminDashboard() {
   ]);
   const [newEmp, setNewEmp] = useState({ nombre: '', rol: 'Mesero', turno: 'Mañana', dia: 'Lunes a Viernes' });
 
-  // 3. ESTADO DE SESIONES ACTIVAS DE USUARIOS
+  // SESIONES ACTIVAS
   const [activeSessions, setActiveSessions] = useState([
     { id: 'S1', usuario: 'admin@gourmetsync.com', rol: 'administrador', dispositivo: 'Chrome (Windows 11)', ip: '192.168.1.45', inicio: 'Hace 45 min' },
     { id: 'S2', usuario: 'mesero1@gourmetsync.com', rol: 'mesero', dispositivo: 'Tablet iPad OS (Salón)', ip: '192.168.1.88', inicio: 'Hace 2 horas' },
     { id: 'S3', usuario: 'cliente_vip@gmail.com', rol: 'cliente', dispositivo: 'Mobile Android', ip: '201.192.44.12', inicio: 'Hace 10 min' }
   ]);
 
-  // 4. ENVÍO DE CORREOS
+  // CORREOS
   const [emailForm, setEmailForm] = useState({ para: '', asunto: '', mensaje: '' });
 
   useEffect(() => {
@@ -52,13 +62,11 @@ export default function AdminDashboard() {
     setToast({ show: true, message, type });
   };
 
-  // ACCIONES DE INVENTARIO
   const handleDeleteStock = (id) => {
     setInventory(prev => prev.filter(item => item.id !== id));
-    showToast('Ingrediente eliminado del inventario correctamente', 'info');
+    showToast('Registro eliminado correctamente', 'info');
   };
 
-  // ACCIONES DE EMPLEADOS
   const handleAddEmployee = (e) => {
     e.preventDefault();
     if (!newEmp.nombre) return;
@@ -73,23 +81,19 @@ export default function AdminDashboard() {
     showToast('Empleado retirado del sistema', 'info');
   };
 
-  // ACCIONES DE SESIONES
   const handleKillSession = (id) => {
     setActiveSessions(prev => prev.filter(s => s.id !== id));
-    showToast('Sesión cerrada forzosamente por el administrador', 'info');
+    showToast('Sesión cerrada forzosamente', 'info');
   };
 
-  // CORREOS
   const handleSendEmail = (e) => {
     e.preventDefault();
-    showToast(`Correo despachado con éxito a ${emailForm.para}`, 'success');
+    showToast(`Correo despachado a ${emailForm.para}`, 'success');
     setEmailForm({ para: '', asunto: '', mensaje: '' });
   };
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-[#1F2937] flex font-sans pt-16">
-      
-      {/* NOTIFICACIÓN TOAST */}
       {toast.show && (
         <Toast 
           message={toast.message} 
@@ -98,7 +102,6 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* MODAL VER DETALLES */}
       {modalItem && (
         <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
@@ -116,61 +119,72 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* SIDEBAR MODERNO CLARO ESTILO AAN */}
-      <aside className="w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between hidden md:flex shrink-0">
+      {/* SIDEBAR ESTILO AAN RESTAURANTE */}
+      <aside className="w-64 bg-white border-r border-gray-200 p-5 flex flex-col justify-between hidden lg:flex shrink-0">
         <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#D16014] text-white flex items-center justify-center font-bold text-xl shadow-md shadow-[#D16014]/20">
-              G
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-9 h-9 rounded-xl bg-[#D16014] text-white flex items-center justify-center font-bold text-lg shadow-md shadow-[#D16014]/20">
+              A
             </div>
             <div>
-              <h2 className="font-bold text-base text-gray-900 leading-none">GourmetSync</h2>
-              <span className="text-[11px] text-gray-400 font-medium">Gestión de Restaurante</span>
+              <h2 className="font-bold text-base text-gray-900 leading-none">AAN Restaurante</h2>
+              <span className="text-[11px] text-gray-400 font-medium">Panel de Gestión</span>
             </div>
           </div>
 
-          <nav className="space-y-1.5 text-xs font-semibold">
+          <nav className="space-y-0.5 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-220px)] pr-1">
             <button 
               onClick={() => setActiveTab('dashboard')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-                activeTab === 'dashboard' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'
-              }`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <LayoutDashboard className="w-4 h-4" /> <span>Dashboard</span>
             </button>
 
             <button 
-              onClick={() => setActiveTab('inventory')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-                activeTab === 'inventory' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'
-              }`}
+              onClick={() => setActiveTab('orders')} 
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'orders' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
             >
-              <Package className="w-4 h-4" /> <span>Control de Inventario</span>
+              <ShoppingBag className="w-4 h-4" /> <span>Pedidos</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('pos')} 
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'pos' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+            >
+              <Monitor className="w-4 h-4" /> <span>Terminal POS</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('products')} 
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'products' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+            >
+              <Package className="w-4 h-4" /> <span>Productos</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('inventory')} 
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'inventory' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+            >
+              <Layers className="w-4 h-4" /> <span>Control Stock</span>
             </button>
 
             <button 
               onClick={() => setActiveTab('employees')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-                activeTab === 'employees' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'
-              }`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'employees' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <Users className="w-4 h-4" /> <span>Empleados & Turnos</span>
             </button>
 
             <button 
               onClick={() => setActiveTab('sessions')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-                activeTab === 'sessions' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'
-              }`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'sessions' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <ShieldAlert className="w-4 h-4" /> <span>Sesiones Activas</span>
             </button>
 
             <button 
               onClick={() => setActiveTab('email')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-                activeTab === 'email' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'
-              }`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'email' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <Mail className="w-4 h-4" /> <span>Envío de Correos</span>
             </button>
@@ -178,40 +192,48 @@ export default function AdminDashboard() {
         </div>
 
         <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-          <div className="text-xs">
-            <span className="block font-bold text-gray-800 truncate">{user?.email}</span>
-            <span className="block text-[10px] text-[#D16014] capitalize font-bold">{user?.rol}</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-red-800 text-white font-bold flex items-center justify-center text-xs">
+              A
+            </div>
+            <div className="text-xs">
+              <span className="block font-bold text-gray-800 leading-tight">Admin AAN</span>
+              <span className="block text-[10px] text-gray-400">admin</span>
+            </div>
           </div>
-          <button onClick={logout} title="Cerrar Sesión" className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all">
+          <button onClick={logout} title="Salir" className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg">
             <LogOut className="w-4 h-4" />
           </button>
         </div>
       </aside>
 
-      {/* CONTENIDO PRINCIPAL DE LA PÁGINA */}
+      {/* ÁREA DE CONTENIDO */}
       <main className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto max-w-7xl mx-auto">
-        
-        {/* TOP BAR CLIMA & SEDES EN VIVO */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Panel de Control &amp; Administración</h1>
-            <p className="text-xs text-gray-400 mt-0.5">Operación en vivo de cocina, inventarios y sesiones de usuario</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Buscar pedidos, productos..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-4 py-1.5 text-xs text-gray-700 focus:outline-none"
+            />
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* WIDGET DEL CLIMA API */}
-            <div className="flex items-center gap-3 bg-[#F0FDF4] px-4 py-2 rounded-xl border border-[#DCFCE7] text-xs">
-              <CloudSun className="w-5 h-5 text-[#16A34A]" />
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <div className="flex items-center gap-2.5 bg-[#F0FDF4] px-3.5 py-1.5 rounded-xl border border-[#DCFCE7] text-xs">
+              <CloudSun className="w-4 h-4 text-[#16A34A]" />
               <div>
                 <span className="block font-bold text-[#15803D]">{weather ? `${weather.temp}°C` : '--'} • {weather?.location}</span>
-                <span className="block text-[10px] text-gray-500">Viento: {weather?.windspeed || 0} km/h</span>
+                <span className="block text-[9px] text-gray-500">Viento: {weather?.windspeed || 0} km/h</span>
               </div>
             </div>
 
             <select 
               value={selectedSede} 
               onChange={(e) => setSelectedSede(e.target.value)}
-              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 focus:outline-none"
+              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none"
             >
               <option value="escazu">Sede Escazú</option>
               <option value="santa_ana">Sede Santa Ana</option>
@@ -221,38 +243,57 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* MÓDULO 1: DASHBOARD GENERAL */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-[#FEF3C7]/50 border border-[#FDE68A] p-5 rounded-2xl space-y-2">
-                <span className="text-xs font-bold text-amber-800">Pedidos Hoy</span>
-                <div className="text-3xl font-extrabold text-amber-950">142</div>
-                <span className="text-[10px] text-amber-700 font-bold bg-amber-100 px-2.5 py-0.5 rounded-full">+12% vs ayer</span>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">¡Hola, Admin!</h1>
+                <p className="text-xs text-gray-400 mt-0.5">Resumen de Hoy vs Ayer</p>
               </div>
 
-              <div className="bg-[#DCFCE7]/50 border border-[#BBF7D0] p-5 rounded-2xl space-y-2">
-                <span className="text-xs font-bold text-emerald-800">Ventas Totales</span>
-                <div className="text-3xl font-extrabold text-emerald-950">₡485,000</div>
-                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2.5 py-0.5 rounded-full">Meta superada</span>
+              <div className="flex bg-gray-100 p-1 rounded-xl text-xs font-bold text-gray-600">
+                <button onClick={() => setTimeFilter('hoy')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'hoy' ? 'bg-[#D16014] text-white' : 'hover:text-gray-900'}`}>Hoy</button>
+                <button onClick={() => setTimeFilter('ayer')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'ayer' ? 'bg-[#D16014] text-white' : 'hover:text-gray-900'}`}>Ayer</button>
+                <button onClick={() => setTimeFilter('semana')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'semana' ? 'bg-[#D16014] text-white' : 'hover:text-gray-900'}`}>Esta Semana</button>
+                <button onClick={() => setTimeFilter('mes')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'mes' ? 'bg-[#D16014] text-white' : 'hover:text-gray-900'}`}>Este Mes</button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="bg-[#FFFBEB] border border-[#FDE68A] p-4 rounded-2xl space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700"><Folder className="w-4 h-4" /></div>
+                <div className="text-2xl font-extrabold text-amber-950">142</div>
+                <span className="text-[11px] text-amber-800 font-semibold">Pedidos Hoy</span>
               </div>
 
-              <div className="bg-[#E0F2FE]/50 border border-[#BAE6FD] p-5 rounded-2xl space-y-2">
-                <span className="text-xs font-bold text-sky-800">Ticket Promedio</span>
-                <div className="text-3xl font-extrabold text-sky-950">₡12,400</div>
-                <span className="text-[10px] text-sky-700 font-bold bg-sky-100 px-2.5 py-0.5 rounded-full">Estable</span>
+              <div className="bg-[#F0FDF4] border border-[#BBF7D0] p-4 rounded-2xl space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700"><DollarSign className="w-4 h-4" /></div>
+                <div className="text-2xl font-extrabold text-emerald-950">₡485,000</div>
+                <span className="text-[11px] text-emerald-800 font-semibold">Ventas Hoy</span>
               </div>
 
-              <div className="bg-[#FEE2E2]/50 border border-[#FECACA] p-5 rounded-2xl space-y-2">
-                <span className="text-xs font-bold text-rose-800">Insumos Bajo Stock</span>
-                <div className="text-3xl font-extrabold text-rose-950">2 Críticos</div>
-                <span className="text-[10px] text-rose-700 font-bold bg-rose-100 px-2.5 py-0.5 rounded-full">Reordenar hoy</span>
+              <div className="bg-[#EFF6FF] border border-[#BFDBFE] p-4 rounded-2xl space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700"><PlusSquare className="w-4 h-4" /></div>
+                <div className="text-2xl font-extrabold text-blue-950">₡12,400</div>
+                <span className="text-[11px] text-blue-800 font-semibold">Ticket Promedio</span>
+              </div>
+
+              <div className="bg-[#F5F3FF] border border-[#DDD6FE] p-4 rounded-2xl space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700"><UserCheck className="w-4 h-4" /></div>
+                <div className="text-2xl font-extrabold text-purple-950">18</div>
+                <span className="text-[11px] text-purple-800 font-semibold">Clientes Activos</span>
+              </div>
+
+              <div className="bg-[#FEFCE8] border border-[#FEF08A] p-4 rounded-2xl space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-700"><Clock className="w-4 h-4" /></div>
+                <div className="text-2xl font-extrabold text-yellow-950">8</div>
+                <span className="text-[11px] text-yellow-800 font-semibold">En Progreso</span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                <h3 className="font-bold text-sm text-gray-900">Últimos Pedidos en Cocina</h3>
+                <h3 className="font-bold text-sm text-gray-900">Pedidos Recientes</h3>
                 <div className="space-y-3 text-xs">
                   <div className="p-3 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-100">
                     <div>
@@ -261,30 +302,15 @@ export default function AdminDashboard() {
                     </div>
                     <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">En Preparación</span>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-100">
-                    <div>
-                      <span className="font-bold text-gray-900 block">Mesa #04 • Vigorón 1kg</span>
-                      <span className="text-[10px] text-gray-400">Hace 12 minutos</span>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Entregado</span>
-                  </div>
                 </div>
               </div>
 
               <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                <h3 className="font-bold text-sm text-gray-900">Platillos Más Demandados</h3>
+                <h3 className="font-bold text-sm text-gray-900">Productos Populares</h3>
                 <div className="space-y-3 text-xs">
                   <div className="flex justify-between items-center pb-2 border-b border-gray-100">
                     <span className="font-bold text-gray-800">1. Chifrijo Especial de Paila</span>
-                    <span className="font-extrabold text-[#D16014]">84 Unidades</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-                    <span className="font-bold text-gray-800">2. Vigorón Criollo (1kg)</span>
-                    <span className="font-extrabold text-[#D16014]">42 Unidades</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-gray-800">3. Costilla a la Leña</span>
-                    <span className="font-extrabold text-[#D16014]">29 Unidades</span>
+                    <span className="font-extrabold text-[#D16014]">84 vendidas</span>
                   </div>
                 </div>
               </div>
@@ -292,19 +318,15 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* MÓDULO 2: CONTROL DE INVENTARIO */}
         {activeTab === 'inventory' && (
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex justify-between items-center">
               <div>
-                <h3 className="font-bold text-base text-gray-900">Gestión de Inventario &amp; Stock</h3>
-                <p className="text-xs text-gray-400">Monitoreo de ingredientes y reposición de bodega</p>
+                <h3 className="font-bold text-base text-gray-900">Gestión de Inventario</h3>
+                <p className="text-xs text-gray-400">Monitoreo de insumos e ingredientes de cocina</p>
               </div>
-              <button 
-                onClick={() => showToast('Insumo agregado al inventario', 'success')} 
-                className="px-4 py-2 rounded-xl bg-[#D16014] text-white font-bold text-xs flex items-center gap-2 shadow-sm"
-              >
-                <Plus className="w-4 h-4" /> Agregar Ingrediente
+              <button onClick={() => showToast('Nuevo insumo registrado', 'success')} className="px-4 py-2 rounded-xl bg-[#D16014] text-white font-bold text-xs flex items-center gap-2">
+                <Plus className="w-4 h-4" /> Actualizar Stock
               </button>
             </div>
 
@@ -316,57 +338,27 @@ export default function AdminDashboard() {
                     <th>Categoría</th>
                     <th>Stock Actual</th>
                     <th>Estado</th>
-                    <th>Valor Aprox.</th>
+                    <th>Valor</th>
                     <th className="text-center">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {inventory.map(item => (
-                    <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
+                    <tr key={item.id} className="hover:bg-gray-50/80">
                       <td className="py-3.5 px-3 font-bold text-gray-900">{item.ingrediente}</td>
                       <td>{item.cat}</td>
+                      <td>{item.stock} {item.unidad}</td>
                       <td>
-                        <div className="space-y-1">
-                          <span className="font-bold">{item.stock} / {item.max} {item.unidad}</span>
-                          <div className="w-28 bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full ${item.stock < 20 ? 'bg-red-500' : 'bg-emerald-500'}`} 
-                              style={{ width: `${(item.stock / item.max) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                          item.estado === 'Crítico' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'
-                        }`}>
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${item.estado === 'Crítico' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}`}>
                           {item.estado}
                         </span>
                       </td>
                       <td className="font-bold text-gray-700">{item.valor}</td>
                       <td className="text-center">
                         <div className="flex justify-center gap-1">
-                          <button 
-                            onClick={() => setModalItem(item)} 
-                            title="Ver Registro" 
-                            className="p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => showToast(`Editando ${item.ingrediente}`, 'info')} 
-                            title="Editar Stock" 
-                            className="p-1.5 rounded-lg text-gray-500 hover:text-amber-600 hover:bg-amber-50 transition-all"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteStock(item.id)} 
-                            title="Eliminar Insumo" 
-                            className="p-1.5 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <button onClick={() => setModalItem(item)} className="p-1.5 text-gray-500 hover:text-blue-600 rounded-lg"><Eye className="w-4 h-4" /></button>
+                          <button onClick={() => showToast(`Editando ${item.ingrediente}`, 'info')} className="p-1.5 text-gray-500 hover:text-amber-600 rounded-lg"><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDeleteStock(item.id)} className="p-1.5 text-gray-500 hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </td>
                     </tr>
@@ -377,55 +369,69 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* MÓDULO 3: EMPLEADOS & HORARIOS */}
+        {activeTab === 'products' && (
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+            <h3 className="font-bold text-base text-gray-900">Catálogo de Productos</h3>
+            <div className="overflow-x-auto text-xs">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-200 text-gray-400 bg-gray-50/50">
+                    <th className="py-3 px-3">Platillo</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {products.map(p => (
+                    <tr key={p.id} className="hover:bg-gray-50/80">
+                      <td className="py-3.5 px-3 font-bold text-gray-900">{p.nombre}</td>
+                      <td>{p.cat}</td>
+                      <td className="font-bold text-[#D16014]">₡{p.precio.toLocaleString()}</td>
+                      <td>
+                        <div className="flex gap-1">
+                          <button onClick={() => setModalItem(p)} className="p-1.5 text-gray-500 hover:text-blue-600 rounded-lg"><Eye className="w-4 h-4" /></button>
+                          <button onClick={() => showToast(`Editando ${p.nombre}`, 'info')} className="p-1.5 text-gray-500 hover:text-amber-600 rounded-lg"><Edit3 className="w-4 h-4" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'employees' && (
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-              <h3 className="font-bold text-sm text-gray-900">Registrar Nuevo Empleado / Asignar Horario</h3>
+              <h3 className="font-bold text-sm text-gray-900">Registrar Nuevo Empleado</h3>
               <form onSubmit={handleAddEmployee} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-                <input 
-                  type="text" 
-                  placeholder="Nombre del Empleado" 
-                  required 
-                  value={newEmp.nombre} 
-                  onChange={e => setNewEmp({ ...newEmp, nombre: e.target.value })} 
-                  className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800"
-                />
-                <select 
-                  value={newEmp.rol} 
-                  onChange={e => setNewEmp({ ...newEmp, rol: e.target.value })} 
-                  className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800"
-                >
+                <input type="text" placeholder="Nombre" required value={newEmp.nombre} onChange={e => setNewEmp({ ...newEmp, nombre: e.target.value })} className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800" />
+                <select value={newEmp.rol} onChange={e => setNewEmp({ ...newEmp, rol: e.target.value })} className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800">
                   <option value="Mesero">Mesero</option>
                   <option value="Cocinero">Cocinero</option>
                   <option value="Cajero">Cajero</option>
-                  <option value="Administrador">Administrador</option>
                 </select>
-                <select 
-                  value={newEmp.turno} 
-                  onChange={e => setNewEmp({ ...newEmp, turno: e.target.value })} 
-                  className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800"
-                >
+                <select value={newEmp.turno} onChange={e => setNewEmp({ ...newEmp, turno: e.target.value })} className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800">
                   <option value="Mañana (11am - 5pm)">Mañana (11am - 5pm)</option>
                   <option value="Tarde (4pm - 11pm)">Tarde (4pm - 11pm)</option>
-                  <option value="Completo (10am - 8pm)">Completo (10am - 8pm)</option>
                 </select>
                 <button type="submit" className="py-2 bg-[#D16014] text-white font-bold rounded-xl hover:bg-[#b8510f]">
-                  + Registrar Empleado
+                  + Registrar
                 </button>
               </form>
             </div>
 
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-              <h3 className="font-bold text-base text-gray-900">Personal Registrado &amp; Horarios Semanales</h3>
+              <h3 className="font-bold text-base text-gray-900">Personal Registrado</h3>
               <div className="overflow-x-auto text-xs">
                 <table className="w-full text-left">
                   <thead>
                     <tr className="border-b border-gray-200 text-gray-400 bg-gray-50/50">
                       <th className="py-3 px-3">Empleado</th>
-                      <th>Rol / Puesto</th>
-                      <th>Días Semanales</th>
-                      <th>Turno Asignado</th>
+                      <th>Rol</th>
+                      <th>Turno</th>
                       <th>Estado</th>
                       <th className="text-center">Acciones</th>
                     </tr>
@@ -435,23 +441,10 @@ export default function AdminDashboard() {
                       <tr key={emp.id} className="hover:bg-gray-50/80">
                         <td className="py-3.5 px-3 font-bold text-gray-900">{emp.nombre}</td>
                         <td>{emp.rol}</td>
-                        <td>{emp.dia}</td>
-                        <td className="text-gray-500 font-medium">{emp.turno}</td>
-                        <td>
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            emp.estado === 'Activo' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {emp.estado}
-                          </span>
-                        </td>
+                        <td>{emp.turno}</td>
+                        <td><span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">{emp.estado}</span></td>
                         <td className="text-center">
-                          <button 
-                            onClick={() => handleDeleteEmployee(emp.id)} 
-                            className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-all" 
-                            title="Retirar Empleado"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <button onClick={() => handleDeleteEmployee(emp.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                         </td>
                       </tr>
                     ))}
@@ -462,44 +455,30 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* MÓDULO 4: CONTROL DE SESIONES ACTIVAS */}
         {activeTab === 'sessions' && (
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-            <div>
-              <h3 className="font-bold text-base text-gray-900">Control de Sesiones de Usuario Activas</h3>
-              <p className="text-xs text-gray-400">Monitoreo de accesos concurrentes y cierre forzado de seguridad</p>
-            </div>
-
+            <h3 className="font-bold text-base text-gray-900">Control de Sesiones de Usuario</h3>
             <div className="overflow-x-auto text-xs">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-200 text-gray-400 bg-gray-50/50">
-                    <th className="py-3 px-3">Usuario / Email</th>
+                    <th className="py-3 px-3">Usuario</th>
                     <th>Rol</th>
-                    <th>Dispositivo / Navegador</th>
-                    <th>Dirección IP</th>
-                    <th>Inicio de Sesión</th>
-                    <th className="text-center">Cierre Forzado</th>
+                    <th>Dispositivo</th>
+                    <th>IP</th>
+                    <th className="text-center">Acción</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {activeSessions.map(sess => (
                     <tr key={sess.id} className="hover:bg-gray-50/80">
                       <td className="py-3.5 px-3 font-bold text-gray-900">{sess.usuario}</td>
-                      <td>
-                        <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-800 font-bold capitalize text-[10px]">
-                          {sess.rol}
-                        </span>
-                      </td>
+                      <td><span className="px-2 py-0.5 bg-gray-100 text-gray-800 font-bold rounded text-[10px]">{sess.rol}</span></td>
                       <td className="text-gray-500">{sess.dispositivo}</td>
-                      <td className="font-mono text-gray-600">{sess.ip}</td>
-                      <td className="text-gray-400">{sess.inicio}</td>
+                      <td className="font-mono">{sess.ip}</td>
                       <td className="text-center">
-                        <button 
-                          onClick={() => handleKillSession(sess.id)} 
-                          className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-[11px] transition-all flex items-center justify-center gap-1 mx-auto"
-                        >
-                          <LogOut className="w-3.5 h-3.5" /> Borrar Sesión
+                        <button onClick={() => handleKillSession(sess.id)} className="px-3 py-1 bg-red-50 text-red-700 font-bold rounded-lg hover:bg-red-100">
+                          Cerrar Sesión
                         </button>
                       </td>
                     </tr>
@@ -510,51 +489,28 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* MÓDULO 5: ENVÍO DE CORREOS */}
         {activeTab === 'email' && (
           <div className="max-w-xl bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
             <h3 className="font-bold text-base text-gray-900">Envío de Correos Institucionales</h3>
             <form onSubmit={handleSendEmail} className="space-y-3 text-xs">
               <div>
-                <label className="block mb-1 font-semibold text-gray-700">Correo Destinatario</label>
-                <input 
-                  type="email" 
-                  required 
-                  value={emailForm.para}
-                  onChange={(e) => setEmailForm({ ...emailForm, para: e.target.value })}
-                  placeholder="cliente@correo.com" 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-gray-800" 
-                />
+                <label className="block mb-1 font-semibold text-gray-700">Destinatario</label>
+                <input type="email" required value={emailForm.para} onChange={e => setEmailForm({ ...emailForm, para: e.target.value })} placeholder="cliente@correo.com" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-gray-800" />
               </div>
               <div>
                 <label className="block mb-1 font-semibold text-gray-700">Asunto</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={emailForm.asunto}
-                  onChange={(e) => setEmailForm({ ...emailForm, asunto: e.target.value })}
-                  placeholder="Confirmación de Reservación / Promoción de Sede" 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-gray-800" 
-                />
+                <input type="text" required value={emailForm.asunto} onChange={e => setEmailForm({ ...emailForm, asunto: e.target.value })} placeholder="Notificación / Promoción" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-gray-800" />
               </div>
               <div>
                 <label className="block mb-1 font-semibold text-gray-700">Mensaje</label>
-                <textarea 
-                  rows={4} 
-                  required 
-                  value={emailForm.mensaje}
-                  onChange={(e) => setEmailForm({ ...emailForm, mensaje: e.target.value })}
-                  placeholder="Escriba aquí el contenido del mensaje..." 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-gray-800"
-                ></textarea>
+                <textarea rows={4} required value={emailForm.mensaje} onChange={e => setEmailForm({ ...emailForm, mensaje: e.target.value })} placeholder="Escriba aquí el mensaje..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-gray-800"></textarea>
               </div>
-              <button type="submit" className="w-full py-3 rounded-xl bg-[#D16014] text-white font-bold flex items-center justify-center gap-2 hover:bg-[#b8510f]">
-                <Send className="w-4 h-4" /> Enviar Correo Ahora
+              <button type="submit" className="w-full py-3 bg-[#D16014] text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-[#b8510f]">
+                <Send className="w-4 h-4" /> Enviar Correo
               </button>
             </form>
           </div>
         )}
-
       </main>
     </div>
   );
