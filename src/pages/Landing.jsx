@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Utensils, Calendar, MapPin, ChevronRight, ChevronLeft, Instagram, Facebook, Flame } from 'lucide-react';
-
-export default function Landing() {
+import { Utensils, Calendar, MapPin, ChevronRight, ChevronLeft, Flame, Share2 } from 'lucide-react';export default function Landing() {
   const navigate = useNavigate();
 
   // 1. Hero Carousel de imágenes de fondo (Estilo Añejo)
@@ -261,11 +259,17 @@ export default function Landing() {
           </h3>
           <p className="text-xs text-[#F8FFE5]/60 mt-1">Comparte tus mejores momentos en nuestras mesas</p>
           <div className="flex justify-center gap-4 mt-4">
-            <a href="#" className="p-2.5 rounded-full bg-[#00241B] text-[#F8FFE5] hover:text-[#D16014] border border-[#F8FFE5]/10">
-              <Instagram className="w-5 h-5" />
+            <a href="#" aria-label="Instagram" className="p-2.5 rounded-full bg-[#00241B] text-[#F8FFE5] hover:text-[#D16014] border border-[#F8FFE5]/10 transition-colors">
+              <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+              </svg>
             </a>
-            <a href="#" className="p-2.5 rounded-full bg-[#00241B] text-[#F8FFE5] hover:text-[#D16014] border border-[#F8FFE5]/10">
-              <Facebook className="w-5 h-5" />
+            <a href="#" aria-label="Facebook" className="p-2.5 rounded-full bg-[#00241B] text-[#F8FFE5] hover:text-[#D16014] border border-[#F8FFE5]/10 transition-colors">
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.374 14.5 5 15.5 5H18V0h-3.808C10.595 0 9 1.583 9 4.615V8z" />
+              </svg>
             </a>
           </div>
         </div>

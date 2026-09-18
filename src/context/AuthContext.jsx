@@ -1,28 +1,21 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { api } from '../services/api';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    const saved = sessionStorage.getItem('gourmet_user');
+    return saved ? JSON.parse(saved) : { email: 'admin@gourmetsync.com', rol: 'administrador' };
+  });
 
-  useEffect(() => {
-    const savedUser = sessionStorage.getItem('gourmet_user');
-    const token = sessionStorage.getItem('gourmet_token');
-    if (savedUser && token) {
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
-  }, []);
+  const login = (email, password) => {
+    let rol = 'cliente';
+    if (email.includes('admin')) rol = 'administrador';
+    else if (email.includes('mesero')) rol = 'mesero';
 
-  const login = async (email, password) => {
-    const userData = await api.loginUser(email, password);
-    // Simulación de Token JWT para autenticación
-    const mockJwtToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify(userData))}.signature`;
-    
+    const userData = { email, rol, nombre: email.split('@')[0] };
     sessionStorage.setItem('gourmet_user', JSON.stringify(userData));
-    sessionStorage.setItem('gourmet_token', mockJwtToken);
+    sessionStorage.setItem('gourmet_token', 'mock-jwt-token-123');
     setUser(userData);
     return userData;
   };
@@ -34,10 +27,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    return { user: null, login: () => {}, logout: () => {} };
+  }
+  return context;
+};
