@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function Menu() {
   const [activeTable, setActiveTable] = useState(12);
@@ -14,10 +14,12 @@ export default function Menu() {
   ];
 
   const dishes = [
-    { id: 1, name: 'Tartar de Atún Rojo Bluefin', cat: 'entradas', price: 32.00, img: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb' },
-    { id: 2, name: 'Ribeye Black Angus Prime 400g', cat: 'cortes', price: 68.00, img: 'https://images.unsplash.com/photo-1558030006-450675393462' },
-    { id: 3, name: 'Langosta Caribeña al Gratén', cat: 'mariscos', price: 84.00, img: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47' }
+    { id: 1, name: 'Chifrijo Especial de Paila', cat: 'bocas', price: 6800, img: 'https://images.unsplash.com/photo-1544025162-d76694265947' },
+    { id: 2, name: 'Vigorón Criollo (1kg)', cat: 'platos', price: 14500, img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1' },
+    { id: 3, name: 'Costilla a la Leña', cat: 'cortes', price: 9200, img: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b' }
   ];
+
+  const filteredDishes = dishes.filter(d => selectedCategory === 'all' || d.cat === selectedCategory);
 
   return (
     <div className="pt-24 pb-12 px-6 max-w-7xl mx-auto space-y-6">
@@ -33,7 +35,7 @@ export default function Menu() {
             <button
               key={t.n}
               onClick={() => setActiveTable(t.n)}
-              className={`p-2 rounded-xl text-center text-xs font-bold border ${
+              className={`p-2 rounded-xl text-center text-xs font-bold border transition-all ${
                 t.n === activeTable ? 'border-[#D16014] bg-[#D16014]/30' : 'bg-[#00241B] border-[#F8FFE5]/10'
               }`}
             >
@@ -43,13 +45,28 @@ export default function Menu() {
         </div>
       </div>
 
+      {/* FILTROS POR CATEGORÍA */}
+      <div className="flex gap-2 text-xs">
+        {['all', 'bocas', 'platos', 'cortes'].map(cat => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-4 py-1.5 rounded-full font-bold capitalize transition-all ${
+              selectedCategory === cat ? 'bg-[#D16014] text-[#F8FFE5]' : 'bg-[#00241B] text-[#F8FFE5]/70'
+            }`}
+          >
+            {cat === 'all' ? 'Todos los Platillos' : cat}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {dishes.map(dish => (
+        {filteredDishes.map(dish => (
           <div key={dish.id} className="p-4 rounded-2xl bg-[#00241B]/60 border border-[#F8FFE5]/10 space-y-3">
             <img className="h-40 w-full object-cover rounded-xl" src={dish.img} alt={dish.name} />
             <h3 className="font-bold text-sm text-[#F8FFE5]">{dish.name}</h3>
             <div className="flex justify-between items-center">
-              <span className="text-base font-bold text-[#D16014]">${dish.price.toFixed(2)}</span>
+              <span className="text-base font-bold text-[#D16014]">₡{dish.price.toLocaleString()}</span>
               <button className="px-3 py-1.5 rounded-lg bg-[#D16014] text-xs font-bold text-[#F8FFE5]">
                 + Agregar
               </button>
