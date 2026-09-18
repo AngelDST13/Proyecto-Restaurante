@@ -6,7 +6,7 @@ import {
   LayoutDashboard, ShoppingBag, Monitor, Package, 
   Layers, Users, ShieldAlert, Mail, Search, CloudSun, Send, 
   Eye, Edit3, Trash2, Plus, DollarSign, Clock, LogOut, 
-  Folder, PlusSquare, UserCheck, UtensilsCrossed
+  Folder, PlusSquare, UserCheck
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -193,12 +193,12 @@ export default function AdminDashboard() {
 
         <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-red-800 text-white font-bold flex items-center justify-center text-xs">
-              A
+            <div className="w-8 h-8 rounded-full bg-red-800 text-white font-bold flex items-center justify-center text-xs uppercase">
+              {user?.email?.[0] || 'A'}
             </div>
-            <div className="text-xs">
-              <span className="block font-bold text-gray-800 leading-tight">Admin AAN</span>
-              <span className="block text-[10px] text-gray-400">admin</span>
+            <div className="text-xs max-w-[120px]">
+              <span className="block font-bold text-gray-800 leading-tight truncate">{user?.email || 'Admin AAN'}</span>
+              <span className="block text-[10px] text-gray-400 capitalize">{user?.rol || 'administrador'}</span>
             </div>
           </div>
           <button onClick={logout} title="Salir" className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg">
