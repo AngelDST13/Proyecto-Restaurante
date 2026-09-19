@@ -3,10 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import { getWeatherByLocation } from '../services/weatherService';
 import Toast from '../components/Toast';
 import { 
-  LayoutDashboard, ShoppingBag, 
-  Layers, Users, Mail, Search, CloudSun, Send, 
-  Eye, Edit3, Trash2, Plus, DollarSign, Clock, LogOut, 
-  TrendingUp, ArrowUpRight, ArrowDownRight, Truck, CheckCircle2, AlertTriangle, RefreshCw, PhoneCall, Building2
+  LayoutDashboard, ShoppingBag, Layers, Users, Mail, Search, CloudSun, Send, 
+  Eye, Edit3, Trash2, Plus, DollarSign, Clock, LogOut, TrendingUp, ArrowUpRight, 
+  ArrowDownRight, Truck, CheckCircle2, AlertTriangle, RefreshCw, PhoneCall, Building2,
+  CreditCard, Wallet, Receipt
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -138,6 +138,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* SIDEBAR ADMINISTRATIVO EJECUTIVO */}
       <aside className="w-64 bg-white border-r border-gray-200 p-5 flex flex-col justify-between hidden lg:flex shrink-0">
         <div className="space-y-6">
           <div className="flex items-center gap-3 px-2">
@@ -156,6 +157,13 @@ export default function AdminDashboard() {
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
             >
               <LayoutDashboard className="w-4 h-4" /> <span>Dashboard Analítico</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('finances')} 
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'finances' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
+            >
+              <Receipt className="w-4 h-4" /> <span>Arqueo de Caja &amp; Pagos</span>
             </button>
 
             <button 
@@ -331,6 +339,56 @@ export default function AdminDashboard() {
                     </div>
                   ))
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* NUEVA PESTAÑA: ARQUEO DE CAJA Y DESGLOSE FINANCIERO */}
+        {activeTab === 'finances' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <div>
+                <h3 className="font-bold text-base text-gray-900">Arqueo de Caja &amp; Métodos de Pago</h3>
+                <p className="text-xs text-gray-400">Cierre de ventas diarias en la Sede <span className="uppercase text-[#D16014] font-bold">{selectedSede}</span></p>
+              </div>
+              <button onClick={() => showToast('Cierre de caja exportado', 'success')} className="px-4 py-2 rounded-xl bg-[#D16014] text-white font-bold text-xs flex items-center gap-2">
+                <Receipt className="w-4 h-4" /> Generar Reporte de Cierre
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <PhoneCall className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-bold text-emerald-600">55% Total</span>
+                </div>
+                <span className="text-xs text-gray-400 font-semibold">Sinpe Móvil</span>
+                <div className="text-2xl font-black text-gray-900">₡266,887</div>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-bold text-blue-600">35% Total</span>
+                </div>
+                <span className="text-xs text-gray-400 font-semibold">Tarjetas de Débito/Crédito</span>
+                <div className="text-2xl font-black text-gray-900">₡169,837</div>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                    <Wallet className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-bold text-amber-600">10% Total</span>
+                </div>
+                <span className="text-xs text-gray-400 font-semibold">Efectivo en Pauta</span>
+                <div className="text-2xl font-black text-gray-900">₡48,526</div>
               </div>
             </div>
           </div>
