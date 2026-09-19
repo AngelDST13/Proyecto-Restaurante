@@ -12,7 +12,6 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A090C]/90 backdrop-blur-md border-b border-[#F8FFE5]/10 text-[#F8FFE5]">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         
-        {/* LOGO DE MARCA */}
         <Link to="/" className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-xl bg-[#D16014] flex items-center justify-center font-black text-xl text-white shadow-lg shadow-[#D16014]/30 group-hover:scale-105 transition-transform">
             C
@@ -23,7 +22,6 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* NAVEGACIÓN PÚBLICA */}
         <nav className="hidden md:flex items-center gap-8 text-xs font-bold tracking-wider uppercase">
           <Link to="/" className="hover:text-[#D16014] transition-colors">Inicio</Link>
           <Link to="/menu" className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 text-[#659B5E]">
@@ -34,15 +32,19 @@ export default function Navbar() {
             <Calendar className="w-3.5 h-3.5" /> Eventos
           </a>
 
-          {/* SÓLO VISIBLE SI EL ROL ES ADMINISTRADOR */}
           {user?.rol === 'administrador' && (
             <Link to="/admin" className="px-3 py-1.5 rounded-xl bg-[#D16014]/20 border border-[#D16014]/50 text-[#D16014] flex items-center gap-1.5 animate-pulse">
               <ShieldAlert className="w-3.5 h-3.5" /> Panel Admin
             </Link>
           )}
+
+          {user?.rol === 'mesero' && (
+            <Link to="/waiter" className="px-3 py-1.5 rounded-xl bg-[#659B5E]/20 border border-[#659B5E]/50 text-[#659B5E] flex items-center gap-1.5">
+              <Utensils className="w-3.5 h-3.5" /> Panel Mesero
+            </Link>
+          )}
         </nav>
 
-        {/* CONTROLES DE ACCESO */}
         <div className="hidden md:flex items-center gap-4 text-xs font-bold">
           {user ? (
             <div className="flex items-center gap-3 border-l border-[#F8FFE5]/15 pl-4">
@@ -68,7 +70,6 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* BOTÓN MENÚ MÓVIL */}
         <button 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
           className="md:hidden p-2 text-gray-300 hover:text-white"
@@ -77,13 +78,15 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* MENÚ MÓVIL DESPLEGABLE */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#0A090C] border-b border-[#F8FFE5]/10 px-6 py-4 space-y-3 text-xs font-bold uppercase">
           <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block py-2">Inicio</Link>
           <Link to="/menu" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#659B5E]">Menú &amp; Comanda</Link>
           {user?.rol === 'administrador' && (
             <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#D16014]">Panel Administrador</Link>
+          )}
+          {user?.rol === 'mesero' && (
+            <Link to="/waiter" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#659B5E]">Panel Mesero</Link>
           )}
           {user ? (
             <button onClick={logout} className="w-full text-left py-2 text-red-400">Cerrar Sesión</button>
