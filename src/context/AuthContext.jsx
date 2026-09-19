@@ -11,7 +11,6 @@ export function AuthProvider({ children }) {
   const login = (email) => {
     let role = 'cliente';
     let sedeAsignada = 'escazu';
-
     const lowerEmail = email.toLowerCase();
 
     if (lowerEmail.includes('admin')) {
@@ -19,7 +18,6 @@ export function AuthProvider({ children }) {
       sedeAsignada = 'escazu';
     } else if (lowerEmail.includes('mesero')) {
       role = 'mesero';
-      // Asignar sede según credencial o defecto Escazú
       if (lowerEmail.includes('cartago')) sedeAsignada = 'cartago';
       else if (lowerEmail.includes('heredia')) sedeAsignada = 'heredia';
       else if (lowerEmail.includes('santa')) sedeAsignada = 'santa_ana';
@@ -44,10 +42,9 @@ export function AuthProvider({ children }) {
   );
 }
 
-function useAuth() {
+// The hook is kept here for the public auth API; it is intentionally excluded
+// from the Fast Refresh export check because this file also owns the provider.
+// eslint-disable-next-line react-refresh/only-export-components
+export function useAuth() {
   return useContext(AuthContext);
 }
-
-// Keep the hook in this module without exporting a non-component, avoiding
-// Fast Refresh warnings when this file is treated as a component module.
-AuthProvider.useAuth = useAuth;
