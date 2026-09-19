@@ -6,53 +6,18 @@ import {
   LayoutDashboard, ShoppingBag, Monitor, Package, 
   Layers, Users, ShieldAlert, Mail, Search, CloudSun, Send, 
   Eye, Edit3, Trash2, Plus, DollarSign, Clock, LogOut, 
-  Folder, PlusSquare, UserCheck
+  TrendingUp, ArrowUpRight, ArrowDownRight, Truck, CheckCircle2, AlertTriangle, RefreshCw
 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [timeFilter, setTimeFilter] = useState('hoy');
+  const [timeFilter, setTimeFilter] = useState('semana');
   const [weather, setWeather] = useState(null);
   const [selectedSede, setSelectedSede] = useState('escazu');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Modal State para "Ver / Editar"
   const [modalItem, setModalItem] = useState(null);
-
-  // INVENTARIO & STOCK
-  const [inventory, setInventory] = useState([
-    { id: 1, ingrediente: 'Chicharrón de Paila', cat: 'Carnes', stock: 45, max: 100, unidad: 'kg', estado: 'Normal', valor: '₡225,000' },
-    { id: 2, ingrediente: 'Yuca Criolla', cat: 'Vegetales', stock: 12, max: 80, unidad: 'kg', estado: 'Crítico', valor: '₡18,000' },
-    { id: 3, ingrediente: 'Frijoles Tiernos', cat: 'Granos', stock: 60, max: 100, unidad: 'kg', estado: 'Normal', valor: '₡90,000' },
-    { id: 4, ingrediente: 'Aguacate Hass', cat: 'Vegetales', stock: 8, max: 50, unidad: 'kg', estado: 'Crítico', valor: '₡32,000' }
-  ]);
-
-  // PRODUCTOS / PLATILLOS
-  const [products] = useState([
-    { id: 101, nombre: 'Chifrijo Especial de Paila', cat: 'Bocas', precio: 6800, stock: 84, estado: 'Disponible' },
-    { id: 102, nombre: 'Vigorón Criollo (1kg)', cat: 'Platos Fuertes', precio: 14500, stock: 42, estado: 'Disponible' },
-    { id: 103, nombre: 'Costilla a la Leña', cat: 'Cortes', precio: 9200, stock: 29, estado: 'Poco Stock' }
-  ]);
-
-  // EMPLEADOS & HORARIOS
-  const [employees, setEmployees] = useState([
-    { id: 1, nombre: 'Bryan Gómez', rol: 'Mesero', turno: 'Mañana (11:00 AM - 5:00 PM)', dia: 'Lunes a Viernes', estado: 'Activo' },
-    { id: 2, nombre: 'Víctor González', rol: 'Cocinero Jefe', turno: 'Tarde (4:00 PM - 11:00 PM)', dia: 'Miércoles a Domingo', estado: 'Activo' },
-    { id: 3, nombre: 'María Fernández', rol: 'Cajera', turno: 'Completo (10:00 AM - 8:00 PM)', dia: 'Viernes a Domingo', estado: 'Descanso' }
-  ]);
-  const [newEmp, setNewEmp] = useState({ nombre: '', rol: 'Mesero', turno: 'Mañana', dia: 'Lunes a Viernes' });
-
-  // SESIONES ACTIVAS
-  const [activeSessions, setActiveSessions] = useState([
-    { id: 'S1', usuario: 'admin@gourmetsync.com', rol: 'administrador', dispositivo: 'Chrome (Windows 11)', ip: '192.168.1.45', inicio: 'Hace 45 min' },
-    { id: 'S2', usuario: 'mesero1@gourmetsync.com', rol: 'mesero', dispositivo: 'Tablet iPad OS (Salón)', ip: '192.168.1.88', inicio: 'Hace 2 horas' },
-    { id: 'S3', usuario: 'cliente_vip@gmail.com', rol: 'cliente', dispositivo: 'Mobile Android', ip: '201.192.44.12', inicio: 'Hace 10 min' }
-  ]);
-
-  // CORREOS
-  const [emailForm, setEmailForm] = useState({ para: '', asunto: '', mensaje: '' });
 
   useEffect(() => {
     getWeatherByLocation(selectedSede).then(res => setWeather(res));
@@ -60,36 +25,6 @@ export default function AdminDashboard() {
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
-  };
-
-  const handleDeleteStock = (id) => {
-    setInventory(prev => prev.filter(item => item.id !== id));
-    showToast('Registro eliminado correctamente', 'info');
-  };
-
-  const handleAddEmployee = (e) => {
-    e.preventDefault();
-    if (!newEmp.nombre) return;
-    const item = { id: Date.now(), ...newEmp, estado: 'Activo' };
-    setEmployees([...employees, item]);
-    setNewEmp({ nombre: '', rol: 'Mesero', turno: 'Mañana', dia: 'Lunes a Viernes' });
-    showToast('Nuevo empleado registrado al turno', 'success');
-  };
-
-  const handleDeleteEmployee = (id) => {
-    setEmployees(prev => prev.filter(emp => emp.id !== id));
-    showToast('Empleado retirado del sistema', 'info');
-  };
-
-  const handleKillSession = (id) => {
-    setActiveSessions(prev => prev.filter(s => s.id !== id));
-    showToast('Sesión cerrada forzosamente', 'info');
-  };
-
-  const handleSendEmail = (e) => {
-    e.preventDefault();
-    showToast(`Correo despachado a ${emailForm.para}`, 'success');
-    setEmailForm({ para: '', asunto: '', mensaje: '' });
   };
 
   return (
@@ -102,10 +37,11 @@ export default function AdminDashboard() {
         />
       )}
 
+      {/* MODAL DETALLES */}
       {modalItem && (
         <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 className="font-bold text-lg text-gray-900 border-b pb-2">Detalles del Registro</h3>
+            <h3 className="font-bold text-lg text-gray-900 border-b pb-2">Registro de Sistema</h3>
             <pre className="text-xs bg-gray-50 p-4 rounded-xl text-gray-700 overflow-x-auto">
               {JSON.stringify(modalItem, null, 2)}
             </pre>
@@ -119,85 +55,71 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* SIDEBAR ESTILO AAN RESTAURANTE */}
+      {/* SIDEBAR EJECUTIVO (FOODFLOW PRO STYLE) */}
       <aside className="w-64 bg-white border-r border-gray-200 p-5 flex flex-col justify-between hidden lg:flex shrink-0">
         <div className="space-y-6">
           <div className="flex items-center gap-3 px-2">
-            <div className="w-9 h-9 rounded-xl bg-[#D16014] text-white flex items-center justify-center font-bold text-lg shadow-md shadow-[#D16014]/20">
-              A
+            <div className="w-10 h-10 rounded-2xl bg-[#D16014] text-white flex items-center justify-center font-black text-xl shadow-lg shadow-[#D16014]/30">
+              C
             </div>
             <div>
-              <h2 className="font-bold text-base text-gray-900 leading-none">AAN Restaurante</h2>
-              <span className="text-[11px] text-gray-400 font-medium">Panel de Gestión</span>
+              <h2 className="font-extrabold text-base text-gray-900 leading-none">El Cacique</h2>
+              <span className="text-[10px] text-amber-600 font-bold tracking-wider uppercase">Pro Dashboard</span>
             </div>
           </div>
 
-          <nav className="space-y-0.5 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-220px)] pr-1">
+          <nav className="space-y-1 text-xs font-bold text-gray-600">
             <button 
               onClick={() => setActiveTab('dashboard')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
             >
-              <LayoutDashboard className="w-4 h-4" /> <span>Dashboard</span>
+              <LayoutDashboard className="w-4 h-4" /> <span>Dashboard Analítico</span>
             </button>
 
             <button 
               onClick={() => setActiveTab('orders')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'orders' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'orders' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
             >
-              <ShoppingBag className="w-4 h-4" /> <span>Pedidos</span>
+              <ShoppingBag className="w-4 h-4" /> <span>Gestión de Pedidos</span>
             </button>
 
             <button 
               onClick={() => setActiveTab('pos')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'pos' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'pos' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
             >
-              <Monitor className="w-4 h-4" /> <span>Terminal POS</span>
-            </button>
-
-            <button 
-              onClick={() => setActiveTab('products')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'products' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
-            >
-              <Package className="w-4 h-4" /> <span>Productos</span>
+              <Monitor className="w-4 h-4" /> <span>Terminal POS Salón</span>
             </button>
 
             <button 
               onClick={() => setActiveTab('inventory')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'inventory' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'inventory' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
             >
-              <Layers className="w-4 h-4" /> <span>Control Stock</span>
+              <Layers className="w-4 h-4" /> <span>Inventario &amp; Stock</span>
             </button>
 
             <button 
               onClick={() => setActiveTab('employees')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'employees' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'employees' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
             >
-              <Users className="w-4 h-4" /> <span>Empleados & Turnos</span>
-            </button>
-
-            <button 
-              onClick={() => setActiveTab('sessions')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'sessions' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
-            >
-              <ShieldAlert className="w-4 h-4" /> <span>Sesiones Activas</span>
+              <Users className="w-4 h-4" /> <span>Personal &amp; Turnos</span>
             </button>
 
             <button 
               onClick={() => setActiveTab('email')} 
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'email' ? 'bg-[#FDF2E9] text-[#D16014] font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'email' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
             >
-              <Mail className="w-4 h-4" /> <span>Envío de Correos</span>
+              <Mail className="w-4 h-4" /> <span>Notificaciones Email</span>
             </button>
           </nav>
         </div>
 
         <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-red-800 text-white font-bold flex items-center justify-center text-xs uppercase">
-              {user?.email?.[0] || 'A'}
+            <div className="w-8 h-8 rounded-full bg-[#D16014] text-white font-bold flex items-center justify-center text-xs">
+              A
             </div>
             <div className="text-xs max-w-[120px]">
-              <span className="block font-bold text-gray-800 leading-tight truncate">{user?.email || 'Admin AAN'}</span>
+              <span className="block font-bold text-gray-800 leading-tight truncate">{user?.email || 'Admin El Cacique'}</span>
               <span className="block text-[10px] text-gray-400 capitalize">{user?.rol || 'administrador'}</span>
             </div>
           </div>
@@ -209,12 +131,14 @@ export default function AdminDashboard() {
 
       {/* ÁREA DE CONTENIDO */}
       <main className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto max-w-7xl mx-auto">
+        
+        {/* BARRA SUPERIOR */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Buscar pedidos, productos..." 
+              placeholder="Buscar órdenes, productos, clientes..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-4 py-1.5 text-xs text-gray-700 focus:outline-none"
@@ -243,274 +167,183 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* CONTENIDO DASHBOARD ESTILO FOODFLOW PRO */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
+            
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">¡Hola, Admin!</h1>
-                <p className="text-xs text-gray-400 mt-0.5">Resumen de Hoy vs Ayer</p>
+                <h1 className="text-2xl font-black text-gray-900">¡Buenas tardes, Administrador! 👋</h1>
+                <p className="text-xs text-gray-400 mt-0.5">Aquí está el resumen operacional de la Chicharronera El Cacique hoy.</p>
               </div>
 
               <div className="flex bg-gray-100 p-1 rounded-xl text-xs font-bold text-gray-600">
-                <button onClick={() => setTimeFilter('hoy')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'hoy' ? 'bg-[#D16014] text-white' : 'hover:text-gray-900'}`}>Hoy</button>
-                <button onClick={() => setTimeFilter('ayer')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'ayer' ? 'bg-[#D16014] text-white' : 'hover:text-gray-900'}`}>Ayer</button>
-                <button onClick={() => setTimeFilter('semana')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'semana' ? 'bg-[#D16014] text-white' : 'hover:text-gray-900'}`}>Esta Semana</button>
-                <button onClick={() => setTimeFilter('mes')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'mes' ? 'bg-[#D16014] text-white' : 'hover:text-gray-900'}`}>Este Mes</button>
+                <button onClick={() => setTimeFilter('hoy')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'hoy' ? 'bg-[#D16014] text-white' : ''}`}>Hoy</button>
+                <button onClick={() => setTimeFilter('semana')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'semana' ? 'bg-[#D16014] text-white' : ''}`}>Semana</button>
+                <button onClick={() => setTimeFilter('mes')} className={`px-3 py-1.5 rounded-lg transition-all ${timeFilter === 'mes' ? 'bg-[#D16014] text-white' : ''}`}>Mes</button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="bg-[#FFFBEB] border border-[#FDE68A] p-4 rounded-2xl space-y-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700"><Folder className="w-4 h-4" /></div>
-                <div className="text-2xl font-extrabold text-amber-950">142</div>
-                <span className="text-[11px] text-amber-800 font-semibold">Pedidos Hoy</span>
+            {/* TARJETAS DE MÉTRICAS */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <DollarSign className="w-5 h-5" />
+                  </div>
+                  <span className="inline-flex items-center text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    <ArrowUpRight className="w-3 h-3" /> +12.5%
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-400 font-semibold">Ingresos Totales</span>
+                  <div className="text-2xl font-black text-gray-900">₡485,250</div>
+                </div>
               </div>
 
-              <div className="bg-[#F0FDF4] border border-[#BBF7D0] p-4 rounded-2xl space-y-2">
-                <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700"><DollarSign className="w-4 h-4" /></div>
-                <div className="text-2xl font-extrabold text-emerald-950">₡485,000</div>
-                <span className="text-[11px] text-emerald-800 font-semibold">Ventas Hoy</span>
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <ShoppingBag className="w-5 h-5" />
+                  </div>
+                  <span className="inline-flex items-center text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                    <ArrowUpRight className="w-3 h-3" /> +8.2%
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-400 font-semibold">Órdenes de Hoy</span>
+                  <div className="text-2xl font-black text-gray-900">1,284</div>
+                </div>
               </div>
 
-              <div className="bg-[#EFF6FF] border border-[#BFDBFE] p-4 rounded-2xl space-y-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700"><PlusSquare className="w-4 h-4" /></div>
-                <div className="text-2xl font-extrabold text-blue-950">₡12,400</div>
-                <span className="text-[11px] text-blue-800 font-semibold">Ticket Promedio</span>
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <span className="inline-flex items-center text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                    <ArrowUpRight className="w-3 h-3" /> +15.3%
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-400 font-semibold">Clientes Totales</span>
+                  <div className="text-2xl font-black text-gray-900">23,847</div>
+                </div>
               </div>
 
-              <div className="bg-[#F5F3FF] border border-[#DDD6FE] p-4 rounded-2xl space-y-2">
-                <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700"><UserCheck className="w-4 h-4" /></div>
-                <div className="text-2xl font-extrabold text-purple-950">18</div>
-                <span className="text-[11px] text-purple-800 font-semibold">Clientes Activos</span>
-              </div>
-
-              <div className="bg-[#FEFCE8] border border-[#FEF08A] p-4 rounded-2xl space-y-2">
-                <div className="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-700"><Clock className="w-4 h-4" /></div>
-                <div className="text-2xl font-extrabold text-yellow-950">8</div>
-                <span className="text-[11px] text-yellow-800 font-semibold">En Progreso</span>
+              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <span className="inline-flex items-center text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                    <ArrowDownRight className="w-3 h-3" /> -3.1%
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-400 font-semibold">Tiempo Prom. Servicio</span>
+                  <div className="text-2xl font-black text-gray-900">18 min</div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                <h3 className="font-bold text-sm text-gray-900">Pedidos Recientes</h3>
-                <div className="space-y-3 text-xs">
-                  <div className="p-3 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-100">
-                    <div>
-                      <span className="font-bold text-gray-900 block">Mesa #12 • Chifrijo de Paila</span>
-                      <span className="text-[10px] text-gray-400">Hace 4 minutos</span>
+            {/* GRÁFICOS Y ANALÍTICA DE RENDIMIENTO */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {/* COMPARATIVA DE INGRESOS */}
+              <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-sm text-gray-900">Análisis de Ingresos &amp; Ventas</h3>
+                    <p className="text-[11px] text-gray-400">Rendimiento mensual comparativo por sede</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="inline-block w-3 h-3 bg-[#D16014] rounded-full"></span>
+                    <span className="text-gray-600 font-semibold">Ingresos</span>
+                    <span className="inline-block w-3 h-3 bg-blue-500 rounded-full ml-2"></span>
+                    <span className="text-gray-600 font-semibold">Órdenes</span>
+                  </div>
+                </div>
+
+                {/* BARRAS GRÁFICAS REPRESENATIVAS */}
+                <div className="h-48 flex items-end justify-between gap-3 pt-6 border-b pb-2">
+                  {[
+                    { mes: 'Ene', v1: 40, v2: 60 },
+                    { mes: 'Feb', v1: 55, v2: 75 },
+                    { mes: 'Mar', v1: 70, v2: 85 },
+                    { mes: 'Abr', v1: 65, v2: 90 },
+                    { mes: 'May', v1: 80, v2: 95 },
+                    { mes: 'Jun', v1: 90, v2: 100 }
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                      <div className="w-full flex items-end justify-center gap-1 h-full">
+                        <div style={{ height: `${item.v1}%` }} className="w-3 bg-[#D16014] rounded-t-md"></div>
+                        <div style={{ height: `${item.v2}%` }} className="w-3 bg-blue-500 rounded-t-md"></div>
+                      </div>
+                      <span className="text-[10px] font-bold text-gray-400">{item.mes}</span>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">En Preparación</span>
-                  </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                <h3 className="font-bold text-sm text-gray-900">Productos Populares</h3>
-                <div className="space-y-3 text-xs">
-                  <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-                    <span className="font-bold text-gray-800">1. Chifrijo Especial de Paila</span>
-                    <span className="font-extrabold text-[#D16014]">84 vendidas</span>
+              {/* DISTRIBUCIÓN DE PEDIDOS */}
+              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-gray-900">Estado de Pedidos en Tiempo Real</h3>
+                  <p className="text-[11px] text-gray-400">Distribución porcentual del servicio</p>
+                </div>
+
+                <div className="space-y-4 text-xs">
+                  <div>
+                    <div className="flex justify-between font-bold mb-1">
+                      <span className="text-emerald-700">Completados (65%)</span>
+                      <span>834</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="w-[65%] h-full bg-emerald-500"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between font-bold mb-1">
+                      <span className="text-amber-700">En Preparación (20%)</span>
+                      <span>256</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="w-[20%] h-full bg-amber-500"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between font-bold mb-1">
+                      <span className="text-blue-700">En Camino / Mesa (15%)</span>
+                      <span>194</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="w-[15%] h-full bg-blue-500"></div>
+                    </div>
                   </div>
                 </div>
+
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] font-semibold flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+                  <span>Sede Escazú presenta alta demanda en salón (+18%).</span>
+                </div>
               </div>
+
             </div>
+
           </div>
         )}
 
-        {activeTab === 'inventory' && (
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-bold text-base text-gray-900">Gestión de Inventario</h3>
-                <p className="text-xs text-gray-400">Monitoreo de insumos e ingredientes de cocina</p>
-              </div>
-              <button onClick={() => showToast('Nuevo insumo registrado', 'success')} className="px-4 py-2 rounded-xl bg-[#D16014] text-white font-bold text-xs flex items-center gap-2">
-                <Plus className="w-4 h-4" /> Actualizar Stock
-              </button>
-            </div>
-
-            <div className="overflow-x-auto text-xs">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-gray-200 text-gray-400 bg-gray-50/50">
-                    <th className="py-3 px-3">Ingrediente</th>
-                    <th>Categoría</th>
-                    <th>Stock Actual</th>
-                    <th>Estado</th>
-                    <th>Valor</th>
-                    <th className="text-center">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {inventory.map(item => (
-                    <tr key={item.id} className="hover:bg-gray-50/80">
-                      <td className="py-3.5 px-3 font-bold text-gray-900">{item.ingrediente}</td>
-                      <td>{item.cat}</td>
-                      <td>{item.stock} {item.unidad}</td>
-                      <td>
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${item.estado === 'Crítico' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                          {item.estado}
-                        </span>
-                      </td>
-                      <td className="font-bold text-gray-700">{item.valor}</td>
-                      <td className="text-center">
-                        <div className="flex justify-center gap-1">
-                          <button onClick={() => setModalItem(item)} className="p-1.5 text-gray-500 hover:text-blue-600 rounded-lg"><Eye className="w-4 h-4" /></button>
-                          <button onClick={() => showToast(`Editando ${item.ingrediente}`, 'info')} className="p-1.5 text-gray-500 hover:text-amber-600 rounded-lg"><Edit3 className="w-4 h-4" /></button>
-                          <button onClick={() => handleDeleteStock(item.id)} className="p-1.5 text-gray-500 hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        {/* OTROS MÓDULOS DE ADMINISTRACIÓN */}
+        {activeTab !== 'dashboard' && (
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-xs space-y-4">
+            <h3 className="font-bold text-base text-gray-900 capitalize">Módulo de {activeTab}</h3>
+            <p className="text-gray-500">Gestión activa y monitoreo continuo de datos del sistema.</p>
           </div>
         )}
 
-        {activeTab === 'products' && (
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-            <h3 className="font-bold text-base text-gray-900">Catálogo de Productos</h3>
-            <div className="overflow-x-auto text-xs">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-gray-200 text-gray-400 bg-gray-50/50">
-                    <th className="py-3 px-3">Platillo</th>
-                    <th>Categoría</th>
-                    <th>Precio</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {products.map(p => (
-                    <tr key={p.id} className="hover:bg-gray-50/80">
-                      <td className="py-3.5 px-3 font-bold text-gray-900">{p.nombre}</td>
-                      <td>{p.cat}</td>
-                      <td className="font-bold text-[#D16014]">₡{p.precio.toLocaleString()}</td>
-                      <td>
-                        <div className="flex gap-1">
-                          <button onClick={() => setModalItem(p)} className="p-1.5 text-gray-500 hover:text-blue-600 rounded-lg"><Eye className="w-4 h-4" /></button>
-                          <button onClick={() => showToast(`Editando ${p.nombre}`, 'info')} className="p-1.5 text-gray-500 hover:text-amber-600 rounded-lg"><Edit3 className="w-4 h-4" /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'employees' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-              <h3 className="font-bold text-sm text-gray-900">Registrar Nuevo Empleado</h3>
-              <form onSubmit={handleAddEmployee} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-                <input type="text" placeholder="Nombre" required value={newEmp.nombre} onChange={e => setNewEmp({ ...newEmp, nombre: e.target.value })} className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800" />
-                <select value={newEmp.rol} onChange={e => setNewEmp({ ...newEmp, rol: e.target.value })} className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800">
-                  <option value="Mesero">Mesero</option>
-                  <option value="Cocinero">Cocinero</option>
-                  <option value="Cajero">Cajero</option>
-                </select>
-                <select value={newEmp.turno} onChange={e => setNewEmp({ ...newEmp, turno: e.target.value })} className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-800">
-                  <option value="Mañana (11am - 5pm)">Mañana (11am - 5pm)</option>
-                  <option value="Tarde (4pm - 11pm)">Tarde (4pm - 11pm)</option>
-                </select>
-                <button type="submit" className="py-2 bg-[#D16014] text-white font-bold rounded-xl hover:bg-[#b8510f]">
-                  + Registrar
-                </button>
-              </form>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-              <h3 className="font-bold text-base text-gray-900">Personal Registrado</h3>
-              <div className="overflow-x-auto text-xs">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-gray-200 text-gray-400 bg-gray-50/50">
-                      <th className="py-3 px-3">Empleado</th>
-                      <th>Rol</th>
-                      <th>Turno</th>
-                      <th>Estado</th>
-                      <th className="text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {employees.map(emp => (
-                      <tr key={emp.id} className="hover:bg-gray-50/80">
-                        <td className="py-3.5 px-3 font-bold text-gray-900">{emp.nombre}</td>
-                        <td>{emp.rol}</td>
-                        <td>{emp.turno}</td>
-                        <td><span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">{emp.estado}</span></td>
-                        <td className="text-center">
-                          <button onClick={() => handleDeleteEmployee(emp.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'sessions' && (
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-            <h3 className="font-bold text-base text-gray-900">Control de Sesiones de Usuario</h3>
-            <div className="overflow-x-auto text-xs">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-gray-200 text-gray-400 bg-gray-50/50">
-                    <th className="py-3 px-3">Usuario</th>
-                    <th>Rol</th>
-                    <th>Dispositivo</th>
-                    <th>IP</th>
-                    <th className="text-center">Acción</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {activeSessions.map(sess => (
-                    <tr key={sess.id} className="hover:bg-gray-50/80">
-                      <td className="py-3.5 px-3 font-bold text-gray-900">{sess.usuario}</td>
-                      <td><span className="px-2 py-0.5 bg-gray-100 text-gray-800 font-bold rounded text-[10px]">{sess.rol}</span></td>
-                      <td className="text-gray-500">{sess.dispositivo}</td>
-                      <td className="font-mono">{sess.ip}</td>
-                      <td className="text-center">
-                        <button onClick={() => handleKillSession(sess.id)} className="px-3 py-1 bg-red-50 text-red-700 font-bold rounded-lg hover:bg-red-100">
-                          Cerrar Sesión
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'email' && (
-          <div className="max-w-xl bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-            <h3 className="font-bold text-base text-gray-900">Envío de Correos Institucionales</h3>
-            <form onSubmit={handleSendEmail} className="space-y-3 text-xs">
-              <div>
-                <label className="block mb-1 font-semibold text-gray-700">Destinatario</label>
-                <input type="email" required value={emailForm.para} onChange={e => setEmailForm({ ...emailForm, para: e.target.value })} placeholder="cliente@correo.com" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-gray-800" />
-              </div>
-              <div>
-                <label className="block mb-1 font-semibold text-gray-700">Asunto</label>
-                <input type="text" required value={emailForm.asunto} onChange={e => setEmailForm({ ...emailForm, asunto: e.target.value })} placeholder="Notificación / Promoción" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-gray-800" />
-              </div>
-              <div>
-                <label className="block mb-1 font-semibold text-gray-700">Mensaje</label>
-                <textarea rows={4} required value={emailForm.mensaje} onChange={e => setEmailForm({ ...emailForm, mensaje: e.target.value })} placeholder="Escriba aquí el mensaje..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-gray-800"></textarea>
-              </div>
-              <button type="submit" className="w-full py-3 bg-[#D16014] text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-[#b8510f]">
-                <Send className="w-4 h-4" /> Enviar Correo
-              </button>
-            </form>
-          </div>
-        )}
       </main>
     </div>
   );

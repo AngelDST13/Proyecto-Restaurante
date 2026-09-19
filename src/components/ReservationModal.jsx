@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { MessageSquare, Phone, Calendar, PartyPopper, X, Send } from 'lucide-react';
 
 export default function ReservationModal({ isOpen, onClose, onShowToast }) {
-  const [method, setMethod] = useState('web'); // 'web' | 'whatsapp' | 'phone' | 'eventos'
+  const [method, setMethod] = useState('web');
   const [formData, setFormData] = useState({
     nombre: '',
     telefono: '',
@@ -55,7 +55,6 @@ export default function ReservationModal({ isOpen, onClose, onShowToast }) {
           <p className="text-xs text-[#F8FFE5]/60">Selecciona el canal para agendar tu mesa o celebración:</p>
         </div>
 
-        {/* SELECTOR DE MÉTODOS */}
         <div className="grid grid-cols-4 gap-1.5 bg-[#001812] p-1.5 rounded-xl border border-[#F8FFE5]/10 text-[11px] font-bold">
           <button
             onClick={() => setMethod('web')}
@@ -94,7 +93,6 @@ export default function ReservationModal({ isOpen, onClose, onShowToast }) {
           </button>
         </div>
 
-        {/* FORMULARIO DE RESERVA O EVENTOS */}
         {(method === 'web' || method === 'eventos') && (
           <form onSubmit={method === 'eventos' ? handleWhatsAppSubmit : handleWebSubmit} className="space-y-3 text-xs">
             <div className="grid grid-cols-2 gap-3">
@@ -196,7 +194,6 @@ export default function ReservationModal({ isOpen, onClose, onShowToast }) {
           </form>
         )}
 
-        {/* MÉTODO WHATSAPP DIRECTO */}
         {method === 'whatsapp' && (
           <form onSubmit={handleWhatsAppSubmit} className="space-y-3 text-xs">
             <input
@@ -213,7 +210,6 @@ export default function ReservationModal({ isOpen, onClose, onShowToast }) {
           </form>
         )}
 
-        {/* MÉTODO CELULAR DIRECTO */}
         {method === 'phone' && (
           <div className="space-y-3 text-xs text-center py-4 bg-[#001812]/80 p-6 rounded-2xl border border-[#F8FFE5]/10">
             <Phone className="w-8 h-8 text-amber-500 mx-auto" />

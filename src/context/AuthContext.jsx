@@ -1,30 +1,32 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState } from 'react';
 
-/* eslint-disable react-refresh/only-export-components */
-export const AuthContext = createContext();
+const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
+  // Inicializa nulo para evitar accesos indebidos
   const [user, setUser] = useState(() => {
-    const saved = sessionStorage.getItem('gourmet_user');
-    return saved ? JSON.parse(saved) : { email: 'admin@gourmetsync.com', rol: 'administrador' };
+    const saved = localStorage.getItem('cacique_user_session');
+    return saved ? JSON.parse(saved) : null;
   });
 
   const login = (email) => {
-    let rol = 'cliente';
-    if (email.includes('admin')) rol = 'administrador';
-    else if (email.includes('mesero')) rol = 'mesero';
+    let role = 'cliente';
+    if (email.toLowerCase().includes('admin')) {
+      role = 'administrador';
+    } else if (email.toLowerCase().includes('mesero')) {
+      role = 'mesero';
+    }
 
-    const userData = { email, rol, nombre: email.split('@')[0] };
-    sessionStorage.setItem('gourmet_user', JSON.stringify(userData));
-    sessionStorage.setItem('gourmet_token', 'mock-jwt-token-123');
+    const userData = { email, rol: role, loggedAt: new Date().toISOString() };
     setUser(userData);
+    localStorage.setItem('cacique_user_session', JSON.stringify(userData));
     return userData;
   };
 
   const logout = () => {
-    sessionStorage.removeItem('gourmet_user');
-    sessionStorage.removeItem('gourmet_token');
     setUser(null);
+    localStorage.removeItem('cacique_user_session');
   };
 
   return (
@@ -32,13 +34,8 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    return { user: null, login: () => {}, logout: () => {} };
-  }
-  return context;
-};
-/* eslint-enable react-refresh/only-export-components */
+export function useAuth() {
+  return useContext(AuthContext);
+}
