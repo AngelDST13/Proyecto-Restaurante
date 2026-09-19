@@ -1,17 +1,20 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Clock, Mail, Instagram, Facebook, MessageSquare, ShieldCheck } from 'lucide-react';
+import { MapPin, Phone, Clock, Mail, MessageSquare, ShieldCheck } from 'lucide-react';
+import logoNegro from '../assets/img/LogoN.svg';
 
 export default function Footer() {
   return (
     <footer className="bg-[#050507] border-t border-[#F8FFE5]/10 text-[#F8FFE5]/70 text-xs pt-12 pb-8 px-6 font-sans">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
         
-        {/* COLUMNA 1: MARCA Y RESEÑA */}
+        {/* COLUMNA 1: MARCA CON LOGO NEGRO Y RESEÑA */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#D16014] flex items-center justify-center font-black text-xl text-white shadow-lg shadow-[#D16014]/30">
-              C
-            </div>
+            <img 
+              src={logoNegro} 
+              alt="Logo Chicharronera El Cacique" 
+              className="h-10 w-auto object-contain"
+            />
             <div>
               <span className="font-extrabold text-base tracking-tight text-[#F8FFE5] block leading-none">El Cacique</span>
               <span className="text-[10px] text-[#659B5E] font-semibold tracking-wider uppercase">Chicharronera Gourmet</span>
@@ -74,21 +77,16 @@ export default function Footer() {
 
         {/* COLUMNA 4: SEDES Y REDES SOCIALES */}
         <div className="space-y-3">
-          <h4 className="font-extrabold text-[#F8FFE5] uppercase tracking-wider text-xs border-b border-[#F8FFE5]/10 pb-2">Sedes &amp; Redes</h4>
+          <h4 className="font-extrabold text-[#F8FFE5] uppercase tracking-wider text-xs border-b border-[#F8FFE5]/10 pb-2">Sedes &amp; Contacto Directo</h4>
           <div className="flex items-start gap-2 text-[11px] mb-3">
             <MapPin className="w-4 h-4 text-[#659B5E] shrink-0 mt-0.5" />
             <span>Escazú • Santa Ana • Cartago • Heredia</span>
           </div>
-          <span className="block text-[10px] text-[#F8FFE5]/50 font-bold uppercase tracking-wider">Síguenos en Redes</span>
+          <span className="block text-[10px] text-[#F8FFE5]/50 font-bold uppercase tracking-wider">Atención de Pedidos</span>
           <div className="flex items-center gap-3 pt-1">
-            <a href="#" className="p-2 rounded-xl bg-[#00241B] text-[#F8FFE5] hover:text-[#D16014] border border-[#F8FFE5]/10 transition-colors" aria-label="Instagram">
-              <Instagram className="w-4 h-4" />
-            </a>
-            <a href="#" className="p-2 rounded-xl bg-[#00241B] text-[#F8FFE5] hover:text-[#D16014] border border-[#F8FFE5]/10 transition-colors" aria-label="Facebook">
-              <Facebook className="w-4 h-4" />
-            </a>
-            <a href="#" className="p-2 rounded-xl bg-[#00241B] text-[#F8FFE5] hover:text-[#D16014] border border-[#F8FFE5]/10 transition-colors" aria-label="WhatsApp API">
-              <MessageSquare className="w-4 h-4" />
+            <a href="https://wa.me/50622008888" target="_blank" rel="noreferrer" className="p-2 rounded-xl bg-[#00241B] text-[#F8FFE5] hover:text-[#D16014] border border-[#F8FFE5]/10 transition-colors flex items-center gap-2 font-bold text-[11px]" aria-label="WhatsApp API">
+              <MessageSquare className="w-4 h-4 text-[#659B5E]" />
+              <span>Consultas WhatsApp</span>
             </a>
           </div>
         </div>

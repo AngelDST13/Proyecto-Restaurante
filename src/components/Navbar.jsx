@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Utensils, LogOut, Menu as MenuIcon, X, Calendar, User, ShieldAlert } from 'lucide-react';
+import logoNegro from '../assets/img/LogoN.svg';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -12,10 +13,13 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A090C]/90 backdrop-blur-md border-b border-[#F8FFE5]/10 text-[#F8FFE5]">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         
+        {/* ENLACE DE INICIO CON LOGO NEGRO */}
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-[#D16014] flex items-center justify-center font-black text-xl text-white shadow-lg shadow-[#D16014]/30 group-hover:scale-105 transition-transform">
-            C
-          </div>
+          <img 
+            src={logoNegro} 
+            alt="Logo Chicharronera El Cacique" 
+            className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
+          />
           <div>
             <span className="font-extrabold text-base tracking-tight text-[#F8FFE5] block leading-none">El Cacique</span>
             <span className="text-[10px] text-[#659B5E] font-semibold tracking-wider uppercase">Chicharronera Gourmet</span>
