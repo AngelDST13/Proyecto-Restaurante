@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getWeatherByLocation } from '../services/weatherService';
 import { 
   Utensils, Calendar, ChevronRight, ChevronLeft, Flame, Share2, 
-  Award, ShieldCheck, Clock, MapPin, Phone, Star, CloudSun, HeartHandshake, Sparkles
+  Award, ShieldCheck, Clock, MapPin, Phone, CloudSun, HeartHandshake, Sparkles
 } from 'lucide-react';
 
 export default function Landing() {
@@ -80,6 +80,13 @@ export default function Landing() {
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A090C] via-[#0A090C]/50 to-transparent"></div>
 
+        <button onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))} className="absolute left-4 z-20 p-3 rounded-full bg-[#00241B]/70 border border-[#F8FFE5]/15 text-[#F8FFE5]">
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <button onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)} className="absolute right-4 z-20 p-3 rounded-full bg-[#00241B]/70 border border-[#F8FFE5]/15 text-[#F8FFE5]">
+          <ChevronRight className="w-6 h-6" />
+        </button>
+
         <div className="relative z-10 max-w-5xl mx-auto text-center px-6 mt-12 space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#00241B]/90 border border-[#659B5E]/50 text-[#659B5E] text-xs font-bold uppercase tracking-widest">
             <Flame className="w-4 h-4 text-[#D16014]" />
@@ -102,11 +109,33 @@ export default function Landing() {
               <Utensils className="w-4 h-4" />
               <span>Ver Menú Digital</span>
             </button>
+
+            <button
+              onClick={() => navigate('/menu')}
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#00241B] border border-[#F8FFE5]/20 text-[#F8FFE5] font-bold text-sm hover:border-[#659B5E] transition-all flex items-center justify-center gap-2"
+            >
+              <Calendar className="w-4 h-4 text-[#659B5E]" />
+              <span>Agendar Reserva</span>
+            </button>
           </div>
         </div>
       </section>
 
-      {/* 2. SECCIÓN SOBRE NOSOTROS */}
+      {/* 2. CINTILLO DISTINTIVO */}
+      <div className="bg-[#00241B] border-y border-[#659B5E]/30 py-4 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-[#659B5E] uppercase tracking-wider text-center md:text-left">
+          <div className="flex items-center gap-2">
+            <Award className="w-5 h-5 text-[#D16014]" />
+            <span>Chicharronera El Cacique • Galardón Culinario Nacional 2026</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-[#659B5E]" />
+            <span>Ingredientes 100% Frescos de Productores Locales</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. SECCIÓN SOBRE NOSOTROS */}
       <section id="nosotros" className="py-20 px-6 max-w-7xl mx-auto border-b border-[#F8FFE5]/10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
@@ -119,9 +148,6 @@ export default function Landing() {
             <p className="text-xs text-[#F8FFE5]/70 leading-relaxed">
               Fundada en el corazón de Costa Rica, Chicharronera El Cacique nació del compromiso por preservar las recetas criollas de paila de nuestras familias abuelas. Lo que inició como una pequeña paila campesina a la orilla del camino se convirtió en un referente culinario nacional.
             </p>
-            <p className="text-xs text-[#F8FFE5]/70 leading-relaxed">
-              Combinamos técnicas de cocción lentas a fuego directo con la innovación digital de comandas en tiempo real, garantizando frescura y sabor auténtico en cada platillo.
-            </p>
           </div>
           <div className="h-80 rounded-2xl overflow-hidden border border-[#F8FFE5]/15 shadow-2xl">
             <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1" alt="Sobre Nosotros" className="w-full h-full object-cover" />
@@ -129,7 +155,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 3. PLATILLOS MÁS FAMOSOS */}
+      {/* 4. PLATILLOS MÁS FAMOSOS */}
       <section className="py-20 px-6 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-2">
           <span className="text-xs font-bold text-[#659B5E] uppercase tracking-widest flex items-center justify-center gap-2">
@@ -159,7 +185,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4. MAPA Y CLIMA API */}
+      {/* 5. MAPA Y CLIMA API */}
       <section className="py-16 px-6 bg-[#050507] border-y border-[#F8FFE5]/10 space-y-8">
         <div className="max-w-7xl mx-auto space-y-4 text-center">
           <span className="text-xs font-bold text-[#659B5E] uppercase tracking-widest">Ubicación &amp; Clima</span>
@@ -196,6 +222,16 @@ export default function Landing() {
                 <span className="text-[10px] text-[#659B5E]">Viento: {sedeWeather?.windspeed || 0} km/h</span>
               </div>
             </div>
+            <div className="pt-2 space-y-2 text-xs">
+              <div className="flex items-center gap-2 text-[#659B5E]">
+                <Clock className="w-4 h-4" />
+                <span>Lun - Dom: 11:30 AM - 11:00 PM</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#D16014]">
+                <Phone className="w-4 h-4" />
+                <span>Central: +506 2200-8888</span>
+              </div>
+            </div>
           </div>
 
           <div className="lg:col-span-2 h-[350px] w-full rounded-2xl overflow-hidden border border-[#F8FFE5]/15">
@@ -209,6 +245,19 @@ export default function Landing() {
               loading="lazy"
             ></iframe>
           </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <section className="bg-[#050507] border-t border-[#F8FFE5]/10 py-12 px-6 text-center space-y-6">
+        <h3 className="text-xl font-extrabold text-[#F8FFE5] tracking-widest uppercase">
+          #ChicharroneraElCacique
+        </h3>
+        <p className="text-xs text-[#F8FFE5]/60">Síguenos y comparte tus fotografías en nuestras instalaciones</p>
+        <div className="flex justify-center gap-4">
+          <a href="#" aria-label="Compartir" className="p-3 rounded-full bg-[#00241B] text-[#F8FFE5] hover:text-[#D16014] border border-[#F8FFE5]/10 transition-colors">
+            <Share2 className="w-5 h-5" />
+          </a>
         </div>
       </section>
 
