@@ -3,6 +3,7 @@ import Landing from '../pages/Landing';
 import Login from '../pages/Login';
 import Menu from '../pages/Menu';
 import AdminDashboard from '../pages/AdminDashboard';
+import WaiterDashboard from '../pages/WaiterDashboard';
 import Unauthorized from '../pages/Unauthorized';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Navbar from '../components/Navbar';
@@ -14,13 +15,22 @@ export function AppRouter() {
       <Navbar />
       <div className="flex-grow">
         <Routes>
-          {/* Rutas Públicas */}
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* Rutas Protegidas para Administrador */}
+          {/* RUTA PROTEGIDA MESERO */}
+          <Route 
+            path="/waiter" 
+            element={
+              <ProtectedRoute allowedRoles={['mesero', 'administrador']}>
+                <WaiterDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* RUTA PROTEGIDA ADMIN */}
           <Route 
             path="/admin" 
             element={
