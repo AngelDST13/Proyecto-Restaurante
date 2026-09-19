@@ -4,7 +4,7 @@ import Toast from '../components/Toast';
 import { 
   Utensils, LogOut, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, 
   ShieldCheck, CheckCircle2, Search, AlertCircle, FileText, Send, Trash2, 
-  RefreshCw, Sparkles, Coffee
+  Sparkles, Coffee
 } from 'lucide-react';
 
 export default function WaiterDashboard() {
