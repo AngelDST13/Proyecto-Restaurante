@@ -3,8 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { getWeatherByLocation } from '../services/weatherService';
 import Toast from '../components/Toast';
 import { 
-  LayoutDashboard, ShoppingBag, Monitor, Package, 
-  Layers, Users, ShieldAlert, Mail, Search, CloudSun, Send, 
+  LayoutDashboard, ShoppingBag, 
+  Layers, Users, Mail, Search, CloudSun, Send, 
   Eye, Edit3, Trash2, Plus, DollarSign, Clock, LogOut, 
   TrendingUp, ArrowUpRight, ArrowDownRight, Truck, CheckCircle2, AlertTriangle, RefreshCw, PhoneCall, Building2
 } from 'lucide-react';
@@ -19,7 +19,6 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [modalItem, setModalItem] = useState(null);
 
-  // PROVEEDORES POR SEDE
   const [suppliers] = useState([
     { id: 1, nombre: 'Distribuidora Carnes del Sur', contacto: 'Don Mario Vargas', telefono: '50688881111', dep: 'Carnes & Cerdo', sede: 'escazu' },
     { id: 2, nombre: 'Vegetales Frescos Cartago', contacto: 'Doña Elena Ramos', telefono: '50688882222', dep: 'Verduras & Yuca', sede: 'cartago' },
@@ -27,7 +26,6 @@ export default function AdminDashboard() {
     { id: 4, nombre: 'Cervecería Artesanal El Cacique', contacto: 'Bryan Gómez', telefono: '50688884444', dep: 'Bebidas & Licores', sede: 'heredia' }
   ]);
 
-  // INVENTARIO DINÁMICO SEGÚN LA SEDE SELECCIONADA
   const [inventory, setInventory] = useState([
     { id: 1, ingrediente: 'Chicharrón de Concha', cat: 'Carnes', stock: 65, max: 120, unidad: 'kg', estado: 'Normal', valor: '₡325,000', sede: 'escazu' },
     { id: 2, ingrediente: 'Yuca Criolla Fina', cat: 'Vegetales', stock: 14, max: 90, unidad: 'kg', estado: 'Crítico', valor: '₡21,000', sede: 'escazu' },
@@ -36,7 +34,6 @@ export default function AdminDashboard() {
     { id: 5, ingrediente: 'Costilla Cerdo Ahumada', cat: 'Carnes', stock: 40, max: 80, unidad: 'kg', estado: 'Normal', valor: '₡240,000', sede: 'heredia' }
   ]);
 
-  // EMPLEADOS SEGÚN LA SEDE
   const [employees, setEmployees] = useState([
     { id: 1, nombre: 'Bryan Gómez', rol: 'Mesero Jefe', turno: 'Mañana (11:00 AM - 5:00 PM)', estado: 'Activo', sede: 'escazu' },
     { id: 2, nombre: 'Víctor González', rol: 'Chef Ejecutivo', turno: 'Tarde (4:00 PM - 11:00 PM)', estado: 'Activo', sede: 'escazu' },
@@ -44,9 +41,8 @@ export default function AdminDashboard() {
     { id: 4, nombre: 'Luis Solano', rol: 'Pailero Maestro', turno: 'Mañana (11:00 AM - 5:00 PM)', estado: 'Activo', sede: 'cartago' }
   ]);
 
-  // ESTADOS DE FORMULARIOS DE REGISTRO / EDICIÓN
   const [newStock, setNewStock] = useState({ ingrediente: '', cat: 'Carnes', stock: '', unidad: 'kg', valor: '' });
-  const [newEmp, setNewEmp] = useState({ nombre: '', rol: 'Mesero', turno: 'Mañana (11:00 AM - 5:00 PM)' });
+  const [newEmp, setNewEmp] = useState({ nombre: '', rol: 'Mesero Jefe', turno: 'Mañana (11:00 AM - 5:00 PM)' });
   const [emailForm, setEmailForm] = useState({ dep: 'Administración', para: '', asunto: '', mensaje: '' });
 
   useEffect(() => {
@@ -57,7 +53,6 @@ export default function AdminDashboard() {
     setToast({ show: true, message, type });
   };
 
-  // MANEJO DE INVENTARIO
   const handleAddStock = (e) => {
     e.preventDefault();
     if (!newStock.ingrediente) return;
@@ -79,7 +74,6 @@ export default function AdminDashboard() {
     showToast('Insumo eliminado del sistema', 'info');
   };
 
-  // MANEJO DE EMPLEADOS
   const handleAddEmployee = (e) => {
     e.preventDefault();
     if (!newEmp.nombre) return;
@@ -90,7 +84,7 @@ export default function AdminDashboard() {
       sede: selectedSede
     };
     setEmployees([...employees, emp]);
-    setNewEmp({ nombre: '', rol: 'Mesero', turno: 'Mañana (11:00 AM - 5:00 PM)' });
+    setNewEmp({ nombre: '', rol: 'Mesero Jefe', turno: 'Mañana (11:00 AM - 5:00 PM)' });
     showToast(`Empleado asignado a la sede ${selectedSede.toUpperCase()}`, 'success');
   };
 
@@ -99,20 +93,17 @@ export default function AdminDashboard() {
     showToast('Empleado retirado de la planilla', 'info');
   };
 
-  // LLAMADA DIRECTA / WHATSAPP PROVEEDOR
   const handleCallSupplier = (phone) => {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent('Hola, le saludamos de Chicharronera El Cacique para consultar disponibilidad de insumos.')}`, '_blank');
     showToast('Iniciando contacto vía WhatsApp API...', 'info');
   };
 
-  // ENVÍO DE CORREOS DEPARTAMENTALES
   const handleSendEmail = (e) => {
     e.preventDefault();
     showToast(`Correo despachado al Departamento de ${emailForm.dep} (${emailForm.para})`, 'success');
     setEmailForm({ dep: 'Administración', para: '', asunto: '', mensaje: '' });
   };
 
-  // FILTRADO DE DATOS POR SEDE Y BÚSQUEDA
   const filteredInventory = inventory.filter(i => i.sede === selectedSede && i.ingrediente.toLowerCase().includes(searchTerm.toLowerCase()));
   const filteredEmployees = employees.filter(e => e.sede === selectedSede && e.nombre.toLowerCase().includes(searchTerm.toLowerCase()));
   const filteredSuppliers = suppliers.filter(s => s.sede === selectedSede);
@@ -127,7 +118,6 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* MODAL DETALLES */}
       {modalItem && (
         <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
@@ -148,7 +138,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* SIDEBAR NAVEGACIÓN EJECUTIVA */}
       <aside className="w-64 bg-white border-r border-gray-200 p-5 flex flex-col justify-between hidden lg:flex shrink-0">
         <div className="space-y-6">
           <div className="flex items-center gap-3 px-2">
@@ -215,10 +204,7 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* ÁREA PRINCIPAL */}
       <main className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto max-w-7xl mx-auto">
-        
-        {/* SELECTOR DE LOCAL / SEDE GENERAL */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
@@ -258,7 +244,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* TAB 1: DASHBOARD RESUMEN */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -351,7 +336,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* TAB 2: INVENTARIO POR SEDE CON AGREGAR Y ELIMINAR */}
         {activeTab === 'inventory' && (
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
@@ -418,7 +402,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* TAB 3: EMPLEADOS Y PERSONAL DE LA SEDE */}
         {activeTab === 'employees' && (
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
@@ -478,7 +461,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* TAB 4: CONTACTO A PROVEEDORES VÍA WHATSAPP API */}
         {activeTab === 'suppliers' && (
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
             <div>
@@ -506,7 +488,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* TAB 5: ENVÍO DE CORREOS DEPARTAMENTALES */}
         {activeTab === 'email' && (
           <div className="max-w-xl bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
             <h3 className="font-bold text-base text-gray-900">Despacho de Correos Departamentales</h3>
@@ -567,7 +548,6 @@ export default function AdminDashboard() {
             </form>
           </div>
         )}
-
       </main>
     </div>
   );

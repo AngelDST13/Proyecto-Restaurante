@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
-import { Lock, Mail, User, Phone, IdCard } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react';
 
 export default function Login() {
-  const [isRegistering, setIsRegistering] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
@@ -41,10 +40,10 @@ export default function Login() {
       <div className="w-full max-w-md bg-[#00241B]/80 backdrop-blur-2xl border border-[#F8FFE5]/15 rounded-2xl p-8 space-y-6 shadow-2xl">
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-extrabold text-[#F8FFE5]">
-            {isRegistering ? 'Registro de Cliente' : 'Acceso al Sistema El Cacique'}
+            Acceso al Sistema El Cacique
           </h2>
           <p className="text-xs text-[#F8FFE5]/70">
-            {isRegistering ? 'Crea tu cuenta para realizar pedidos' : 'Ingresa tus credenciales autorizadas'}
+            Ingresa tus credenciales autorizadas
           </p>
         </div>
 

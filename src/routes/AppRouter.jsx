@@ -6,42 +6,32 @@ import AdminDashboard from '../pages/AdminDashboard';
 import WaiterDashboard from '../pages/WaiterDashboard';
 import Unauthorized from '../pages/Unauthorized';
 import ProtectedRoute from '../components/ProtectedRoute';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 
 export function AppRouter() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <div className="flex-grow">
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/menu" element={<Menu />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* RUTA PROTEGIDA MESERO */}
-          <Route 
-            path="/waiter" 
-            element={
-              <ProtectedRoute allowedRoles={['mesero', 'administrador']}>
-                <WaiterDashboard />
-              </ProtectedRoute>
-            } 
-          />
+      <Route 
+        path="/waiter" 
+        element={
+          <ProtectedRoute allowedRoles={['mesero', 'administrador']}>
+            <WaiterDashboard />
+          </ProtectedRoute>
+        } 
+      />
 
-          {/* RUTA PROTEGIDA ADMIN */}
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute allowedRoles={['administrador']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </div>
-      <Footer />
-    </div>
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute allowedRoles={['administrador']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } 
+      />
+    </Routes>
   );
 }
