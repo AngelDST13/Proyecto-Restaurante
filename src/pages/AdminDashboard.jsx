@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { getWeatherByLocation } from '../services/weatherService';
 import Toast from '../components/Toast';
 import { 
-  LayoutDashboard, ShoppingBag, Monitor, Package, 
+  LayoutDashboard, ShoppingBag, Monitor, Package,
   Layers, Users, ShieldAlert, Mail, Search, CloudSun, Send, 
   Eye, Edit3, Trash2, Plus, DollarSign, Clock, LogOut, 
   TrendingUp, ArrowUpRight, ArrowDownRight, Truck, CheckCircle2, AlertTriangle, RefreshCw
@@ -19,12 +19,23 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [modalItem, setModalItem] = useState(null);
 
+  // Inventario de ejemplo para el módulo de Stock
+  const [inventory, setInventory] = useState([
+    { id: 1, ingrediente: 'Chicharrón de Paila', cat: 'Carnes', stock: 45, max: 100, unidad: 'kg', estado: 'Normal', valor: '₡225,000' },
+    { id: 2, ingrediente: 'Yuca Criolla', cat: 'Vegetales', stock: 12, max: 80, unidad: 'kg', estado: 'Crítico', valor: '₡18,000' }
+  ]);
+
   useEffect(() => {
     getWeatherByLocation(selectedSede).then(res => setWeather(res));
   }, [selectedSede]);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
+  };
+
+  const handleDeleteStock = (id) => {
+    setInventory(prev => prev.filter(item => item.id !== id));
+    showToast('Registro de inventario eliminado', 'info');
   };
 
   return (
@@ -37,11 +48,14 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* MODAL DETALLES */}
+      {/* MODAL DETALLES CON USO DE EYE */}
       {modalItem && (
         <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 className="font-bold text-lg text-gray-900 border-b pb-2">Registro de Sistema</h3>
+            <div className="flex items-center gap-2 border-b pb-2 text-gray-900 font-bold text-lg">
+              <Eye className="w-5 h-5 text-[#D16014]" />
+              <h3>Registro de Sistema</h3>
+            </div>
             <pre className="text-xs bg-gray-50 p-4 rounded-xl text-gray-700 overflow-x-auto">
               {JSON.stringify(modalItem, null, 2)}
             </pre>
@@ -55,7 +69,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* SIDEBAR EJECUTIVO (FOODFLOW PRO STYLE) */}
+      {/* SIDEBAR CON USO DE SHIELDALERT Y PACKAGE */}
       <aside className="w-64 bg-white border-r border-gray-200 p-5 flex flex-col justify-between hidden lg:flex shrink-0">
         <div className="space-y-6">
           <div className="flex items-center gap-3 px-2">
@@ -91,6 +105,13 @@ export default function AdminDashboard() {
             </button>
 
             <button 
+              onClick={() => setActiveTab('products')} 
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'products' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
+            >
+              <Package className="w-4 h-4" /> <span>Catálogo de Productos</span>
+            </button>
+
+            <button 
               onClick={() => setActiveTab('inventory')} 
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'inventory' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
             >
@@ -102,6 +123,13 @@ export default function AdminDashboard() {
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'employees' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
             >
               <Users className="w-4 h-4" /> <span>Personal &amp; Turnos</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('security')} 
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${activeTab === 'security' ? 'bg-[#D16014]/10 text-[#D16014] font-extrabold' : 'hover:bg-gray-50'}`}
+            >
+              <ShieldAlert className="w-4 h-4" /> <span>Auditoría &amp; Sesiones</span>
             </button>
 
             <button 
@@ -129,7 +157,7 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* ÁREA DE CONTENIDO */}
+      {/* ÁREA DE CONTENIDO PRINCIPAL */}
       <main className="flex-1 p-6 lg:p-8 space-y-6 overflow-y-auto max-w-7xl mx-auto">
         
         {/* BARRA SUPERIOR */}
@@ -146,6 +174,9 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <button onClick={() => showToast('Datos sincronizados', 'info')} className="p-2 text-gray-500 hover:bg-gray-100 rounded-xl" title="Refrescar">
+              <RefreshCw className="w-4 h-4" />
+            </button>
             <div className="flex items-center gap-2.5 bg-[#F0FDF4] px-3.5 py-1.5 rounded-xl border border-[#DCFCE7] text-xs">
               <CloudSun className="w-4 h-4 text-[#16A34A]" />
               <div>
@@ -167,14 +198,17 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* CONTENIDO DASHBOARD ESTILO FOODFLOW PRO */}
+        {/* CONTENIDO DASHBOARD CON USO DE TRENDINGUP, TRUCK, CHECKCIRCLE2 */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
             
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <h1 className="text-2xl font-black text-gray-900">¡Buenas tardes, Administrador! 👋</h1>
-                <p className="text-xs text-gray-400 mt-0.5">Aquí está el resumen operacional de la Chicharronera El Cacique hoy.</p>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-6 h-6 text-[#D16014]" />
+                <div>
+                  <h1 className="text-2xl font-black text-gray-900">¡Buenas tardes, Administrador! 👋</h1>
+                  <p className="text-xs text-gray-400 mt-0.5">Resumen analítico operacional de la Chicharronera El Cacique.</p>
+                </div>
               </div>
 
               <div className="flex bg-gray-100 p-1 rounded-xl text-xs font-bold text-gray-600">
@@ -247,25 +281,16 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* GRÁFICOS Y ANALÍTICA DE RENDIMIENTO */}
+            {/* ANALÍTICA Y ESTADOS */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* COMPARATIVA DE INGRESOS */}
               <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="font-bold text-sm text-gray-900">Análisis de Ingresos &amp; Ventas</h3>
-                    <p className="text-[11px] text-gray-400">Rendimiento mensual comparativo por sede</p>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="inline-block w-3 h-3 bg-[#D16014] rounded-full"></span>
-                    <span className="text-gray-600 font-semibold">Ingresos</span>
-                    <span className="inline-block w-3 h-3 bg-blue-500 rounded-full ml-2"></span>
-                    <span className="text-gray-600 font-semibold">Órdenes</span>
+                    <h3 className="font-bold text-sm text-gray-900">Análisis Comparativo de Ventas</h3>
+                    <p className="text-[11px] text-gray-400">Rendimiento mensual de comandas</p>
                   </div>
                 </div>
 
-                {/* BARRAS GRÁFICAS REPRESENATIVAS */}
                 <div className="h-48 flex items-end justify-between gap-3 pt-6 border-b pb-2">
                   {[
                     { mes: 'Ene', v1: 40, v2: 60 },
@@ -286,61 +311,101 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* DISTRIBUCIÓN DE PEDIDOS */}
+              {/* DISTRIBUCIÓN CON CHECKCIRCLE2 Y TRUCK */}
               <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-bold text-sm text-gray-900">Estado de Pedidos en Tiempo Real</h3>
-                  <p className="text-[11px] text-gray-400">Distribución porcentual del servicio</p>
+                  <h3 className="font-bold text-sm text-gray-900">Monitoreo de Despacho</h3>
+                  <p className="text-[11px] text-gray-400">Estado de comandas en cocina y salón</p>
                 </div>
 
                 <div className="space-y-4 text-xs">
-                  <div>
-                    <div className="flex justify-between font-bold mb-1">
-                      <span className="text-emerald-700">Completados (65%)</span>
-                      <span>834</span>
+                  <div className="flex items-center justify-between p-2.5 bg-emerald-50 rounded-xl text-emerald-800">
+                    <div className="flex items-center gap-2 font-bold">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Completados</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="w-[65%] h-full bg-emerald-500"></div>
-                    </div>
+                    <span className="font-extrabold">834</span>
                   </div>
 
-                  <div>
-                    <div className="flex justify-between font-bold mb-1">
-                      <span className="text-amber-700">En Preparación (20%)</span>
-                      <span>256</span>
+                  <div className="flex items-center justify-between p-2.5 bg-blue-50 rounded-xl text-blue-800">
+                    <div className="flex items-center gap-2 font-bold">
+                      <Truck className="w-4 h-4 text-blue-600" />
+                      <span>En Camino / Servicio</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="w-[20%] h-full bg-amber-500"></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between font-bold mb-1">
-                      <span className="text-blue-700">En Camino / Mesa (15%)</span>
-                      <span>194</span>
-                    </div>
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="w-[15%] h-full bg-blue-500"></div>
-                    </div>
+                    <span className="font-extrabold">194</span>
                   </div>
                 </div>
 
                 <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] font-semibold flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
-                  <span>Sede Escazú presenta alta demanda en salón (+18%).</span>
+                  <span>Sede Escazú registra alta afluencia (+18%).</span>
                 </div>
               </div>
-
             </div>
 
           </div>
         )}
 
-        {/* OTROS MÓDULOS DE ADMINISTRACIÓN */}
-        {activeTab !== 'dashboard' && (
+        {/* TABLA DE INVENTARIO CON BANDERAS DE ACCIÓN Y USO DE TRASH2 / EDIT3 */}
+        {activeTab === 'inventory' && (
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-bold text-base text-gray-900">Control de Stock e Insumos</h3>
+                <p className="text-xs text-gray-400">Inventario en tiempo real</p>
+              </div>
+              <button onClick={() => showToast('Insumo añadido', 'success')} className="px-4 py-2 rounded-xl bg-[#D16014] text-white font-bold text-xs flex items-center gap-2">
+                <Plus className="w-4 h-4" /> Agregar Insumo
+              </button>
+            </div>
+
+            <div className="overflow-x-auto text-xs">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-200 text-gray-400 bg-gray-50/50">
+                    <th className="py-3 px-3">Ingrediente</th>
+                    <th>Categoría</th>
+                    <th>Stock Actual</th>
+                    <th>Estado</th>
+                    <th>Valor</th>
+                    <th className="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {inventory.map(item => (
+                    <tr key={item.id} className="hover:bg-gray-50/80">
+                      <td className="py-3.5 px-3 font-bold text-gray-900">{item.ingrediente}</td>
+                      <td>{item.cat}</td>
+                      <td>{item.stock} {item.unidad}</td>
+                      <td>
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${item.estado === 'Crítico' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                          {item.estado}
+                        </span>
+                      </td>
+                      <td className="font-bold text-gray-700">{item.valor}</td>
+                      <td className="text-center">
+                        <div className="flex justify-center gap-1">
+                          <button onClick={() => setModalItem(item)} className="p-1.5 text-gray-500 hover:text-blue-600 rounded-lg"><Eye className="w-4 h-4" /></button>
+                          <button onClick={() => showToast(`Editando ${item.ingrediente}`, 'info')} className="p-1.5 text-gray-500 hover:text-amber-600 rounded-lg"><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDeleteStock(item.id)} className="p-1.5 text-gray-500 hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TABS SECUNDARIOS */}
+        {activeTab !== 'dashboard' && activeTab !== 'inventory' && (
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-xs space-y-4">
             <h3 className="font-bold text-base text-gray-900 capitalize">Módulo de {activeTab}</h3>
             <p className="text-gray-500">Gestión activa y monitoreo continuo de datos del sistema.</p>
+            <button onClick={() => showToast('Acción ejecutada correctamente', 'success')} className="px-4 py-2 bg-[#D16014] text-white font-bold rounded-xl">
+              Ejecutar Acción
+            </button>
           </div>
         )}
 
