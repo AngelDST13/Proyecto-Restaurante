@@ -1,0 +1,29 @@
+===============================================================================
+LICENCIA DE SOFTWARE PROPIETARIO Y ACUERDO DE USO
+SISTEMA DE GESTIÓN OPERATIVA RESTAURANTE EL CACIQUE - ENTERPRISE POS & KDS
+DERECHOS RESERVADOS © 2026 BVA (BVA SOFTWARE SOLUTIONS S.A.)
+===============================================================================
+
+IMPORTANTE — LEA ATENTAMENTE ANTES DE UTILIZAR O DEPLOYAR ESTE SOFTWARE:
+
+Este contrato de licencia de software es un acuerdo legal celebrado entre la empresa BVA (en adelante "EL TITULAR"), propietaria exclusiva de los derechos patrimoniales y de autor, y cualquier persona física o jurídica que acceda, ejecute, implemente o modifique este código fuente (en adelante "EL USUARIO").
+
+1. CONCESIÓN DE LICENCIA Y PROPIEDAD INTELECTUAL
+   Todos los derechos de propiedad intelectual, marcas registradas, arquitectura de software, diagramas de flujo de n8n, algoritmos de encriptación de sesión, componentes de interfaz visual (UI/UX) y código fuente contenido en este repositorio pertenecen de manera exclusiva e inalienable a BVA.
+
+2. RESTRICCIONES DE USO Y DISTRIBUCIÓN
+   Queda estrictamente prohibida la reproducción total o parcial, redistribución, sublicenciamiento, venta, alquiler, comercialización o ingeniería inversa de este software o cualquiera de sus módulos operativos (Módulo POS Meseros, Cocina KDS, Panel Ejecutivo Administrador y automatizaciones de n8n) sin la autorización previa por escrito emitida por la dirección ejecutiva de BVA.
+
+3. CONFIDENCIALIDAD Y PROTECCIÓN DE DATOS
+   EL USUARIO se compromete a mantener la confidencialidad de los algoritmos de seguridad implementados, claves de firma HMAC, mecanismos de cifrado AES-256 en almacenamiento local y credenciales operativas del sistema. Ningún fragmento de este código podrá ser publicado en repositorios públicos sin consentimiento expreso de BVA.
+
+4. EXCLUSIÓN DE GARANTÍA Y LIMITACIÓN DE RESPONSABILIDAD
+   El software se proporciona "TAL CUAL" ("AS IS"), sin garantías explícitas o implícitas de comerciabilidad o idoneidad para un propósito particular. En ningún caso BVA será responsable de daños directos, indirectos, incidentales o consecuentes derivados del uso inadecuado de la plataforma o la interrupción de servicios de terceros.
+
+5. JURISDICCIÓN Y LEY APLICABLE
+   Este acuerdo se regirá e interpretará de conformidad con las leyes de la República de Costa Rica. Cualquier controversia derivada de la validez, interpretación o ejecución de esta licencia se someterá a los tribunales competentes de San José, Costa Rica.
+
+===============================================================================
+Para consultas corporativas de licenciamiento o soporte técnico oficial:
+BVA Software Solutions S.A. | Todos los derechos reservados © 2026
+===============================================================================
