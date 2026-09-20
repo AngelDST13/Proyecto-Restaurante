@@ -21,10 +21,19 @@ function URLNormalizer({ children }) {
 
   useEffect(() => {
     const rawPath = location.pathname;
-    const cleanPath = rawPath.replace(/[./]+$/, '') || '/';
+    const cleanPath = rawPath.toLowerCase().replace(/[./]+$/, '') || '/';
+    const canonicalRoutes = {
+      '/admindashboard': '/admin',
+      '/admin': '/admin',
+      '/kitchendashboard': '/kitchen',
+      '/kitchen': '/kitchen',
+      '/waiterdashboard': '/waiter',
+      '/waiter': '/waiter'
+    };
+    const canonicalPath = canonicalRoutes[cleanPath] || cleanPath;
 
-    if (rawPath !== cleanPath) {
-      navigate(`${cleanPath}${location.search}${location.hash}`, { replace: true });
+    if (rawPath !== canonicalPath) {
+      navigate(`${canonicalPath}${location.search}${location.hash}`, { replace: true });
     }
   }, [location, navigate]);
 
