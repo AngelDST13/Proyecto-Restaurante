@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Flame, Utensils, ShieldCheck, Award, Clock, MapPin, 
+  Flame, Utensils, ShieldCheck, Award,
   Calendar, ChevronLeft, ChevronRight, Sparkles, Phone, ArrowRight 
 } from 'lucide-react';
 import { getWeatherByLocation } from '../services/weatherService';
@@ -231,11 +231,11 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-[#F8FFE5]/10 shadow-2xl h-80">
+          <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-[#659B5E]/30 shadow-2xl h-80 bg-[#001812] relative">
             <iframe 
-              title="Mapa de Sede Escazu"
+              title="Mapa de Sede Escazú El Cacique"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3930.012345!2d-84.14!3d9.93!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e30000000000%3A0x0!2sEscaz%C3%BA!5e0!3m2!1ses!2scr!4v1600000000000!5m2!1ses!2scr" 
-              className="w-full h-full border-0 filter grayscale invert contrast-125 opacity-80"
+              className="w-full h-full border-0 opacity-90 hover:opacity-100 transition-opacity"
               allowFullScreen="" 
               loading="lazy"
             />

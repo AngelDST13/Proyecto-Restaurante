@@ -5,7 +5,7 @@ import Menu from '../pages/Menu';
 import AdminDashboard from '../pages/AdminDashboard';
 import WaiterDashboard from '../pages/WaiterDashboard';
 import Unauthorized from '../pages/Unauthorized';
-import ProtectedRoute from '../components/ProtectedRoute';
+import ProtectedRoute from './ProtectedRoute';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -20,6 +20,7 @@ export function AppRouter() {
           <Route path="/menu" element={<Menu />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
+          {/* RUTA PROTEGIDA MESERO */}
           <Route 
             path="/waiter" 
             element={
@@ -29,6 +30,7 @@ export function AppRouter() {
             } 
           />
 
+          {/* RUTA PROTEGIDA ADMINISTRADOR */}
           <Route 
             path="/admin" 
             element={

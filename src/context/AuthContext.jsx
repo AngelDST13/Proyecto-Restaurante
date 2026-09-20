@@ -1,11 +1,13 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState } from 'react';
+import { encryptData, decryptData } from '../services/cryptoService';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('cacique_user_session');
-    return saved ? JSON.parse(saved) : null;
+    const savedEncrypted = localStorage.getItem('cacique_encrypted_session');
+    return savedEncrypted ? decryptData(savedEncrypted) : null;
   });
 
   const login = (email) => {
@@ -24,15 +26,22 @@ export function AuthProvider({ children }) {
       else sedeAsignada = 'escazu';
     }
 
-    const userData = { email, rol: role, sede: sedeAsignada, loggedAt: new Date().toISOString() };
+    const userData = { 
+      email, 
+      rol: role, 
+      sede: sedeAsignada, 
+      securityToken: encryptData({ timestamp: Date.now(), role }),
+      loggedAt: new Date().toISOString() 
+    };
+
     setUser(userData);
-    localStorage.setItem('cacique_user_session', JSON.stringify(userData));
+    localStorage.setItem('cacique_encrypted_session', encryptData(userData));
     return userData;
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('cacique_user_session');
+    localStorage.removeItem('cacique_encrypted_session');
   };
 
   return (
@@ -42,9 +51,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-// The hook is kept here for the public auth API; it is intentionally excluded
-// from the Fast Refresh export check because this file also owns the provider.
-// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
 }
