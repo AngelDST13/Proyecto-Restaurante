@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import PublicRoute from './PublicRoute';
+import PrivateRoute from './PrivateRoute';
 import Landing from '../pages/Landing';
 import Login from '../pages/Login';
 import Menu from '../pages/Menu';
@@ -29,30 +31,6 @@ function URLNormalizer({ children }) {
   return children;
 }
 
-function ProtectedAdminRoute({ children }) {
-  const { user } = useAuth();
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.rol !== 'administrador') return <Navigate to="/unauthorized" replace />;
-  return children;
-}
-
-function ProtectedKitchenRoute({ children }) {
-  const { user } = useAuth();
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.rol !== 'cocina' && user.rol !== 'administrador') return <Navigate to="/unauthorized" replace />;
-  return children;
-}
-
-function ProtectedWaiterRoute({ children }) {
-  const { user } = useAuth();
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.rol !== 'mesero' && user.rol !== 'administrador') return <Navigate to="/unauthorized" replace />;
-  return children;
-}
-
 export function AppRouter() {
   const { inactivityToast, setInactivityToast } = useAuth();
   const location = useLocation();
@@ -75,7 +53,7 @@ export function AppRouter() {
         <div className="flex-grow">
           <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
@@ -83,9 +61,9 @@ export function AppRouter() {
           <Route 
             path="/waiter" 
             element={
-              <ProtectedWaiterRoute>
+              <PrivateRoute allowedRoles={['mesero', 'administrador']}>
                 <WaiterDashboard />
-              </ProtectedWaiterRoute>
+              </PrivateRoute>
             } 
           />
 
@@ -93,9 +71,9 @@ export function AppRouter() {
           <Route 
             path="/kitchen" 
             element={
-              <ProtectedKitchenRoute>
+              <PrivateRoute allowedRoles={['cocina', 'administrador']}>
                 <KitchenDashboard />
-              </ProtectedKitchenRoute>
+              </PrivateRoute>
             } 
           />
 
@@ -103,9 +81,9 @@ export function AppRouter() {
           <Route 
             path="/admin" 
             element={
-              <ProtectedAdminRoute>
+              <PrivateRoute allowedRoles={['administrador']}>
                 <AdminDashboard />
-              </ProtectedAdminRoute>
+              </PrivateRoute>
             } 
           />
           </Routes>
