@@ -32,10 +32,7 @@ export default function Landing() {
   const dishes = [
     ['Chifrijo Especial Cacique', 'Pork belly crujiente, cubaces tiernos en su caldo, pico de gallo criollo, aguacate fresco y patacones tostados.', '₡6,800', 'MÁS VENDIDO'],
     ['Vigorón Criollo de Paila (1 kg)', 'Chicharrones de carne y concha tostada sobre yuca al vapor y ensalada agria tradicional.', '₡14,500', 'PARA COMPARTIR'],
-    ['Costilla a la Leña Ahumada', 'Corte jugoso marinado en especias autóctonas, ahumado con leña de café y chimichurri.', '₡9,200', 'RECOMENDACIÓN DEL CHEF'],
-    ['Sopa de Mondongo Criolla', 'Receta ancestral con verduras campesinas, garbanzos y mondongo tierno a fuego lento.', '₡5,900', 'TRADICIONAL'],
-    ['Chicharronada Familiar El Cacique', 'Dos kilos de chicharrones mixtos, yuca, patacones, tortillas y frijoles molidos.', '₡24,000', 'BANQUETE FAMILIAR'],
-    ['Ceviche de Tilapia Criollo', 'Pescado fresco en cítricos con culantro, cebolla morada y galletas artesanales.', '₡4,800', 'ENTRADA FRESCA']
+    ['Costilla a la Leña Ahumada', 'Corte jugoso marinado en especias autóctonas, ahumado con leña de café y chimichurri.', '₡9,200', 'RECOMENDACIÓN DEL CHEF']
   ];
 
   return (
