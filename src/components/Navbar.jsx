@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Utensils, LogOut, Menu as MenuIcon, X, Calendar, User, ShieldAlert } from 'lucide-react';
 import logoNegro from '../assets/img/LogoN.svg';
@@ -7,14 +7,28 @@ import logoNegro from '../assets/img/LogoN.svg';
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleGoHome = (e) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    if (location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate('/');
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+    }
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A090C]/90 backdrop-blur-md border-b border-[#F8FFE5]/10 text-[#F8FFE5]">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         
-        {/* ENLACE DE INICIO CON LOGO NEGRO */}
-        <Link to="/" className="flex items-center gap-3 group">
+        {/* LOGO QUE REDIRIGE ARRIBA */}
+        <a href="/" onClick={handleGoHome} className="flex items-center gap-3 group cursor-pointer">
           <img 
             src={logoNegro} 
             alt="Logo Chicharronera El Cacique" 
@@ -24,10 +38,12 @@ export default function Navbar() {
             <span className="font-extrabold text-base tracking-tight text-[#F8FFE5] block leading-none">El Cacique</span>
             <span className="text-[10px] text-[#659B5E] font-semibold tracking-wider uppercase">Chicharronera Gourmet</span>
           </div>
-        </Link>
+        </a>
 
         <nav className="hidden md:flex items-center gap-8 text-xs font-bold tracking-wider uppercase">
-          <Link to="/" className="hover:text-[#D16014] transition-colors">Inicio</Link>
+          <button onClick={handleGoHome} className="hover:text-[#D16014] transition-colors uppercase cursor-pointer">
+            Inicio
+          </button>
           <Link to="/menu" className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 text-[#659B5E]">
             <Utensils className="w-3.5 h-3.5" /> Menú &amp; Comanda
           </Link>
@@ -58,7 +74,7 @@ export default function Navbar() {
               </div>
               <button 
                 onClick={logout} 
-                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
+                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all cursor-pointer"
                 title="Cerrar Sesión"
               >
                 <LogOut className="w-4 h-4" />
@@ -67,7 +83,7 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => navigate('/login')}
-              className="px-5 py-2.5 rounded-xl bg-[#D16014] hover:bg-[#b8510f] text-white font-bold transition-all shadow-md shadow-[#D16014]/20 flex items-center gap-2"
+              className="px-5 py-2.5 rounded-xl bg-[#D16014] hover:bg-[#b8510f] text-white font-bold transition-all shadow-md shadow-[#D16014]/20 flex items-center gap-2 cursor-pointer"
             >
               <User className="w-4 h-4" /> Iniciar Sesión
             </button>
@@ -84,14 +100,10 @@ export default function Navbar() {
 
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#0A090C] border-b border-[#F8FFE5]/10 px-6 py-4 space-y-3 text-xs font-bold uppercase">
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block py-2">Inicio</Link>
+          <button onClick={handleGoHome} className="block w-full text-left py-2">Inicio</button>
           <Link to="/menu" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#659B5E]">Menú &amp; Comanda</Link>
-          {user?.rol === 'administrador' && (
-            <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#D16014]">Panel Administrador</Link>
-          )}
-          {user?.rol === 'mesero' && (
-            <Link to="/waiter" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#659B5E]">Panel Mesero</Link>
-          )}
+          <a href="/#nosotros" onClick={() => setMobileMenuOpen(false)} className="block py-2">Nosotros</a>
+          <a href="/#eventos" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-amber-500">Eventos</a>
           {user ? (
             <button onClick={logout} className="w-full text-left py-2 text-red-400">Cerrar Sesión</button>
           ) : (

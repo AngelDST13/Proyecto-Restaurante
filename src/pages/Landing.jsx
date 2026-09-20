@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Flame, Utensils, ShieldCheck, Award,
-  Calendar, ChevronLeft, ChevronRight, Sparkles, Phone, ArrowRight 
+  Flame, Utensils, ShieldCheck, Award, 
+  Calendar, ChevronLeft, ChevronRight, Sparkles, Phone, ArrowRight, Star, ShoppingBag 
 } from 'lucide-react';
 import { getWeatherByLocation } from '../services/weatherService';
 import logoNegro from '../assets/img/LogoN.svg';
@@ -11,6 +11,14 @@ export default function Landing() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [weatherData, setWeatherData] = useState(null);
   const [selectedSede, setSelectedSede] = useState('escazu');
+
+  // MAPAS DINÁMICOS SEGÚN LA SEDE SELECCIONADA
+  const mapsBySede = {
+    escazu: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15721.23!2d-84.1450!3d9.9320!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e38601efdb91%3A0xb3638b7e2beed611!2sEscaz%C3%BA%2C%20San%20Jos%C3%A9!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr",
+    santa_ana: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15721.80!2d-84.1833!3d9.9333!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa03831a293521b%3A0x6b2b5444983b624!2sSanta%20Ana%2C%20San%20Jos%C3%A9!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr",
+    cartago: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15725.10!2d-83.9194!3d9.8639!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0df3f009f5825%3A0xd6e5f32a249ff643!2sCartago%2C%20Costa%20Rica!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr",
+    heredia: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15719.80!2d-84.1167!3d9.9989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0fca0a60ff94b%3A0xc3b836d5bebd52c7!2sHeredia%2C%20Costa%20Rica!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr"
+  };
 
   const slides = [
     {
@@ -24,6 +32,34 @@ export default function Landing() {
       subtitulo: 'Chicharrones crujientes de la purita paila, ceviches arreglados y cervezas heladas.',
       tag: 'RECETAS ANCESTRALES',
       bgImg: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=1600'
+    }
+  ];
+
+  // TOP 3 PLATILLOS MÁS COMPRADOS
+  const topDishes = [
+    {
+      id: 1,
+      nombre: 'Chifrijo Especial de Paila',
+      precio: '₡6,800',
+      badge: '#1 MÁS VENDIDO',
+      desc: 'Chicharrón crujiente de concha y carne, frijoles cubaces, pico de gallo y aguacate Hass.',
+      img: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=800'
+    },
+    {
+      id: 2,
+      nombre: 'Costilla de Cerdo a la Leña',
+      precio: '₡9,200',
+      badge: '#2 ESPECIALIDAD',
+      desc: 'Costilla jugosa ahumada con leña de café, acompañada de plátanos maduros con queso.',
+      img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=800'
+    },
+    {
+      id: 3,
+      nombre: 'Surtido Cacique Familiar (1kg)',
+      precio: '₡14,500',
+      badge: '#3 RECOMENDADO CHEF',
+      desc: 'Surtido completo con yuca al vapor, ensalada de repollo, chimichurri y tortillas de maíz.',
+      img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800'
     }
   ];
 
@@ -79,22 +115,79 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* CONTROLES DEL CAROUSEL */}
         <button 
           onClick={() => setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)}
-          className="absolute left-6 z-20 p-3 rounded-full bg-[#0A090C]/60 hover:bg-[#D16014] text-white border border-white/10 transition-all"
+          className="absolute left-6 z-20 p-3 rounded-full bg-[#0A090C]/60 hover:bg-[#D16014] text-white border border-white/10 transition-all cursor-pointer"
+          aria-label="Anterior slide"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
         <button 
           onClick={() => setCurrentSlide(prev => (prev + 1) % slides.length)}
-          className="absolute right-6 z-20 p-3 rounded-full bg-[#0A090C]/60 hover:bg-[#D16014] text-white border border-white/10 transition-all"
+          className="absolute right-6 z-20 p-3 rounded-full bg-[#0A090C]/60 hover:bg-[#D16014] text-white border border-white/10 transition-all cursor-pointer"
+          aria-label="Siguiente slide"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
       </section>
 
-      {/* 2. SECCIÓN SOBRE NOSOTROS (CON EL LOGO EN GRAN TAMAÑO) */}
+      {/* 2. SECCIÓN DE LOS 3 PLATILLOS MÁS COMPRADOS */}
+      <section className="py-20 px-6 max-w-7xl mx-auto space-y-12">
+        <div className="text-center space-y-3">
+          <span className="text-xs font-black text-[#D16014] tracking-widest uppercase bg-[#D16014]/10 px-4 py-1.5 rounded-full border border-[#D16014]/30 inline-block">
+            Preferidos de Nuestros Comensales
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-black text-[#F8FFE5] tracking-tight">
+            LOS 3 PLATILLOS MÁS PEDIDOS
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-400 max-w-lg mx-auto">
+            Sabor criollo elaborado al momento en nuestras pailas artesanales.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {topDishes.map((dish) => (
+            <div 
+              key={dish.id} 
+              className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl overflow-hidden hover:border-[#D16014] transition-all group shadow-2xl flex flex-col justify-between"
+            >
+              <div className="relative h-56 overflow-hidden">
+                <img 
+                  src={dish.img} 
+                  alt={dish.nombre} 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute top-4 left-4 bg-[#D16014] text-white text-[10px] font-black uppercase px-3 py-1 rounded-xl shadow-lg">
+                  {dish.badge}
+                </div>
+                <div className="absolute bottom-4 right-4 bg-[#0A090C]/90 backdrop-blur-md px-3 py-1 rounded-xl border border-[#F8FFE5]/10 flex items-center gap-1 text-amber-400 text-xs font-bold">
+                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                  <span>5.0</span>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4 flex-grow flex flex-col justify-between">
+                <div className="space-y-2">
+                  <h3 className="text-xl font-extrabold text-[#F8FFE5] group-hover:text-[#D16014] transition-colors">{dish.nombre}</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed">{dish.desc}</p>
+                </div>
+
+                <div className="pt-4 border-t border-[#F8FFE5]/10 flex items-center justify-between">
+                  <span className="text-2xl font-black text-[#D16014]">{dish.precio}</span>
+                  <Link 
+                    to="/menu" 
+                    className="px-4 py-2 rounded-xl bg-[#659B5E] hover:bg-[#52824c] text-white text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-md"
+                  >
+                    <ShoppingBag className="w-4 h-4" /> Pedir Ahora
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 3. SECCIÓN SOBRE NOSOTROS (CON LOGO EN GRAN TAMAÑO) */}
       <section id="nosotros" className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-[#0A090C] via-[#050507] to-[#0A090C]">
         <div className="max-w-7xl mx-auto">
           
@@ -110,13 +203,11 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
-            {/* TARJETA DEL LOGO EN GRAN TAMAÑO CON LUZ AMBIENTAL */}
             <div className="lg:col-span-5 relative group flex justify-center">
-              <div className="absolute -inset-4 bg-gradient-to-r from-[#D16014]/30 to-[#659B5E]/30 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+              <div className="absolute -inset-4 bg-gradient-to-r from-[#D16014]/30 to-[#659B5E]/30 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition duration-1000" />
               
               <div className="relative w-full max-w-md bg-[#001812]/90 border border-[#659B5E]/30 rounded-3xl p-10 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center space-y-6">
                 
-                {/* LOGO EN FORMATO GRANDE */}
                 <div className="p-6 rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 shadow-inner w-full flex items-center justify-center">
                   <img 
                     src={logoNegro} 
@@ -149,11 +240,10 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* HISTORIA Y VALORES */}
             <div className="lg:col-span-7 space-y-6">
               <div className="space-y-4">
                 <h3 className="text-2xl sm:text-3xl font-black text-[#F8FFE5] leading-tight">
-                  Más de dos décadas perfeccionando el arte del chicharron criollo y la paila artesanal.
+                  Más de dos décadas perfeccionando el arte del chicharrón criollo y la paila artesanal.
                 </h3>
                 <p className="text-sm text-gray-300 leading-relaxed">
                   En <strong className="text-[#F8FFE5]">Chicharronera El Cacique</strong> combinamos el sabor único del chicharrón de concha y carne dorados a fuego vivo con la eficiencia de un sistema de gestión digital en tiempo real.
@@ -196,20 +286,20 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 3. SECCIÓN CLIMA & LOCALIZACIÓN DE SEDES */}
+      {/* 4. SECCIÓN CLIMA & MAPA DINÁMICO POR SEDE */}
       <section className="py-16 px-6 bg-[#001812]/50 border-y border-[#659B5E]/20">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           <div className="lg:col-span-5 space-y-4">
             <span className="text-xs font-black text-[#D16014] uppercase tracking-wider">Ubicación &amp; Ambiente</span>
-            <h3 className="text-2xl sm:text-3xl font-black text-[#F8FFE5]">Consulta el clima de tu sede preferida</h3>
+            <h3 className="text-2xl sm:text-3xl font-black text-[#F8FFE5]">Consulta el clima y ubicación de tu sede</h3>
             
             <div className="space-y-3 pt-2">
               <label className="block text-xs text-gray-400 font-bold uppercase">Selecciona la Sede:</label>
               <select 
                 value={selectedSede} 
                 onChange={e => setSelectedSede(e.target.value)}
-                className="w-full bg-[#0A090C] border border-[#659B5E]/40 rounded-xl px-4 py-2.5 text-xs text-[#F8FFE5] font-bold focus:outline-none"
+                className="w-full bg-[#0A090C] border border-[#659B5E]/40 rounded-xl px-4 py-2.5 text-xs text-[#F8FFE5] font-bold focus:outline-none focus:border-[#D16014] cursor-pointer"
               >
                 <option value="escazu">Sede Escazú • Centro Culinario</option>
                 <option value="santa_ana">Sede Santa Ana • Plaza Real</option>
@@ -231,10 +321,12 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-[#659B5E]/30 shadow-2xl h-80 bg-[#001812] relative">
+          {/* MAPA DINÁMICO QUE CAMBIA SEGÚN LA SEDE */}
+          <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-[#659B5E]/30 shadow-2xl h-80 bg-[#001812]">
             <iframe 
-              title="Mapa de Sede Escazú El Cacique"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3930.012345!2d-84.14!3d9.93!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e30000000000%3A0x0!2sEscaz%C3%BA!5e0!3m2!1ses!2scr!4v1600000000000!5m2!1ses!2scr" 
+              key={selectedSede}
+              title={`Mapa Sede ${selectedSede}`}
+              src={mapsBySede[selectedSede]} 
               className="w-full h-full border-0 opacity-90 hover:opacity-100 transition-opacity"
               allowFullScreen="" 
               loading="lazy"
@@ -244,7 +336,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4. EVENTOS ESPECIALES */}
+      {/* 5. EVENTOS ESPECIALES */}
       <section id="eventos" className="py-20 px-6 max-w-7xl mx-auto space-y-10">
         <div className="text-center space-y-2">
           <span className="text-xs font-black text-amber-500 uppercase tracking-widest">Reservaciones</span>
