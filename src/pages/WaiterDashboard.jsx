@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import { 
   Utensils, LogOut, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, 
   ShieldCheck, CheckCircle2, Search, AlertCircle, FileText, Send, Trash2, 
-  Sparkles, Coffee
+  Sparkles, Coffee, BellRing, X
 } from 'lucide-react';
+
+const READY_ORDERS_STORAGE_KEY = 'cacique_ready_order_notifications';
 
 export default function WaiterDashboard() {
   const { user, logout } = useAuth();
@@ -16,6 +18,7 @@ export default function WaiterDashboard() {
   const [orderItems, setOrderItems] = useState([]);
   const [orderNote, setOrderNote] = useState('');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+  const [readyOrder, setReadyOrder] = useState(null);
 
   const sedesNombre = {
     escazu: 'Sede Escazú • Centro Culinario',
@@ -55,6 +58,36 @@ export default function WaiterDashboard() {
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
+  };
+
+  useEffect(() => {
+    const readReadyOrder = () => {
+      const notifications = JSON.parse(localStorage.getItem(READY_ORDERS_STORAGE_KEY) || '[]');
+      const matchingNotification = notifications
+        .filter(notification => notification.sede === (user?.sede || 'escazu'))
+        .sort((first, second) => second.createdAt - first.createdAt)[0];
+
+      if (matchingNotification) setReadyOrder(matchingNotification);
+    };
+
+    const handleReadyOrder = event => {
+      if (event.detail?.sede === (user?.sede || 'escazu')) {
+        setReadyOrder(event.detail);
+      }
+    };
+
+    readReadyOrder();
+    window.addEventListener('storage', readReadyOrder);
+    window.addEventListener('cacique:order-ready', handleReadyOrder);
+
+    return () => {
+      window.removeEventListener('storage', readReadyOrder);
+      window.removeEventListener('cacique:order-ready', handleReadyOrder);
+    };
+  }, [user?.sede]);
+
+  const dismissReadyOrder = () => {
+    setReadyOrder(null);
   };
 
   const handleSelectTable = (table) => {
@@ -131,6 +164,28 @@ export default function WaiterDashboard() {
     <div className="min-h-screen bg-[#07090E] text-[#F8FFE5] pt-20 pb-12 px-4 sm:px-6 font-sans">
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
+      )}
+
+      {readyOrder && (
+        <div className="fixed top-24 left-1/2 z-40 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl border border-emerald-400/50 bg-[#082218] p-4 text-[#F8FFE5] shadow-2xl shadow-emerald-950/50">
+          <div className="flex items-start gap-3">
+            <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-black">Pedido listo para entregar</p>
+              <p className="mt-1 text-xs text-emerald-100/80">
+                Cocina completó la comanda {readyOrder.orderId} de {readyOrder.mesa}.
+              </p>
+            </div>
+            <button
+              onClick={dismissReadyOrder}
+              className="rounded-lg p-1 text-emerald-100/70 transition-colors hover:bg-white/10 hover:text-white"
+              title="Cerrar notificación"
+              aria-label="Cerrar notificación de pedido listo"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="max-w-7xl mx-auto space-y-6">

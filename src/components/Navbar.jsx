@@ -70,7 +70,7 @@ export default function Navbar() {
 
           {(user?.rol === 'mesero' || user?.rol === 'administrador') && (
             <Link to="/kitchen" className="px-3 py-1.5 rounded-xl bg-[#D16014]/20 border border-[#D16014]/50 text-[#D16014] flex items-center gap-1.5 hover:bg-[#D16014]/30">
-              <ChefHat className="w-3.5 h-3.5" /> Cocina KDS
+              <ChefHat className="w-3.5 h-3.5" /> Cocina • {formatSedeName(user?.sede)}
             </Link>
           )}
 
@@ -118,7 +118,7 @@ export default function Navbar() {
             <Link to="/waiter" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#659B5E]">Panel Mesero</Link>
           )}
           {(user?.rol === 'mesero' || user?.rol === 'administrador') && (
-            <Link to="/kitchen" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#D16014]">Panel Cocina</Link>
+            <Link to="/kitchen" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#D16014]">Cocina</Link>
           )}
           {user ? (
             <button onClick={() => { setMobileMenuOpen(false); setIsLogoutModalOpen(true); }} className="w-full text-left py-2 text-red-400">Cerrar Sesión</button>

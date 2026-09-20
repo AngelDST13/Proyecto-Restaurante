@@ -10,6 +10,8 @@ import {
   MessageSquare, BellRing,Edit3, Send, Timer, 
 } from 'lucide-react';
 
+const READY_ORDERS_STORAGE_KEY = 'cacique_ready_order_notifications';
+
 export default function KitchenDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -141,6 +143,18 @@ export default function KitchenDashboard() {
   // NOTIFICAR A MESERO QUE EL PEDIDO ESTÁ LISTO
   const handleNotifyWaiter = (order) => {
     showToast(`🔔 Notificación enviada a ${order.mesero} (${order.mesa} lista)`, 'success');
+
+    const notification = {
+      id: `${order.id}-${Date.now()}`,
+      orderId: order.id,
+      mesa: order.mesa,
+      mesero: order.mesero,
+      sede: order.sede,
+      createdAt: Date.now()
+    };
+    const notifications = JSON.parse(localStorage.getItem(READY_ORDERS_STORAGE_KEY) || '[]');
+    localStorage.setItem(READY_ORDERS_STORAGE_KEY, JSON.stringify([...notifications, notification].slice(-20)));
+    window.dispatchEvent(new CustomEvent('cacique:order-ready', { detail: notification }));
     
     triggerN8nAutomation('PEDIDO_MENU', {
       orderId: order.id,
@@ -218,7 +232,7 @@ export default function KitchenDashboard() {
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-[#F8FFE5]">
-                Panel Operativo de Cocina - Sede {formatSedeName(filterSede)}
+                Cocina • Sede {formatSedeName(filterSede)}
               </h1>
             </div>
           </div>

@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import { formatSedeName } from '../services/authSecurity';
+import { triggerN8nAutomation } from '../services/n8nService';
 import { 
   ShieldCheck, DollarSign, ShoppingBag, Users, Clock, 
   TrendingUp, RefreshCw, AlertTriangle, Plus, Trash2, Pencil, CheckCircle2,
   BarChart3, Package, CreditCard, Calendar, MapPin, LogOut, ExternalLink,
-  Search, Sliders, Flame, AlertCircle
+  Search, Sliders, Flame, AlertCircle, Star, Ticket, MessageSquare,
+  Award, ArrowUpRight
 } from 'lucide-react';
 import logoNegro from '../assets/img/LogoN.svg';
 
@@ -19,6 +21,13 @@ export default function AdminDashboard() {
   const [selectedSede, setSelectedSede] = useState('escazu');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Buenos días';
+    if (hour < 18) return 'Buenas tardes';
+    return 'Buenas noches';
+  };
 
   // FILTROS Y BÚSQUEDA DE INVENTARIO
   const [searchInsumo, setSearchInsumo] = useState('');
@@ -47,12 +56,37 @@ export default function AdminDashboard() {
     { id: 6, nombre: 'Cas Criollo para Naturales', stock: 45, minLimit: 10, maxLimit: 60, unidad: 'kg', sede: 'cartago' }
   ]);
 
+  const topSellingFoods = [
+    { rank: '#1', nombre: 'Chifrijo Especial de Paila', ventas: 342, monto: '₡2,325,600', rating: 4.9 },
+    { rank: '#2', nombre: 'Costilla Cerdo a la Leña', ventas: 215, monto: '₡1,978,000', rating: 4.8 },
+    { rank: '#3', nombre: 'Vigorón Criollo Cacique (1kg)', ventas: 184, monto: '₡2,668,000', rating: 5.0 },
+    { rank: '#4', nombre: 'Ceviche de Tilapia Arreglado', ventas: 142, monto: '₡781,000', rating: 4.7 }
+  ];
+
+  const liveActivities = [
+    { id: 1, texto: 'Nueva comanda #ORD-105 recibida', hora: 'Hace 2 min', tipo: 'pedido' },
+    { id: 2, texto: 'Calificación 5 estrellas asignada por un cliente', hora: 'Hace 8 min', tipo: 'review' },
+    { id: 3, texto: 'Reabastecimiento de Yuca aprobado', hora: 'Hace 15 min', tipo: 'stock' }
+  ];
+
+  const coupons = [
+    { id: 1, codigo: 'CACIQUE10', descripcion: '10% de descuento en pedidos familiares', usos: 84, estado: 'Activo' },
+    { id: 2, codigo: 'PAILA2026', descripcion: 'Bebida gratis en consumo mayor a ₡15,000', usos: 42, estado: 'Activo' },
+    { id: 3, codigo: 'LUNESCRIOLLO', descripcion: '15% de descuento los lunes', usos: 0, estado: 'Programado' }
+  ];
+
+  const reviews = [
+    { id: 1, cliente: 'María González', sede: 'Escazú', rating: 5, comentario: 'El chifrijo estuvo increíble y el servicio fue muy rápido.' },
+    { id: 2, cliente: 'Diego Vargas', sede: 'Santa Ana', rating: 4, comentario: 'Muy buen sabor. La terraza es excelente para compartir.' },
+    { id: 3, cliente: 'Sofía Ramírez', sede: 'Cartago', rating: 5, comentario: 'La atención del equipo y la calidad de la paila fueron excelentes.' }
+  ];
+
   // DATOS MÉTRICOS POR SEDE
   const sedeData = {
-    escazu: { ventas: 785400, comandas: 1890, personal: 12, coccion: '15 min', mesasLibres: 8, mesasTotal: 24 },
-    santa_ana: { ventas: 540200, comandas: 1320, personal: 8, coccion: '17 min', mesasLibres: 4, mesasTotal: 18 },
-    cartago: { ventas: 610900, comandas: 1450, personal: 10, coccion: '16 min', mesasLibres: 6, mesasTotal: 20 },
-    heredia: { ventas: 485250, comandas: 1284, personal: 9, coccion: '18 min', mesasLibres: 3, mesasTotal: 16 }
+    escazu: { ventas: 785400, comandas: 1890, clientes: 23847, personal: 12, coccion: '15 min', mesasLibres: 8, mesasTotal: 24, completados: 956, pendientes: 243, cancelados: 85 },
+    santa_ana: { ventas: 540200, comandas: 1320, clientes: 18200, personal: 8, coccion: '17 min', mesasLibres: 4, mesasTotal: 18, completados: 810, pendientes: 140, cancelados: 30 },
+    cartago: { ventas: 610900, comandas: 1450, clientes: 20400, personal: 10, coccion: '16 min', mesasLibres: 6, mesasTotal: 20, completados: 910, pendientes: 180, cancelados: 30 },
+    heredia: { ventas: 485250, comandas: 1284, clientes: 15900, personal: 9, coccion: '18 min', mesasLibres: 3, mesasTotal: 16, completados: 740, pendientes: 110, cancelados: 40 }
   };
 
   const currentMetrics = sedeData[selectedSede];
@@ -182,11 +216,13 @@ export default function AdminDashboard() {
 
           <nav className="space-y-1.5 text-xs font-bold uppercase tracking-wider">
             {[
-              { id: 'resumen', label: 'Resumen & Métricas', icon: BarChart3 },
-              { id: 'inventario', label: 'Gestión de Inventario', icon: Package, badge: criticalItemsCount > 0 ? criticalItemsCount : null },
-              { id: 'arqueo', label: 'Arqueo de Caja & POS', icon: CreditCard },
-              { id: 'personal', label: 'Personal & Planilla', icon: Users },
-              { id: 'mesas', label: 'Mesas & Reservaciones', icon: Calendar }
+                { id: 'resumen', label: 'Resumen & Analíticas', icon: BarChart3 },
+                { id: 'inventario', label: 'Gestión de Inventario', icon: Package, badge: criticalItemsCount > 0 ? criticalItemsCount : null },
+                { id: 'cupones', label: 'Cupones & Promos', icon: Ticket },
+                { id: 'resenas', label: 'Reseñas & Clientes', icon: Star },
+                { id: 'arqueo', label: 'Arqueo de Caja & POS', icon: CreditCard },
+                { id: 'personal', label: 'Personal & Planilla', icon: Users },
+                { id: 'mesas', label: 'Mesas & Reservaciones', icon: Calendar }
             ].map(item => {
               const Icon = item.icon;
               return (
@@ -244,11 +280,11 @@ export default function AdminDashboard() {
                 <Flame className="w-3.5 h-3.5" /> El Cacique 2026
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#F8FFE5] mt-1">
-              Panel Administrativo Central
+            <h1 className="text-2xl sm:text-4xl font-black text-[#F8FFE5] mt-2">
+              {getGreeting()}, {user?.alias || 'Angel'}!
             </h1>
             <p className="text-xs text-gray-400">
-              Supervisión de métricas, alertas de existencias e inventarios por sede.
+              Aquí está el resumen ejecutivo del rendimiento operacional de hoy.
             </p>
           </div>
 
@@ -301,7 +337,7 @@ export default function AdminDashboard() {
 
         {/* RESUMEN Y MÉTRICAS */}
         {activeSection === 'resumen' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
@@ -316,29 +352,84 @@ export default function AdminDashboard() {
 
               <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
-                  <span>Pedidos Despachados</span>
+                  <span>Órdenes de Hoy</span>
                   <ShoppingBag className="w-4 h-4 text-[#D16014]" />
                 </div>
                 <div className="text-3xl font-black text-[#F8FFE5]">{currentMetrics.comandas.toLocaleString()}</div>
-                <span className="text-[10px] text-gray-400">Paila, Salón y Terraza</span>
+                <span className="text-[10px] text-[#659B5E] font-bold flex items-center gap-1"><ArrowUpRight className="w-3 h-3" /> +8.2% incremento diario</span>
               </div>
 
               <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
-                  <span>Personal Activo</span>
+                  <span>Clientes Atendidos</span>
                   <Users className="w-4 h-4 text-amber-400" />
                 </div>
-                <div className="text-3xl font-black text-[#F8FFE5]">{currentMetrics.personal} Empleados</div>
-                <span className="text-[10px] text-[#659B5E]">Cocina, Salón y Administración</span>
+                <div className="text-3xl font-black text-[#F8FFE5]">{currentMetrics.clientes.toLocaleString()}</div>
+                <span className="text-[10px] text-[#659B5E] font-bold flex items-center gap-1"><ArrowUpRight className="w-3 h-3" /> +15.3% preferencia</span>
               </div>
 
               <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
-                  <span>Tiempo Prom. Preparación</span>
+                  <span>Tiempo Prom. Entrega</span>
                   <Clock className="w-4 h-4 text-cyan-400" />
                 </div>
                 <div className="text-3xl font-black text-[#F8FFE5]">{currentMetrics.coccion}</div>
-                <span className="text-[10px] text-gray-400">Eficiencia Paila Culinaria</span>
+                <span className="text-[10px] text-gray-400">Objetivo: &lt; 20 min</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 shadow-2xl">
+                <div className="flex justify-between items-center border-b border-[#F8FFE5]/10 pb-4">
+                  <div>
+                    <h3 className="font-extrabold text-base text-[#F8FFE5]">Tendencia de Ventas</h3>
+                    <p className="text-xs text-gray-400">Evolución mensual en Sede {formatSedeName(selectedSede)}.</p>
+                  </div>
+                  <TrendingUp className="w-5 h-5 text-[#659B5E]" />
+                </div>
+                <div className="h-48 flex items-end justify-between gap-3 pt-6 px-2 border-b border-[#F8FFE5]/10">
+                  {[60, 75, 50, 90, 80, 100].map((value, index) => (
+                    <div key={value} className="flex-1 flex flex-col items-center gap-2 group">
+                      <div className="w-full bg-gradient-to-t from-[#659B5E] to-[#D16014] rounded-t-xl group-hover:brightness-125 transition-all" style={{ height: `${value}%` }} />
+                      <span className="text-[10px] font-bold text-gray-400">{['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'][index]}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-5 shadow-2xl">
+                <h3 className="font-extrabold text-base border-b border-[#F8FFE5]/10 pb-4">Estado de Órdenes</h3>
+                {[
+                  { label: 'Despachadas', value: currentMetrics.completados, color: 'text-[#659B5E]', icon: CheckCircle2 },
+                  { label: 'En Proceso / Paila', value: currentMetrics.pendientes, color: 'text-amber-400', icon: Clock },
+                  { label: 'Canceladas', value: currentMetrics.cancelados, color: 'text-red-400', icon: AlertTriangle }
+                ].map(status => {
+                  const StatusIcon = status.icon;
+                  return (
+                    <div key={status.label} className="p-3 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 flex justify-between items-center">
+                      <span className={`text-xs font-bold ${status.color} flex items-center gap-2`}><StatusIcon className="w-4 h-4" /> {status.label}</span>
+                      <span className="text-lg font-black text-white">{status.value}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-4 shadow-2xl">
+                <h3 className="font-extrabold text-base border-b border-[#F8FFE5]/10 pb-3 flex items-center gap-2"><Award className="w-5 h-5 text-[#D16014]" /> Platillos Más Vendidos</h3>
+                <div className="space-y-3 text-xs">
+                  {topSellingFoods.map(food => (
+                    <div key={food.rank} className="p-3 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 flex items-center justify-between">
+                      <div className="flex items-center gap-3"><span className="font-mono font-black text-[#D16014]">{food.rank}</span><div><strong className="font-bold text-white block">{food.nombre}</strong><span className="text-[10px] text-gray-400">{food.ventas} órdenes servidas</span></div></div>
+                      <div className="text-right"><span className="font-black text-[#659B5E] block">{food.monto}</span><span className="text-[10px] text-amber-400">★ {food.rating}</span></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-4 shadow-2xl">
+                <h3 className="font-extrabold text-base border-b border-[#F8FFE5]/10 pb-3">Actividad en Vivo</h3>
+                {liveActivities.map(activity => <div key={activity.id} className="p-3 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10"><p className="text-xs font-bold text-gray-200">{activity.texto}</p><span className="text-[10px] text-[#659B5E] font-mono">{activity.hora}</span></div>)}
               </div>
             </div>
           </div>
@@ -450,6 +541,79 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {activeSection === 'cupones' && (
+          <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 text-xs shadow-2xl">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#F8FFE5]/10 pb-4">
+              <div>
+                <h3 className="font-extrabold text-lg text-[#F8FFE5] flex items-center gap-2"><Ticket className="w-5 h-5 text-[#D16014]" /> Cupones y Promociones</h3>
+                <p className="text-gray-400 text-[11px]">Gestiona campañas activas y mide su uso en Sede {formatSedeName(selectedSede)}.</p>
+              </div>
+              <button
+                onClick={() => showToast('Formulario de nueva promoción disponible próximamente', 'info')}
+                className="px-5 py-3 rounded-2xl bg-[#D16014] hover:bg-[#b8510f] text-white font-extrabold flex items-center gap-2 shadow-lg cursor-pointer"
+              >
+                <Plus className="w-4 h-4" /> Crear Promoción
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {coupons.map(coupon => (
+                <div key={coupon.id} className="p-5 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="font-mono font-black text-[#D16014] text-base">{coupon.codigo}</span>
+                    <span className={`px-2 py-1 rounded-lg text-[10px] font-black ${coupon.estado === 'Activo' ? 'bg-[#659B5E]/20 text-[#659B5E]' : 'bg-amber-500/20 text-amber-400'}`}>{coupon.estado}</span>
+                  </div>
+                  <p className="text-gray-300 leading-relaxed">{coupon.descripcion}</p>
+                  <div className="flex items-center justify-between border-t border-[#F8FFE5]/10 pt-3">
+                    <span className="text-gray-400">Usos registrados</span>
+                    <span className="font-black text-white">{coupon.usos}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      triggerN8nAutomation('PROMOCION_CACIQUE', { codigo: coupon.codigo, sede: selectedSede, accion: 'ACTUALIZAR_PROMOCION' });
+                      showToast(`Promoción ${coupon.codigo} sincronizada`, 'success');
+                    }}
+                    className="w-full py-2 rounded-xl border border-[#659B5E]/30 text-[#659B5E] font-bold hover:bg-[#659B5E]/10 cursor-pointer"
+                  >
+                    Sincronizar Campaña
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'resenas' && (
+          <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 text-xs shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#F8FFE5]/10 pb-4">
+              <div>
+                <h3 className="font-extrabold text-lg text-[#F8FFE5] flex items-center gap-2"><MessageSquare className="w-5 h-5 text-[#D16014]" /> Reseñas y Clientes</h3>
+                <p className="text-gray-400 text-[11px]">Comentarios recientes de la experiencia gastronómica.</p>
+              </div>
+              <div className="text-right"><span className="block text-2xl font-black text-amber-400">4.8</span><span className="text-[10px] text-gray-400">Promedio general</span></div>
+            </div>
+
+            <div className="space-y-3">
+              {reviews.map(review => (
+                <div key={review.id} className="p-4 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2"><strong className="text-white">{review.cliente}</strong><span className="text-[10px] text-[#659B5E]">Sede {review.sede}</span></div>
+                    <p className="text-gray-300 leading-relaxed">{review.comentario}</p>
+                  </div>
+                  <div className="shrink-0 text-amber-400 tracking-wide">{'★'.repeat(review.rating)}<span className="text-gray-600">{'★'.repeat(5 - review.rating)}</span></div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => showToast('No hay reseñas pendientes de moderación', 'info')}
+              className="px-5 py-2.5 rounded-xl bg-[#659B5E] hover:bg-[#52824c] text-white font-extrabold flex items-center gap-2 cursor-pointer"
+            >
+              <CheckCircle2 className="w-4 h-4" /> Revisar moderación
+            </button>
           </div>
         )}
 
