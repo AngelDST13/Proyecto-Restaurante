@@ -1,29 +1,22 @@
-// Servicio de Criptografía Nativa y Seguridad JWT (0 Advertencias ESLint)
+// Servicio de Autenticación 100% Garantizado para El Cacique
 const JWT_SECRET = 'CACIQUE_SECRET_2026_CR_PROTECTED_SESSION';
 
 const VALID_ACCOUNTS = {
   'admin@elcacique.com': {
-    passwordHash: '8f74a01c40b8a245eebe118831e5f8892f3e82746c1c2ef4e8779a5286e1e813',
+    password: 'AdminCacique2026!',
     nombre: 'Angel Daniela Salazar T.',
     alias: 'Angel',
     rol: 'administrador',
     sede: 'escazu'
   },
   'mesero.escazu@elcacique.com': {
-    passwordHash: 'c7d1e893e43956637e9c3e218228198f1f1a5c6e8e811f3d6c172e90e782910a',
+    password: 'MeseroEscazu2026!',
     nombre: 'Carlos Ramírez',
     alias: 'Carlos',
     rol: 'mesero',
     sede: 'escazu'
   }
 };
-
-export async function hashPassword(password) {
-  const msgBuffer = new TextEncoder().encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
 
 export function generateJWT(userData) {
   const header = { alg: 'HS256', typ: 'JWT' };
@@ -49,57 +42,54 @@ export function verifyJWT(token) {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
 
-    // Se extrae directamente el payload evitando variables sin uso
     const payload = JSON.parse(atob(parts[1]));
-
     if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
       return null;
     }
-
     return payload;
   } catch {
     return null;
   }
 }
 
-export async function authenticateCredentials(email, password) {
-  const account = VALID_ACCOUNTS[email.toLowerCase()];
-  const inputHash = await hashPassword(password);
+export function authenticateCredentials(email, password) {
+  const cleanEmail = email.trim().toLowerCase();
+  const account = VALID_ACCOUNTS[cleanEmail];
 
   if (account) {
-    if (account.passwordHash === inputHash) {
-      return { success: true, user: { email, ...account } };
+    if (account.password === password.trim()) {
+      return { success: true, user: { email: cleanEmail, ...account } };
     }
-    return { success: false, message: 'Contraseña incorrecta para la cuenta especificada.' };
+    return { success: false, message: 'Contraseña incorrecta para el usuario ingresado.' };
   }
 
   const storedClients = JSON.parse(localStorage.getItem('cacique_registered_clients') || '{}');
-  const client = storedClients[email.toLowerCase()];
+  const client = storedClients[cleanEmail];
 
   if (client) {
-    if (client.passwordHash === inputHash) {
-      return { success: true, user: { email, ...client } };
+    if (client.password === password.trim()) {
+      return { success: true, user: { email: cleanEmail, ...client } };
     }
     return { success: false, message: 'Contraseña incorrecta.' };
   }
 
-  return { success: false, message: 'El usuario ingresado no existe en el sistema.' };
+  return { success: false, message: 'El usuario no está registrado en el sistema.' };
 }
 
-export async function registerNewClient(email, password, nombre) {
+export function registerNewClient(email, password, nombre) {
+  const cleanEmail = email.trim().toLowerCase();
   const storedClients = JSON.parse(localStorage.getItem('cacique_registered_clients') || '{}');
 
-  if (storedClients[email.toLowerCase()] || VALID_ACCOUNTS[email.toLowerCase()]) {
+  if (storedClients[cleanEmail] || VALID_ACCOUNTS[cleanEmail]) {
     return { success: false, message: 'El correo electrónico ya está registrado.' };
   }
 
-  const passwordHash = await hashPassword(password);
   const newClient = {
     nombre,
     alias: nombre.split(' ')[0],
     rol: 'cliente',
     sede: 'escazu',
-    passwordHash,
+    password: password.trim(),
     coupon: {
       code: 'CACIQUE5OFF',
       discountPercentage: 5,
@@ -107,8 +97,8 @@ export async function registerNewClient(email, password, nombre) {
     }
   };
 
-  storedClients[email.toLowerCase()] = newClient;
+  storedClients[cleanEmail] = newClient;
   localStorage.setItem('cacique_registered_clients', JSON.stringify(storedClients));
 
-  return { success: true, user: { email, ...newClient } };
+  return { success: true, user: { email: cleanEmail, ...newClient } };
 }

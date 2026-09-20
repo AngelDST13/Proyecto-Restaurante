@@ -10,16 +10,22 @@ export default function Navbar() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleGoHome = (e) => {
-    e.preventDefault();
+  const scrollToSection = (sectionId) => {
     setMobileMenuOpen(false);
-    if (location.pathname === '/') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
+    if (location.pathname !== '/') {
       navigate('/');
       setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 150);
+    } else {
+      if (sectionId === 'inicio') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 100);
+      } else {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -27,8 +33,8 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A090C]/90 backdrop-blur-md border-b border-[#F8FFE5]/10 text-[#F8FFE5]">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         
-        {/* LOGO QUE REDIRIGE ARRIBA */}
-        <a href="/" onClick={handleGoHome} className="flex items-center gap-3 group cursor-pointer">
+        {/* LOGO INSTITUCIONAL */}
+        <button onClick={() => scrollToSection('inicio')} className="flex items-center gap-3 group cursor-pointer text-left">
           <img 
             src={logoNegro} 
             alt="Logo Chicharronera El Cacique" 
@@ -38,19 +44,25 @@ export default function Navbar() {
             <span className="font-extrabold text-base tracking-tight text-[#F8FFE5] block leading-none">El Cacique</span>
             <span className="text-[10px] text-[#659B5E] font-semibold tracking-wider uppercase">Chicharronera Gourmet</span>
           </div>
-        </a>
+        </button>
 
+        {/* NAVEGACIÓN PRINCIPAL */}
         <nav className="hidden md:flex items-center gap-8 text-xs font-bold tracking-wider uppercase">
-          <button onClick={handleGoHome} className="hover:text-[#D16014] transition-colors uppercase cursor-pointer">
+          <button onClick={() => scrollToSection('inicio')} className="hover:text-[#D16014] transition-colors cursor-pointer">
             Inicio
           </button>
+          
           <Link to="/menu" className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 text-[#659B5E]">
-            <Utensils className="w-3.5 h-3.5" /> Menú &amp; Comanda
+            <Utensils className="w-3.5 h-3.5" /> Menú Digital
           </Link>
-          <a href="/#nosotros" className="hover:text-[#D16014] transition-colors">Nosotros</a>
-          <a href="/#eventos" className="hover:text-[#D16014] transition-colors flex items-center gap-1 text-amber-500">
+
+          <button onClick={() => scrollToSection('nosotros')} className="hover:text-[#D16014] transition-colors cursor-pointer">
+            Nosotros
+          </button>
+
+          <button onClick={() => scrollToSection('eventos')} className="hover:text-[#D16014] transition-colors flex items-center gap-1 text-amber-500 cursor-pointer">
             <Calendar className="w-3.5 h-3.5" /> Eventos
-          </a>
+          </button>
 
           {user?.rol === 'administrador' && (
             <Link to="/admin" className="px-3 py-1.5 rounded-xl bg-[#D16014]/20 border border-[#D16014]/50 text-[#D16014] flex items-center gap-1.5 animate-pulse">
@@ -65,11 +77,12 @@ export default function Navbar() {
           )}
         </nav>
 
+        {/* PERFIL / INICIAR SESIÓN */}
         <div className="hidden md:flex items-center gap-4 text-xs font-bold">
           {user ? (
             <div className="flex items-center gap-3 border-l border-[#F8FFE5]/15 pl-4">
               <div className="text-right">
-                <span className="block text-[#F8FFE5] font-bold leading-tight">{user.email.split('@')[0]}</span>
+                <span className="block text-[#F8FFE5] font-bold leading-tight">{user.nombre || user.email.split('@')[0]}</span>
                 <span className="block text-[9px] text-[#659B5E] capitalize">{user.rol}</span>
               </div>
               <button 
@@ -90,6 +103,7 @@ export default function Navbar() {
           )}
         </div>
 
+        {/* MENÚ MÓVIL */}
         <button 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
           className="md:hidden p-2 text-gray-300 hover:text-white"
@@ -100,10 +114,10 @@ export default function Navbar() {
 
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#0A090C] border-b border-[#F8FFE5]/10 px-6 py-4 space-y-3 text-xs font-bold uppercase">
-          <button onClick={handleGoHome} className="block w-full text-left py-2">Inicio</button>
-          <Link to="/menu" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#659B5E]">Menú &amp; Comanda</Link>
-          <a href="/#nosotros" onClick={() => setMobileMenuOpen(false)} className="block py-2">Nosotros</a>
-          <a href="/#eventos" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-amber-500">Eventos</a>
+          <button onClick={() => scrollToSection('inicio')} className="block w-full text-left py-2">Inicio</button>
+          <Link to="/menu" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#659B5E]">Menú Digital</Link>
+          <button onClick={() => scrollToSection('nosotros')} className="block w-full text-left py-2">Nosotros</button>
+          <button onClick={() => scrollToSection('eventos')} className="block w-full text-left py-2 text-amber-500">Eventos</button>
           {user ? (
             <button onClick={logout} className="w-full text-left py-2 text-red-400">Cerrar Sesión</button>
           ) : (

@@ -1,42 +1,24 @@
 import { useState } from 'react';
 import Toast from '../components/Toast';
-import { Search, Flame, ShoppingBag, Plus, Minus, Trash2, Send, } from 'lucide-react';
+import { Search, Flame, ShoppingBag, Plus, Minus, Trash2, MessageCircle, AlertCircle, Truck } from 'lucide-react';
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
 
-  // CATÁLOGO COMPLETO EXTENDIDO
   const fullMenu = [
-    // PAILA Y CHICHARRONES
     { id: 1, nombre: 'Chifrijo Especial de Paila', cat: 'paila', precio: 6800, desc: 'Chicharrón crujiente de concha y carne, frijoles tiernos cubaces, pico de gallo y aguacate Hass.', badge: 'Más Vendido' },
     { id: 2, nombre: 'Vigorón Criollo Cacique (1kg)', cat: 'paila', precio: 14500, desc: 'Surtido de chicharrón con yuca al vapor, ensalada de repollo y chimichurri criollo.', badge: 'Familiar' },
-    
-    // CORTES A LA LEÑA
     { id: 3, nombre: 'Costilla Cerdo a la Leña', cat: 'cortes', precio: 9200, desc: 'Costilla jugosa ahumada con leña de café, acompañada de plátanos maduros con queso.', badge: 'Recomendado' },
-    { id: 4, nombre: 'Lomito de Cerdo al Fuego', cat: 'cortes', precio: 8900, desc: 'Corte fino de cerdo a las brasas con chimichurri casero y puré de yuca.' },
-
-    // MENÚ INFANTIL (NIÑOS)
-    { id: 5, nombre: 'Combo Caciquito: Mini Chicharroncitos', cat: 'ninos', precio: 3800, desc: 'Porción infantil de chicharritos suaves sin concha, papitas fritas y juguito de caja.', badge: 'Infantil' },
-    { id: 6, nombre: 'Deditos de Pollo Crispy con Yuca', cat: 'ninos', precio: 3500, desc: 'Tiras de pechuga empanizadas al momento con bastones de yuca frita y salsa dulce.' },
-    { id: 7, nombre: 'Hamburguesita Criolla Niños', cat: 'ninos', precio: 3900, desc: 'Hamburguesa con carne artesanal, queso cheddar y papas frita Sonrisa.' },
-
-    // BOCAS Y CEVICHES
-    { id: 8, nombre: 'Ceviche de Tilapia Arreglado', cat: 'bocas', precio: 5500, desc: 'Marinado en jugo de limón natural, chile dulce, cilantro, aguacate y galletas soda.', badge: 'Fresco' },
-    { id: 9, nombre: 'Patacones con Carne Desmechada', cat: 'bocas', precio: 4800, desc: 'Patacones dobles crujientes cubiertos de frijoles refritos, carne desmechada y queso frito.' },
-
-    // BEBIDAS NATURALES Y LICORES
-    { id: 10, nombre: 'Refresco Natural de Cas (500ml)', cat: 'bebidas', precio: 1800, desc: 'Cas criollo recién licuado con hielo frappé.' },
-    { id: 11, nombre: 'Agua de Sapo con Jengibre (500ml)', cat: 'bebidas', precio: 1900, desc: 'Bebida tradicional de tapa de dulce, limón criollo y jengibre fresco.' },
-    { id: 12, nombre: 'Cerveza Imperial Helada (350ml)', cat: 'bebidas', precio: 2200, desc: 'Cerveza nacional fría servida en vaso cervecero congelado.' },
-    { id: 13, nombre: 'Coctel Guaro Sour Cacique', cat: 'bebidas', precio: 3200, desc: 'Licor nacional con jugo de limón fresco y borde salado.' },
-
-    // POSTRES CRIOLLOS
-    { id: 14, nombre: 'Flan de Coco Casero', cat: 'postres', precio: 2500, desc: 'Postre tradicional bañado en caramelo de caña dulce.' },
-    { id: 15, nombre: 'Empanada Dulce de Plátano y Queso', cat: 'postres', precio: 2200, desc: 'Plátano maduro horneado relleno de queso turrialba y canela.' }
+    { id: 4, nombre: 'Combo Caciquito: Mini Chicharroncitos', cat: 'ninos', precio: 3800, desc: 'Porción infantil de chicharritos suaves sin concha, papitas fritas y juguito de caja.', badge: 'Infantil' },
+    { id: 5, nombre: 'Ceviche de Tilapia Arreglado', cat: 'bocas', precio: 5500, desc: 'Marinado en jugo de limón natural, chile dulce, cilantro, aguacate y galletas soda.', badge: 'Fresco' },
+    { id: 6, nombre: 'Refresco Natural de Cas (500ml)', cat: 'bebidas', precio: 1800, desc: 'Cas criollo recién licuado con hielo frappé.' },
+    { id: 7, nombre: 'Agua de Sapo con Jengibre (500ml)', cat: 'bebidas', precio: 1900, desc: 'Bebida tradicional de tapa de dulce, limón criollo y jengibre fresco.' },
+    { id: 8, nombre: 'Flan de Coco Casero', cat: 'postres', precio: 2500, desc: 'Postre tradicional bañado en caramelo de caña dulce.' }
   ];
 
   const showToast = (message, type = 'success') => {
@@ -51,7 +33,7 @@ export default function Menu() {
       }
       return [...prev, { ...item, cantidad: 1 }];
     });
-    showToast(`${item.nombre} agregado a la comanda`, 'info');
+    showToast(`${item.nombre} agregado al pedido`, 'info');
   };
 
   const handleQuantityChange = (id, delta) => {
@@ -73,10 +55,17 @@ export default function Menu() {
   const servicio = Math.round(subtotal * 0.10);
   const totalGeneral = subtotal + iva + servicio;
 
-  const handleSendOrder = () => {
+  const handleOpenNoticeModal = () => {
     if (cart.length === 0) return;
-    showToast('¡Comanda enviada en tiempo real a la cocina!', 'success');
-    setCart([]);
+    setIsNoticeModalOpen(true);
+  };
+
+  const handleConfirmWhatsAppOrder = () => {
+    const itemsText = cart.map(i => `• ${i.cantidad}x ${i.nombre} (₡${(i.precio * i.cantidad).toLocaleString()})`).join('%0A');
+    const text = `¡Hola Chicharronera El Cacique! 👋%0A%0AMe gustaría coordinar la reserva de mesa y mi pedido con el siguiente detalle:%0A%0A${itemsText}%0A%0A*Subtotal:* ₡${subtotal.toLocaleString()}%0A*IVA (13%):* ₡${iva.toLocaleString()}%0A*Servicio (10%):* ₡${servicio.toLocaleString()}%0A*Total:* ₡${totalGeneral.toLocaleString()}%0A%0A¿Me ayudan a confirmar disponibilidad de mesa y día?🏼`;
+
+    window.open(`https://wa.me/50622008888?text=${text}`, '_blank');
+    setIsNoticeModalOpen(false);
     setIsCartOpen(false);
   };
 
@@ -96,11 +85,14 @@ export default function Menu() {
         
         <div className="text-center space-y-3">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#D16014]/20 border border-[#D16014]/50 text-[#D16014] text-xs font-black uppercase">
-            <Flame className="w-4 h-4" /> Especialidades de Paila, Leña &amp; Menú Infantil
+            <Flame className="w-4 h-4" /> Selección Digital
           </span>
           <h1 className="text-4xl sm:text-6xl font-black text-[#F8FFE5] tracking-tight">
-            MENÚ DIGITAL &amp; COMANDA
+            MENÚ DIGITAL EL CACIQUE
           </h1>
+          <p className="text-xs sm:text-sm text-gray-400 max-w-xl mx-auto">
+            Elige tus platillos y bebidas preferidas para solicitar tu mesa y atención personalizada.
+          </p>
         </div>
 
         <div className="space-y-4 bg-[#001812] p-6 rounded-3xl border border-[#659B5E]/30 shadow-xl">
@@ -108,7 +100,7 @@ export default function Menu() {
             <Search className="w-4 h-4 absolute left-3.5 top-3 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Buscar platillo, jugos o postres..."
+              placeholder="Buscar por platillo, jugos o postres..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl pl-10 pr-4 py-2.5 text-xs text-[#F8FFE5] focus:outline-none focus:border-[#D16014]"
@@ -122,8 +114,8 @@ export default function Menu() {
               { id: 'cortes', label: 'Cortes a la Leña' },
               { id: 'ninos', label: 'Menú Infantil 👦👧' },
               { id: 'bocas', label: 'Bocas & Ceviches' },
-              { id: 'bebidas', label: 'Bebidas & Licores' },
-              { id: 'postres', label: 'Postres Criollos' }
+              { id: 'bebidas', label: 'Bebidas' },
+              { id: 'postres', label: 'Postres' }
             ].map(cat => (
               <button
                 key={cat.id}
@@ -176,19 +168,20 @@ export default function Menu() {
               className="px-6 py-3.5 rounded-2xl bg-[#D16014] text-white font-extrabold text-xs flex items-center gap-3 shadow-2xl hover:scale-105 transition-transform cursor-pointer"
             >
               <ShoppingBag className="w-5 h-5" />
-              <span>Ver Comanda ({cart.reduce((a, b) => a + b.cantidad, 0)})</span>
+              <span>Ver Pedido ({cart.reduce((a, b) => a + b.cantidad, 0)})</span>
               <span className="bg-white/20 px-2 py-1 rounded-lg">₡{totalGeneral.toLocaleString()}</span>
             </button>
           </div>
         )}
 
+        {/* DESPLEGABLE DE SELECCIÓN */}
         {isCartOpen && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end">
             <div className="w-full max-w-md bg-[#001812] h-full p-6 space-y-6 flex flex-col justify-between border-l border-[#659B5E]/30 text-xs">
               <div className="space-y-4">
                 <div className="flex justify-between items-center border-b border-[#F8FFE5]/10 pb-4">
                   <h3 className="font-extrabold text-base text-[#F8FFE5] flex items-center gap-2">
-                    <ShoppingBag className="w-5 h-5 text-[#D16014]" /> Resumen de tu Comanda
+                    <ShoppingBag className="w-5 h-5 text-[#D16014]" /> Resumen de Selección
                   </h3>
                   <button onClick={() => setIsCartOpen(false)} className="text-gray-400 hover:text-white font-bold cursor-pointer">Cerrar</button>
                 </div>
@@ -217,18 +210,66 @@ export default function Menu() {
                 <div className="space-y-1.5 font-semibold text-gray-400">
                   <div className="flex justify-between"><span>Subtotal:</span><span>₡{subtotal.toLocaleString()}</span></div>
                   <div className="flex justify-between"><span>IVA (13%):</span><span>₡{iva.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span>Servicio (10%):</span><span>₡{servicio.toLocaleString()}</span></div>
                   <div className="flex justify-between text-base font-black text-[#F8FFE5] pt-2 border-t border-[#F8FFE5]/10">
-                    <span>Total General:</span>
+                    <span>Total Estimado:</span>
                     <span className="text-[#D16014]">₡{totalGeneral.toLocaleString()}</span>
                   </div>
                 </div>
 
                 <button
-                  onClick={handleSendOrder}
-                  className="w-full py-3.5 rounded-xl bg-[#D16014] hover:bg-[#b8510f] font-extrabold text-white text-xs flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                  onClick={handleOpenNoticeModal}
+                  className="w-full py-3.5 rounded-xl bg-[#659B5E] hover:bg-[#52824c] font-extrabold text-white text-xs flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                 >
-                  <Send className="w-4 h-4" /> Enviar Comanda
+                  <MessageCircle className="w-4 h-4" /> Solicitar Pedido por WhatsApp
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL ADVERTENCIA / EXPLICACIÓN WHATSAPP & EXPRESS */}
+        {isNoticeModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-sans">
+            <div className="w-full max-w-lg bg-[#001812] border border-[#659B5E]/50 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl text-xs text-[#F8FFE5] relative">
+              <div className="space-y-3 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-[#659B5E]/20 border border-[#659B5E]/40 flex items-center justify-center mx-auto text-[#659B5E]">
+                  <AlertCircle className="w-8 h-8" />
+                </div>
+                
+                <h3 className="text-2xl font-black text-[#F8FFE5]">Procesamiento de Pedidos</h3>
+                <p className="text-gray-300 leading-relaxed">
+                  Para brindarte la atención personalizada que mereces, serás redirigido a nuestra línea de **WhatsApp Oficial**.
+                </p>
+              </div>
+
+              <div className="space-y-3 bg-[#0A090C] p-4 rounded-2xl border border-[#F8FFE5]/10">
+                <div className="flex items-start gap-3">
+                  <MessageCircle className="w-5 h-5 text-[#659B5E] shrink-0 mt-0.5" />
+                  <p className="text-gray-300 leading-relaxed">
+                    Un asesor te asistirá de inmediato para coordinar el número de mesa, día y hora de tu visita a la sucursal.
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-3 pt-2 border-t border-[#F8FFE5]/10">
+                  <Truck className="w-5 h-5 text-[#D16014] shrink-0 mt-0.5" />
+                  <p className="text-gray-300 leading-relaxed">
+                    <strong className="text-[#D16014]">¡Aviso Importante!</strong> Próximamente habilitaremos el **Servicio Express a Domicilio** en todas nuestras sucursales.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setIsNoticeModalOpen(false)}
+                  className="flex-1 py-3 rounded-xl bg-[#0A090C] border border-[#F8FFE5]/15 text-gray-400 hover:text-white font-bold cursor-pointer"
+                >
+                  Regresar
+                </button>
+                <button
+                  onClick={handleConfirmWhatsAppOrder}
+                  className="flex-1 py-3 rounded-xl bg-[#659B5E] hover:bg-[#52824c] text-white font-extrabold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                >
+                  Continuar a WhatsApp
                 </button>
               </div>
             </div>
