@@ -68,6 +68,7 @@ export default function Landing() {
 
       <section className="py-20 px-6 max-w-7xl mx-auto space-y-10"><div className="text-center space-y-2"><span className="text-xs font-black text-amber-500 uppercase tracking-widest">Reservaciones</span><h2 className="text-3xl font-black text-[#F8FFE5]">EVENTOS Y CELEBRACIONES</h2></div><div className="grid grid-cols-1 md:grid-cols-3 gap-6">{[['Fiestas Empresariales', 'Parrilladas ejecutivas y salón completo.', 'Empresarial', Sparkles], ['Cumpleaños & Familias', 'Atención preferencial para grupos grandes.', 'Cumpleaños', Utensils], ['Cotizaciones Express', 'Solicita una cotización inmediata.', 'Express', Phone]].map(([title, description, type, Icon]) => <div key={title} className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-4"><Icon className="w-6 h-6 text-[#D16014]" /><h3 className="font-extrabold text-lg text-[#F8FFE5]">{title}</h3><p className="text-xs text-gray-400">{description}</p><button onClick={() => openReservation(type)} className="w-full py-2.5 rounded-xl bg-[#D16014] text-white font-extrabold text-xs cursor-pointer">Reservar</button></div>)}</div></section>
 
+      <div id="eventos" className="scroll-mt-24" aria-hidden="true" />
       {isReservationOpen && <ReservationModal isOpen={isReservationOpen} onClose={() => setIsReservationOpen(false)} initialEventType={reservationType} onSuccess={message => setToast({ show: true, message, type: 'success' })} />}
     </div>
   );

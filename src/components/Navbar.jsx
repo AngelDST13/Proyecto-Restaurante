@@ -32,34 +32,36 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A090C]/90 backdrop-blur-md border-b border-[#F8FFE5]/10 text-[#F8FFE5]">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#001812]/90 backdrop-blur-md border-b border-[#659B5E]/30 text-[#F8FFE5]">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         
         {/* LOGO */}
         <button onClick={() => scrollToSection('inicio')} className="flex items-center gap-3 group cursor-pointer text-left">
-          <img src={logoNegro} alt="Logo Chicharronera El Cacique" className="h-10 w-auto object-contain transition-transform group-hover:scale-105" />
+          <div className="w-10 h-10 rounded-xl bg-[#F8FFE5] border border-[#D16014] p-1.5 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+            <img src={logoNegro} alt="Logo Chicharronera El Cacique" className="w-full h-full object-contain" />
+          </div>
           <div>
-            <span className="font-extrabold text-base tracking-tight text-[#F8FFE5] block leading-none">El Cacique</span>
-            <span className="text-[10px] text-[#659B5E] font-semibold tracking-wider uppercase">Chicharronera Gourmet</span>
+            <span className="font-black text-base text-white tracking-wide block leading-none">EL CACIQUE</span>
+            <span className="text-[9px] font-mono text-[#D16014] uppercase tracking-widest font-extrabold">CHICHARRONERA GOURMET</span>
           </div>
         </button>
 
         {/* NAVEGACIÓN */}
-        <nav className="hidden md:flex items-center gap-5 text-xs font-bold tracking-wider uppercase">
+        <nav className="hidden md:flex items-center gap-8 text-xs font-black tracking-wider uppercase">
           <button onClick={() => scrollToSection('inicio')} className="hover:text-[#D16014] transition-colors cursor-pointer">
             Inicio
           </button>
           
-          <Link to="/menu" className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 text-[#659B5E]">
-            <Utensils className="w-3.5 h-3.5" /> Menú Digital
+          <Link to="/menu" className="hover:text-[#D16014] transition-colors flex items-center gap-1.5">
+            <Utensils className="w-3.5 h-3.5 text-[#659B5E]" /> Menú Digital
           </Link>
 
           <button onClick={() => scrollToSection('nosotros')} className="hover:text-[#D16014] transition-colors cursor-pointer">
             Nosotros
           </button>
 
-          <button onClick={() => scrollToSection('eventos')} className="hover:text-[#D16014] transition-colors flex items-center gap-1 text-amber-500 cursor-pointer">
-            <Calendar className="w-3.5 h-3.5" /> Eventos
+          <button onClick={() => scrollToSection('eventos')} className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer">
+            <Calendar className="w-3.5 h-3.5 text-[#D16014]" /> Eventos
           </button>
 
           {(user?.rol === 'mesero' || user?.rol === 'administrador') && (
