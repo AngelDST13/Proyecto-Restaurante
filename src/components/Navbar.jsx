@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Utensils, LogOut, Menu as MenuIcon, X, Calendar, User, ShieldAlert } from 'lucide-react';
+import { Utensils, LogOut, Menu as MenuIcon, X, Calendar, User, ShieldAlert, ChefHat, Monitor } from 'lucide-react';
 import logoNegro from '../assets/img/LogoN.svg';
 
 export default function Navbar() {
@@ -42,8 +42,8 @@ export default function Navbar() {
           </div>
         </button>
 
-        {/* NAVEGACIÓN PÚBLICA */}
-        <nav className="hidden md:flex items-center gap-8 text-xs font-bold tracking-wider uppercase">
+        {/* NAVEGACIÓN PÚBLICA Y PRIVADA */}
+        <nav className="hidden md:flex items-center gap-5 text-xs font-bold tracking-wider uppercase">
           <button onClick={() => scrollToSection('inicio')} className="hover:text-[#D16014] transition-colors cursor-pointer">
             Inicio
           </button>
@@ -60,20 +60,33 @@ export default function Navbar() {
             <Calendar className="w-3.5 h-3.5" /> Eventos
           </button>
 
+          {/* ACCESOS OPERATIVOS EXCLUSIVOS PARA PERSONAL AUTENTICADO */}
+          {(user?.rol === 'mesero' || user?.rol === 'administrador') && (
+            <Link to="/waiter" className="px-3 py-1.5 rounded-xl bg-[#659B5E]/20 border border-[#659B5E]/50 text-[#659B5E] flex items-center gap-1.5 transition-all hover:bg-[#659B5E]/30">
+              <Monitor className="w-3.5 h-3.5" /> Panel Mesero
+            </Link>
+          )}
+
+          {(user?.rol === 'mesero' || user?.rol === 'administrador') && (
+            <Link to="/kitchen" className="px-3 py-1.5 rounded-xl bg-[#D16014]/20 border border-[#D16014]/50 text-[#D16014] flex items-center gap-1.5 transition-all hover:bg-[#D16014]/30">
+              <ChefHat className="w-3.5 h-3.5" /> Cocina KDS
+            </Link>
+          )}
+
           {user?.rol === 'administrador' && (
-            <Link to="/admin" className="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-400 flex items-center gap-1.5">
+            <Link to="/admin" className="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-400 flex items-center gap-1.5 transition-all hover:bg-amber-500/30">
               <ShieldAlert className="w-3.5 h-3.5" /> Panel Admin
             </Link>
           )}
         </nav>
 
-        {/* ACCESO A CUENTA */}
+        {/* USUARIO Y SESIÓN */}
         <div className="hidden md:flex items-center gap-4 text-xs font-bold">
           {user ? (
             <div className="flex items-center gap-3 border-l border-[#F8FFE5]/15 pl-4">
               <div className="text-right">
                 <span className="block text-[#F8FFE5] font-bold leading-tight">{user.nombre || user.email.split('@')[0]}</span>
-                <span className="block text-[9px] text-[#659B5E] capitalize">{user.rol}</span>
+                <span className="block text-[9px] text-[#659B5E] capitalize">{user.rol} • Sede {user.sede ? user.sede.toUpperCase() : 'ESCAZÚ'}</span>
               </div>
               <button onClick={logout} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl cursor-pointer" title="Cerrar Sesión">
                 <LogOut className="w-4 h-4" />
@@ -96,8 +109,12 @@ export default function Navbar() {
         <div className="md:hidden bg-[#0A090C] border-b border-[#F8FFE5]/10 px-6 py-4 space-y-3 text-xs font-bold uppercase">
           <button onClick={() => scrollToSection('inicio')} className="block w-full text-left py-2">Inicio</button>
           <Link to="/menu" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#659B5E]">Menú Digital</Link>
-          <button onClick={() => scrollToSection('nosotros')} className="block w-full text-left py-2">Nosotros</button>
-          <button onClick={() => scrollToSection('eventos')} className="block w-full text-left py-2 text-amber-500">Eventos</button>
+          {(user?.rol === 'mesero' || user?.rol === 'administrador') && (
+            <Link to="/waiter" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#659B5E]">Panel Mesero</Link>
+          )}
+          {(user?.rol === 'mesero' || user?.rol === 'administrador') && (
+            <Link to="/kitchen" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#D16014]">Panel Cocina</Link>
+          )}
           {user ? (
             <button onClick={logout} className="w-full text-left py-2 text-red-400">Cerrar Sesión</button>
           ) : (

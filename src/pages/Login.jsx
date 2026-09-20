@@ -11,7 +11,6 @@ export default function Login() {
   const navigate = useNavigate();
   const [isRegister, setIsRegister] = useState(false);
   
-  // ESTADOS INICIALIZADOS VACÍOS SINO RERENDERS INNECESARIOS
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nombre, setNombre] = useState('');
@@ -24,15 +23,39 @@ export default function Login() {
     setToast({ show: true, message, type });
   };
 
+  const validateForm = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (isRegister) {
+      if (!nombre.trim() || nombre.trim().length < 3) {
+        showToast('El nombre debe contener al menos 3 caracteres válidos.', 'error');
+        return false;
+      }
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre.trim())) {
+        showToast('El nombre solo debe contener letras y espacios.', 'error');
+        return false;
+      }
+    }
+
+    if (!emailRegex.test(email.trim())) {
+      showToast('Ingrese una dirección de correo electrónico válida.', 'error');
+      return false;
+    }
+
+    if (password.length < 6) {
+      showToast('La contraseña debe tener un mínimo de 6 caracteres.', 'error');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (isRegister) {
-      if (!nombre || !email || !password) {
-        showToast('Complete todos los campos requeridos', 'error');
-        return;
-      }
+    if (!validateForm()) return;
 
+    if (isRegister) {
       const res = registerClient(email, password, nombre);
       if (!res.success) {
         showToast(res.message, 'error');
@@ -44,11 +67,6 @@ export default function Login() {
       setTimeout(() => navigate('/menu'), 1000);
 
     } else {
-      if (!email || !password) {
-        showToast('Ingrese su correo y contraseña', 'error');
-        return;
-      }
-
       const res = loginWithCredentials(email, password);
       if (!res.success) {
         showToast(res.message, 'error');
@@ -127,7 +145,7 @@ export default function Login() {
         <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4 text-xs">
           {isRegister && (
             <div className="space-y-1">
-              <label className="block font-bold text-[#F8FFE5]/80">Nombre Completo</label>
+              <label className="block font-bold text-[#F8FFE5]/80">Nombre Completo (Mín. 3 letras)</label>
               <div className="relative">
                 <UserPlus className="w-4 h-4 absolute left-3.5 top-3 text-[#F8FFE5]/40" />
                 <input 
@@ -149,7 +167,7 @@ export default function Login() {
               <Mail className="w-4 h-4 absolute left-3.5 top-3 text-[#F8FFE5]/40" />
               <input 
                 type="email" 
-                placeholder="ej: mesero.escazu@elcacique.com" 
+                placeholder="ej: admin@elcacique.com" 
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 autoComplete="off"
@@ -160,7 +178,7 @@ export default function Login() {
           </div>
 
           <div className="space-y-1">
-            <label className="block font-bold text-[#F8FFE5]/80">Contraseña</label>
+            <label className="block font-bold text-[#F8FFE5]/80">Contraseña (Mín. 6 caracteres)</label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3.5 top-3 text-[#F8FFE5]/40" />
               <input 
@@ -183,10 +201,13 @@ export default function Login() {
           </div>
 
           {!isRegister && (
-            <div className="p-3 bg-[#0A090C] border border-[#F8FFE5]/10 rounded-xl space-y-1 text-[10px]">
-              <span className="text-gray-400 font-bold block uppercase">Acceso Rápido por Sede:</span>
-              <p className="text-[#659B5E] font-mono">Escazú: mesero.escazu@elcacique.com | MeseroEscazu2026!</p>
-              <p className="text-amber-400 font-mono">Santa Ana: mesero.santaana@elcacique.com | MeseroSantaAna2026!</p>
+            <div className="p-3.5 bg-[#0A090C] border border-[#F8FFE5]/10 rounded-xl space-y-1.5 text-[10px]">
+              <span className="text-gray-400 font-extrabold block uppercase tracking-wider">Credenciales Oficiales de Prueba:</span>
+              <p className="text-amber-400 font-mono"><strong>Admin:</strong> admin@elcacique.com | AdminCacique2026!</p>
+              <p className="text-[#659B5E] font-mono"><strong>Escazú:</strong> mesero.escazu@elcacique.com | MeseroEscazu2026!</p>
+              <p className="text-cyan-400 font-mono"><strong>Santa Ana:</strong> mesero.santaana@elcacique.com | MeseroSantaAna2026!</p>
+              <p className="text-amber-300 font-mono"><strong>Cartago:</strong> mesero.cartago@elcacique.com | MeseroCartago2026!</p>
+              <p className="text-emerald-300 font-mono"><strong>Heredia:</strong> mesero.heredia@elcacique.com | MeseroHeredia2026!</p>
             </div>
           )}
 

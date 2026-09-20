@@ -1,18 +1,18 @@
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { AccessibilityProvider } from './context/AccessibilityContext';
 import { AppRouter } from './routes/AppRouter';
+import { AuthProvider } from './context/AuthContext';
+import { AccessibilityProvider } from './context/AccesabilityContext';
+import InteractiveGlow from './components/InteractiveGlow';
 
 export default function App() {
   return (
-    <AccessibilityProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <AccessibilityProvider>
         <BrowserRouter>
-          <div className="min-h-screen bg-[#F8F9FA] text-[#1F2937] relative">
-            <AppRouter />
-          </div>
+          <InteractiveGlow />
+          <AppRouter />
         </BrowserRouter>
-      </AuthProvider>
-    </AccessibilityProvider>
+      </AccessibilityProvider>
+    </AuthProvider>
   );
 }
