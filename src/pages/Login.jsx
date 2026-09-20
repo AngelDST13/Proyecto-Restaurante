@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -11,7 +11,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [isRegister, setIsRegister] = useState(false);
   
-  // CAMPOS VACÍOS POR DEFECTO
+  // ESTADOS INICIALIZADOS VACÍOS SINO RERENDERS INNECESARIOS
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nombre, setNombre] = useState('');
@@ -19,13 +19,6 @@ export default function Login() {
   
   const [newCoupon, setNewCoupon] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
-
-  // LIMPIEZA FORZADA DE CAMPOS EN EL MONTAJE
-  useEffect(() => {
-    setEmail('');
-    setPassword('');
-    setNombre('');
-  }, []);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -131,11 +124,7 @@ export default function Login() {
           </div>
         )}
 
-        {/* INHIBIDOR DE AUTOCOMPLETADO */}
         <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4 text-xs">
-          <input type="text" style={{ display: 'none' }} />
-          <input type="password" style={{ display: 'none' }} />
-
           {isRegister && (
             <div className="space-y-1">
               <label className="block font-bold text-[#F8FFE5]/80">Nombre Completo</label>
@@ -163,7 +152,7 @@ export default function Login() {
                 placeholder="ej: mesero.escazu@elcacique.com" 
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                autoComplete="new-password"
+                autoComplete="off"
                 required 
                 className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl pl-10 pr-4 py-3 text-[#F8FFE5] focus:outline-none focus:border-[#D16014]" 
               />
@@ -198,7 +187,6 @@ export default function Login() {
               <span className="text-gray-400 font-bold block uppercase">Acceso Rápido por Sede:</span>
               <p className="text-[#659B5E] font-mono">Escazú: mesero.escazu@elcacique.com | MeseroEscazu2026!</p>
               <p className="text-amber-400 font-mono">Santa Ana: mesero.santaana@elcacique.com | MeseroSantaAna2026!</p>
-              <p className="text-cyan-400 font-mono">Cartago: mesero.cartago@elcacique.com | MeseroCartago2026!</p>
             </div>
           )}
 
