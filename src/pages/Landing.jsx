@@ -1,414 +1,71 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  Flame, Utensils, ShieldCheck, Award, 
-  Calendar, ChevronLeft, ChevronRight, Sparkles, Phone, ArrowRight, Star, ShoppingBag
-} from 'lucide-react';
-import { getWeatherByLocation } from '../services/weatherService';
-import logoNegro from '../assets/img/LogoN.svg';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReservationModal from '../components/ReservationModal';
 import Toast from '../components/Toast';
+import {
+  Utensils, Calendar, MapPin, Clock, Phone, Flame,
+  ChevronRight, AlertCircle, Sparkles
+} from 'lucide-react';
 
 export default function Landing() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [weatherData, setWeatherData] = useState(null);
-  const [selectedSede, setSelectedSede] = useState('escazu');
-  const [isReserveModalOpen, setIsReserveModalOpen] = useState(false);
-  const [reserveEventType, setReserveEventType] = useState('General');
+  const navigate = useNavigate();
+  const [isReservationOpen, setIsReservationOpen] = useState(false);
+  const [reservationType, setReservationType] = useState('General');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+  const [mapError, setMapError] = useState(false);
+  const [activeSedeMap, setActiveSedeMap] = useState('escazu');
 
-  // MAPAS DINÁMICOS SEGÚN LA SEDE SELECCIONADA
-  const mapsBySede = {
-    escazu: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15721.23!2d-84.1450!3d9.9320!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e38601efdb91%3A0xb3638b7e2beed611!2sEscaz%C3%BA%2C%20San%20Jos%C3%A9!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr",
-    santa_ana: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15721.80!2d-84.1833!3d9.9333!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa03831a293521b%3A0x6b2b5444983b624!2sSanta%20Ana%2C%20San%20Jos%C3%A9!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr",
-    cartago: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15725.10!2d-83.9194!3d9.8639!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0df3f009f5825%3A0xd6e5f32a249ff643!2sCartago%2C%20Costa%20Rica!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr",
-    heredia: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15719.80!2d-84.1167!3d9.9989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0fca0a60ff94b%3A0xc3b836d5bebd52c7!2sHeredia%2C%20Costa%20Rica!5e0!3m2!1ses!2scr!4v1700000000000!5m2!1ses!2scr"
+  const sedesInfo = {
+    escazu: { nombre: 'Sede Escazú • Centro Culinario', direccion: '100m Oeste de Multiplaza Escazú, San José', telefono: '+506 2200-8888', horario: 'Lunes a Domingo: 11:30 AM - 11:00 PM', mapUrl: 'https://maps.google.com/maps?q=Multiplaza%20Escazu&t=&z=15&ie=UTF8&iwloc=&output=embed' },
+    santa_ana: { nombre: 'Sede Santa Ana • Plaza Real', direccion: 'Plaza Real Santa Ana, Contiguo a la Ruta 27', telefono: '+506 2200-8889', horario: 'Lunes a Domingo: 11:00 AM - 10:00 PM', mapUrl: 'https://maps.google.com/maps?q=Santa%20Ana%20Town%20Center&t=&z=15&ie=UTF8&iwloc=&output=embed' },
+    cartago: { nombre: 'Sede Cartago • Paso Ancho', direccion: 'Paso Ancho de Cartago, 200m Sur de la Basílica', telefono: '+506 2500-1122', horario: 'Lunes a Domingo: 11:30 AM - 10:30 PM', mapUrl: 'https://maps.google.com/maps?q=Cartago%20Costa%20Rica&t=&z=15&ie=UTF8&iwloc=&output=embed' },
+    heredia: { nombre: 'Sede Heredia • Vía Central', direccion: 'Paseo de las Flores, Heredia Centro', telefono: '+506 2260-3344', horario: 'Lunes a Domingo: 11:30 AM - 11:00 PM', mapUrl: 'https://maps.google.com/maps?q=Heredia%20Costa%20Rica&t=&z=15&ie=UTF8&iwloc=&output=embed' }
   };
-
-  const slides = [
-    {
-      titulo: 'SABOR CRIOLLO A LA LEÑA',
-      subtitulo: 'Chicharroneras en paila tradicional, tortillas palmeadas al momento y cortes a la leña de café.',
-      tag: 'ESPECIALIDAD DE LA CASA',
-      bgImg: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=1600'
-    },
-    {
-      titulo: 'TRADICIÓN & FUEGO CULINARIO',
-      subtitulo: 'Chicharrones crujientes de la purita paila, ceviches arreglados y cervezas heladas.',
-      tag: 'RECETAS ANCESTRALES',
-      bgImg: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=1600'
-    }
-  ];
-
-  // TOP 3 PLATILLOS MÁS COMPRADOS
-  const topDishes = [
-    {
-      id: 1,
-      nombre: 'Chifrijo Especial de Paila',
-      precio: '₡6,800',
-      badge: '#1 MÁS VENDIDO',
-      desc: 'Chicharrón crujiente de concha y carne, frijoles cubaces, pico de gallo y aguacate Hass.',
-      img: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-      id: 2,
-      nombre: 'Costilla de Cerdo a la Leña',
-      precio: '₡9,200',
-      badge: '#2 ESPECIALIDAD',
-      desc: 'Costilla jugosa ahumada con leña de café, acompañada de plátanos maduros con queso.',
-      img: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-      id: 3,
-      nombre: 'Surtido Cacique Familiar (1kg)',
-      precio: '₡14,500',
-      badge: '#3 RECOMENDADO CHEF',
-      desc: 'Surtido completo con yuca al vapor, ensalada de repollo, chimichurri y tortillas de maíz.',
-      img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800'
-    }
-  ];
-
-  useEffect(() => {
-    getWeatherByLocation(selectedSede).then(res => setWeatherData(res));
-  }, [selectedSede]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % slides.length);
-    }, 6000);
-    return () => clearInterval(interval);
-  }, [slides.length]);
+  const selectedSede = sedesInfo[activeSedeMap];
 
   const openReservation = (eventType = 'General') => {
-    setReserveEventType(eventType);
-    setIsReserveModalOpen(true);
+    setReservationType(eventType);
+    setIsReservationOpen(true);
   };
 
+  const dishes = [
+    ['Chifrijo Especial Cacique', 'Pork belly crujiente, cubaces tiernos, pico de gallo criollo y aguacate.', '₡6,800', 'Más Vendido'],
+    ['Vigorón Criollo de Paila (1 kg)', 'Chicharrones mixtos sobre yuca al vapor, repollo agrio y patacones.', '₡14,500', 'Para Compartir'],
+    ['Costilla a la Leña Ahumada', 'Corte jugoso marinado en especias autóctonas y chimichurri tico.', '₡9,200', 'Recomendación del Chef']
+  ];
+
   return (
-    <div className="bg-[#0A090C] text-[#F8FFE5] min-h-screen font-sans selection:bg-[#D16014] selection:text-white">
+    <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] font-sans selection:bg-[#D16014] selection:text-white">
+      {toast.show && <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />}
 
-      {toast.show && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
-      )}
-
-      <ReservationModal
-        isOpen={isReserveModalOpen}
-        onClose={() => setIsReserveModalOpen(false)}
-        initialEventType={reserveEventType}
-        onSuccess={(message) => setToast({ show: true, message, type: 'success' })}
-      />
-      
-      {/* 1. HERO SLIDER */}
-      <section className="relative h-[85vh] min-h-[550px] flex items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-all duration-1000 transform scale-105"
-          style={{ backgroundImage: `url(${slides[currentSlide].bgImg})` }}
-        >
+      <section id="inicio" className="relative min-h-screen flex items-center justify-center pt-20 pb-16 px-6 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=85&w=1800" alt="Chicharrón de Paila El Cacique" className="w-full h-full object-cover object-center scale-105 brightness-50 contrast-125" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A090C] via-[#0A090C]/70 to-[#0A090C]/40" />
         </div>
-
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-6 pt-16">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#D16014]/20 border border-[#D16014]/50 text-[#D16014] text-xs font-black tracking-widest uppercase animate-pulse">
-            <Flame className="w-4 h-4" /> {slides[currentSlide].tag}
-          </span>
-
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-[#F8FFE5] tracking-tight uppercase leading-none drop-shadow-2xl">
-            {slides[currentSlide].titulo}
-          </h1>
-
-          <p className="text-sm sm:text-lg text-gray-300 max-w-2xl mx-auto font-medium leading-relaxed">
-            {slides[currentSlide].subtitulo}
-          </p>
-
+        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#001812]/80 border border-[#659B5E]/50 text-[#659B5E] text-xs font-black uppercase tracking-widest backdrop-blur-md shadow-2xl"><Flame className="w-4 h-4 text-[#D16014]" /><span>Chicharronera Gourmet • Costa Rica</span></div>
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight leading-none uppercase">Sabor Criollo <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D16014] via-amber-400 to-[#659B5E]">a la Leña y Paila</span></h1>
+          <p className="max-w-2xl mx-auto text-sm sm:text-base text-gray-300 font-medium leading-relaxed">Tradición costarricense perfeccionada: chicharrones de concha tostada al momento, cortes de carne ahumados a la leña de café y tortillas palmeadas a mano.</p>
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-            <Link 
-              to="/menu" 
-              className="px-8 py-4 rounded-2xl bg-[#D16014] hover:bg-[#b8510f] text-white font-extrabold text-sm transition-all shadow-xl shadow-[#D16014]/30 flex items-center gap-2 hover:scale-105"
-            >
-              <Utensils className="w-5 h-5" /> Ver Menú Digital
-            </Link>
-            <button
-              onClick={() => openReservation('General')}
-              className="px-8 py-4 rounded-2xl bg-[#00241B] hover:bg-[#00382b] text-[#F8FFE5] font-extrabold text-sm border border-[#659B5E]/40 transition-all flex items-center gap-2"
-            >
-              <Calendar className="w-5 h-5 text-[#659B5E]" /> Agendar Reserva
-            </button>
+            <button onClick={() => navigate('/menu')} className="px-8 py-4 rounded-2xl bg-[#D16014] hover:bg-[#b8510f] text-white font-black text-sm uppercase tracking-wider shadow-xl flex items-center gap-3 cursor-pointer"><Utensils className="w-5 h-5" /> Ver Menú Digital</button>
+            <button onClick={() => openReservation()} className="px-8 py-4 rounded-2xl bg-[#001812]/80 hover:bg-[#001812] border border-[#659B5E]/50 text-[#F8FFE5] font-black text-sm uppercase tracking-wider backdrop-blur-md flex items-center gap-3 cursor-pointer"><Calendar className="w-5 h-5 text-[#659B5E]" /> Agendar Reserva</button>
           </div>
         </div>
-
-        <button 
-          onClick={() => setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)}
-          className="absolute left-6 z-20 p-3 rounded-full bg-[#0A090C]/60 hover:bg-[#D16014] text-white border border-white/10 transition-all cursor-pointer"
-          aria-label="Anterior slide"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <button 
-          onClick={() => setCurrentSlide(prev => (prev + 1) % slides.length)}
-          className="absolute right-6 z-20 p-3 rounded-full bg-[#0A090C]/60 hover:bg-[#D16014] text-white border border-white/10 transition-all cursor-pointer"
-          aria-label="Siguiente slide"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
       </section>
 
-      {/* 2. SECCIÓN DE LOS 3 PLATILLOS MÁS COMPRADOS */}
       <section className="py-20 px-6 max-w-7xl mx-auto space-y-12">
-        <div className="text-center space-y-3">
-          <span className="text-xs font-black text-[#D16014] tracking-widest uppercase bg-[#D16014]/10 px-4 py-1.5 rounded-full border border-[#D16014]/30 inline-block">
-            Preferidos de Nuestros Comensales
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-black text-[#F8FFE5] tracking-tight">
-            LOS 3 PLATILLOS MÁS PEDIDOS
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-400 max-w-lg mx-auto">
-            Sabor criollo elaborado al momento en nuestras pailas artesanales.
-          </p>
-        </div>
-
+        <div className="text-center space-y-3"><span className="text-xs font-black text-[#D16014] uppercase tracking-widest">Favoritos del Menú</span><h2 className="text-3xl sm:text-5xl font-black text-white">Nuestra Especialidad Criolla</h2><div className="w-20 h-1 bg-[#659B5E] mx-auto rounded-full" /></div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {topDishes.map((dish) => (
-            <div 
-              key={dish.id} 
-              className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl overflow-hidden hover:border-[#D16014] transition-all group shadow-2xl flex flex-col justify-between"
-            >
-              <div className="relative h-56 overflow-hidden">
-                <img 
-                  src={dish.img} 
-                  alt={dish.nombre} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute top-4 left-4 bg-[#D16014] text-white text-[10px] font-black uppercase px-3 py-1 rounded-xl shadow-lg">
-                  {dish.badge}
-                </div>
-                <div className="absolute bottom-4 right-4 bg-[#0A090C]/90 backdrop-blur-md px-3 py-1 rounded-xl border border-[#F8FFE5]/10 flex items-center gap-1 text-amber-400 text-xs font-bold">
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <span>5.0</span>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-4 flex-grow flex flex-col justify-between">
-                <div className="space-y-2">
-                  <h3 className="text-xl font-extrabold text-[#F8FFE5] group-hover:text-[#D16014] transition-colors">{dish.nombre}</h3>
-                  <p className="text-xs text-gray-400 leading-relaxed">{dish.desc}</p>
-                </div>
-
-                <div className="pt-4 border-t border-[#F8FFE5]/10 flex items-center justify-between">
-                  <span className="text-2xl font-black text-[#D16014]">{dish.precio}</span>
-                  <Link 
-                    to="/menu" 
-                    className="px-4 py-2 rounded-xl bg-[#659B5E] hover:bg-[#52824c] text-white text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-md"
-                  >
-                    <ShoppingBag className="w-4 h-4" /> Pedir Ahora
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
+          {dishes.map(([nombre, desc, precio, tag]) => <div key={nombre} className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 sm:p-8 space-y-4 shadow-2xl hover:border-[#D16014] transition-all group flex flex-col justify-between"><div className="space-y-3"><div className="flex justify-between items-start gap-2"><span className="px-3 py-1 rounded-full bg-[#D16014]/20 text-[#D16014] border border-[#D16014]/40 text-[10px] font-black uppercase">{tag}</span><span className="font-mono text-xl font-black text-[#659B5E]">{precio}</span></div><h3 className="text-xl font-black text-white group-hover:text-[#D16014]">{nombre}</h3><p className="text-xs text-gray-400 leading-relaxed">{desc}</p></div><button onClick={() => navigate('/menu')} className="w-full py-3 rounded-xl bg-[#0A090C] border border-[#F8FFE5]/15 hover:border-[#659B5E] text-xs font-bold text-gray-200 flex items-center justify-center gap-2 cursor-pointer"><span>Ordenar en Comanda</span><ChevronRight className="w-4 h-4 text-[#659B5E]" /></button></div>)}
         </div>
       </section>
 
-      {/* 3. SECCIÓN SOBRE NOSOTROS (CON LOGO EN GRAN TAMAÑO) */}
-      <section id="nosotros" className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-[#0A090C] via-[#050507] to-[#0A090C]">
-        <div className="max-w-7xl mx-auto">
-          
-          <div className="text-center space-y-3 mb-16">
-            <span className="text-xs font-black text-[#659B5E] tracking-widest uppercase bg-[#659B5E]/10 px-4 py-1.5 rounded-full border border-[#659B5E]/30 inline-block">
-              Nuestra Identidad Culinaria
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-black text-[#F8FFE5] tracking-tight">
-              SOBRE NOSOTROS
-            </h2>
-            <div className="w-24 h-1 bg-[#D16014] mx-auto rounded-full" />
-          </div>
+      <section id="nosotros" className="py-20 px-6 bg-[#001812]/50 border-y border-[#659B5E]/20"><div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"><div className="space-y-6"><span className="text-xs font-black text-[#659B5E] uppercase tracking-widest">Presencia Nacional</span><h2 className="text-3xl sm:text-4xl font-black text-white">Nuestras Chicharroneras</h2><p className="text-xs text-gray-400">Seleccione su sede para revisar ubicación, teléfono y horarios de atención.</p><div className="grid grid-cols-2 gap-3">{Object.keys(sedesInfo).map(key => <button key={key} onClick={() => { setActiveSedeMap(key); setMapError(false); }} className={`p-3.5 rounded-2xl border text-xs font-bold text-left cursor-pointer ${activeSedeMap === key ? 'bg-[#D16014] border-[#D16014] text-white' : 'bg-[#0A090C] border-[#F8FFE5]/15 text-gray-400 hover:border-[#659B5E]'}`}><MapPin className="w-4 h-4 inline-block mr-2" />{key.replace('_', ' ')}</button>)}</div><div className="p-6 bg-[#001812] border border-[#659B5E]/30 rounded-2xl space-y-3 font-mono text-xs"><h4 className="font-sans font-black text-base text-white">{selectedSede.nombre}</h4><p className="text-gray-300 flex gap-2"><MapPin className="w-4 h-4 text-[#659B5E]" />{selectedSede.direccion}</p><p className="text-gray-300 flex gap-2"><Phone className="w-4 h-4 text-[#D16014]" />{selectedSede.telefono}</p><p className="text-gray-300 flex gap-2"><Clock className="w-4 h-4 text-amber-400" />{selectedSede.horario}</p></div></div><div className="bg-[#0A090C] border border-[#659B5E]/30 rounded-3xl h-96 overflow-hidden relative shadow-2xl flex items-center justify-center">{mapError ? <div className="p-8 text-center space-y-3 text-xs text-gray-400"><AlertCircle className="w-8 h-8 text-[#D16014] mx-auto" /><p className="font-bold text-white">Vista previa no disponible.</p><a href={`https://maps.google.com/?q=${encodeURIComponent(selectedSede.nombre)}`} target="_blank" rel="noopener noreferrer" className="inline-block px-4 py-2 bg-[#659B5E] text-white font-bold rounded-xl">Abrir en Google Maps</a></div> : <iframe title={`Mapa ${selectedSede.nombre}`} src={selectedSede.mapUrl} className="w-full h-full border-0 opacity-90" loading="lazy" onError={() => setMapError(true)} />}</div></div></section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            <div className="lg:col-span-5 relative group flex justify-center">
-              <div className="absolute -inset-4 bg-gradient-to-r from-[#D16014]/30 to-[#659B5E]/30 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition duration-1000" />
-              
-              <div className="relative w-full max-w-md bg-[#001812]/90 border border-[#659B5E]/30 rounded-3xl p-10 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center space-y-6">
-                
-                <div className="p-6 rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 shadow-inner w-full flex items-center justify-center">
-                  <img 
-                    src={logoNegro} 
-                    alt="Logo Oficial Chicharronera El Cacique" 
-                    className="h-44 sm:h-52 w-auto object-contain filter drop-shadow-[0_10px_20px_rgba(209,96,20,0.3)] transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
+      <section className="py-20 px-6 max-w-7xl mx-auto space-y-10"><div className="text-center space-y-2"><span className="text-xs font-black text-amber-500 uppercase tracking-widest">Reservaciones</span><h2 className="text-3xl font-black text-[#F8FFE5]">EVENTOS Y CELEBRACIONES</h2></div><div className="grid grid-cols-1 md:grid-cols-3 gap-6">{[['Fiestas Empresariales', 'Parrilladas ejecutivas y salón completo.', 'Empresarial', Sparkles], ['Cumpleaños & Familias', 'Atención preferencial para grupos grandes.', 'Cumpleaños', Utensils], ['Cotizaciones Express', 'Solicita una cotización inmediata.', 'Express', Phone]].map(([title, description, type, Icon]) => <div key={title} className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-4"><Icon className="w-6 h-6 text-[#D16014]" /><h3 className="font-extrabold text-lg text-[#F8FFE5]">{title}</h3><p className="text-xs text-gray-400">{description}</p><button onClick={() => openReservation(type)} className="w-full py-2.5 rounded-xl bg-[#D16014] text-white font-extrabold text-xs cursor-pointer">Reservar</button></div>)}</div></section>
 
-                <div>
-                  <h3 className="text-2xl font-black text-[#F8FFE5]">Chicharronera El Cacique</h3>
-                  <span className="text-xs text-[#659B5E] font-extrabold uppercase tracking-widest block mt-1">
-                    Sello de Calidad Tradicional desde 1998
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 w-full pt-4 border-t border-[#F8FFE5]/10 text-center text-xs">
-                  <div>
-                    <span className="block font-black text-[#D16014] text-lg">100%</span>
-                    <span className="text-[10px] text-gray-400 font-bold">Criollo</span>
-                  </div>
-                  <div>
-                    <span className="block font-black text-[#659B5E] text-lg">4</span>
-                    <span className="text-[10px] text-gray-400 font-bold">Sedes</span>
-                  </div>
-                  <div>
-                    <span className="block font-black text-amber-400 text-lg">Paila</span>
-                    <span className="text-[10px] text-gray-400 font-bold">Artesanal</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-7 space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-2xl sm:text-3xl font-black text-[#F8FFE5] leading-tight">
-                  Más de dos décadas perfeccionando el arte del chicharrón criollo y la paila artesanal.
-                </h3>
-                <p className="text-sm text-gray-300 leading-relaxed">
-                  En <strong className="text-[#F8FFE5]">Chicharronera El Cacique</strong> combinamos el sabor único del chicharrón de concha y carne dorados a fuego vivo con la eficiencia de un sistema de gestión digital en tiempo real.
-                </p>
-                <p className="text-sm text-gray-300 leading-relaxed">
-                  Nuestras recetas se elaboran diariamente utilizando sazones naturales, tortillas palmeadas a mano y cortes seleccionados de cerdo costarricense, garantizando frescura y sabor en cada comanda.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-[#001812] border border-[#659B5E]/20 space-y-2">
-                  <div className="flex items-center gap-2 text-[#D16014] font-bold text-sm">
-                    <Award className="w-5 h-5" />
-                    <span>Receta Ancestral</span>
-                  </div>
-                  <p className="text-xs text-gray-400">Cocción lenta en paila de hierro con leña seleccionada.</p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-[#001812] border border-[#659B5E]/20 space-y-2">
-                  <div className="flex items-center gap-2 text-[#659B5E] font-bold text-sm">
-                    <ShieldCheck className="w-5 h-5" />
-                    <span>Insumos Frescos</span>
-                  </div>
-                  <p className="text-xs text-gray-400">Verduras y carnes abastecidas diariamente por productores locales.</p>
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <Link 
-                  to="/menu" 
-                  className="inline-flex items-center gap-2 text-xs font-black text-[#D16014] hover:text-white transition-colors uppercase tracking-wider group"
-                >
-                  Explorar nuestro menú completo <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* 4. SECCIÓN CLIMA & MAPA DINÁMICO POR SEDE */}
-      <section className="py-16 px-6 bg-[#001812]/50 border-y border-[#659B5E]/20">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          
-          <div className="lg:col-span-5 space-y-4">
-            <span className="text-xs font-black text-[#D16014] uppercase tracking-wider">Ubicación &amp; Ambiente</span>
-            <h3 className="text-2xl sm:text-3xl font-black text-[#F8FFE5]">Consulta el clima y ubicación de tu sede</h3>
-            
-            <div className="space-y-3 pt-2">
-              <label className="block text-xs text-gray-400 font-bold uppercase">Selecciona la Sede:</label>
-              <select 
-                value={selectedSede} 
-                onChange={e => setSelectedSede(e.target.value)}
-                className="w-full bg-[#0A090C] border border-[#659B5E]/40 rounded-xl px-4 py-2.5 text-xs text-[#F8FFE5] font-bold focus:outline-none focus:border-[#D16014] cursor-pointer"
-              >
-                <option value="escazu">Sede Escazú • Centro Culinario</option>
-                <option value="santa_ana">Sede Santa Ana • Plaza Real</option>
-                <option value="cartago">Sede Cartago • Paso Ancho</option>
-                <option value="heredia">Sede Heredia • Vía Central</option>
-              </select>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-300">Temperatura Actual:</span>
-                <span className="text-xl font-black text-[#659B5E]">{weatherData ? `${weatherData.temp}°C` : 'Cargando...'}</span>
-              </div>
-              <p className="text-[11px] text-gray-400">
-                {weatherData && weatherData.temp > 22 
-                  ? '☀️ Excelente clima para disfrutar en la Terraza.' 
-                  : '🌤️ Recomendado disfrutar en el Salón Principal.'}
-              </p>
-            </div>
-          </div>
-
-          {/* MAPA DINÁMICO QUE CAMBIA SEGÚN LA SEDE */}
-          <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-[#659B5E]/30 shadow-2xl h-80 bg-[#001812]">
-            <iframe 
-              key={selectedSede}
-              title={`Mapa Sede ${selectedSede}`}
-              src={mapsBySede[selectedSede]} 
-              className="w-full h-full border-0 opacity-90 hover:opacity-100 transition-opacity"
-              allowFullScreen="" 
-              loading="lazy"
-            />
-          </div>
-
-        </div>
-      </section>
-
-      {/* 5. EVENTOS ESPECIALES */}
-      <section id="eventos" className="py-20 px-6 max-w-7xl mx-auto space-y-10">
-        <div className="text-center space-y-2">
-          <span className="text-xs font-black text-amber-500 uppercase tracking-widest">Reservaciones</span>
-          <h2 className="text-3xl font-black text-[#F8FFE5]">EVENTOS Y CELEBRACIONES</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-4 flex flex-col justify-between">
-            <div className="space-y-3">
-              <Sparkles className="w-6 h-6 text-[#D16014]" />
-              <h3 className="font-extrabold text-lg text-[#F8FFE5]">Fiestas Empresariales</h3>
-              <p className="text-xs text-gray-400 leading-relaxed">Parrilladas ejecutivas y reservaciones de salón completo con menú personalizado.</p>
-            </div>
-            <button
-              onClick={() => openReservation('Empresarial')}
-              className="w-full py-2.5 rounded-xl bg-[#D16014] hover:bg-[#b8510f] text-white font-extrabold text-xs shadow-md cursor-pointer"
-            >
-              Reservar Evento Empresarial
-            </button>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-4 flex flex-col justify-between">
-            <div className="space-y-3">
-              <Utensils className="w-6 h-6 text-[#659B5E]" />
-              <h3 className="font-extrabold text-lg text-[#F8FFE5]">Cumpleaños &amp; Familias</h3>
-              <p className="text-xs text-gray-400 leading-relaxed">Atención preferencial para grupos grandes con combos familiares y refrescos naturales.</p>
-            </div>
-            <button
-              onClick={() => openReservation('Cumpleaños')}
-              className="w-full py-2.5 rounded-xl bg-[#659B5E] hover:bg-[#52824c] text-white font-extrabold text-xs shadow-md cursor-pointer"
-            >
-              Reservar Mesa Familiar
-            </button>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-4 flex flex-col justify-between">
-            <div className="space-y-3">
-              <Phone className="w-6 h-6 text-amber-500" />
-              <h3 className="font-extrabold text-lg text-[#F8FFE5]">Cotizaciones Express</h3>
-              <p className="text-xs text-gray-400 leading-relaxed">Contáctanos vía central telefónica al +506 2200-8888 o por nuestro WhatsApp Oficial.</p>
-            </div>
-            <button
-              onClick={() => openReservation('Express')}
-              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-md cursor-pointer"
-            >
-              Solicitar Cotización Express
-            </button>
-          </div>
-        </div>
-      </section>
-
+      {isReservationOpen && <ReservationModal isOpen={isReservationOpen} onClose={() => setIsReservationOpen(false)} initialEventType={reservationType} onSuccess={message => setToast({ show: true, message, type: 'success' })} />}
     </div>
   );
 }
