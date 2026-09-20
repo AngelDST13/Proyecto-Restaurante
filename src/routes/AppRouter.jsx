@@ -8,10 +8,22 @@ import Unauthorized from '../pages/Unauthorized';
 import ProtectedRoute from './ProtectedRoute';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Toast from '../components/Toast';
+import { useAuth } from '../context/AuthContext';
 
 export function AppRouter() {
+  const { inactivityToast, setInactivityToast } = useAuth();
+
   return (
     <div className="flex flex-col min-h-screen bg-[#0A090C] text-[#F8FFE5]">
+      {inactivityToast && (
+        <Toast 
+          message="Su sesión se ha cerrado automáticamente por 3 minutos de inactividad." 
+          type="info" 
+          onClose={() => setInactivityToast(false)} 
+        />
+      )}
+
       <Navbar />
       <div className="flex-grow">
         <Routes>
@@ -20,7 +32,6 @@ export function AppRouter() {
           <Route path="/menu" element={<Menu />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* RUTA PROTEGIDA MESERO */}
           <Route 
             path="/waiter" 
             element={
@@ -30,7 +41,6 @@ export function AppRouter() {
             } 
           />
 
-          {/* RUTA PROTEGIDA ADMINISTRADOR */}
           <Route 
             path="/admin" 
             element={
