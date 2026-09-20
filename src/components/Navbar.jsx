@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Utensils, LogOut, Menu as MenuIcon, X, Calendar, User, ShieldAlert, ChefHat, Monitor } from 'lucide-react';
+import { formatSedeName } from '../services/authSecurity';
+import { Utensils, LogOut, Menu as MenuIcon, X, Calendar, User, ShieldAlert, ChefHat, Monitor, AlertCircle } from 'lucide-react';
 import logoNegro from '../assets/img/LogoN.svg';
 
 export default function Navbar() {
@@ -9,6 +10,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const scrollToSection = (sectionId) => {
     setMobileMenuOpen(false);
@@ -33,7 +35,7 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A090C]/90 backdrop-blur-md border-b border-[#F8FFE5]/10 text-[#F8FFE5]">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         
-        {/* LOGO INSTITUCIONAL */}
+        {/* LOGO */}
         <button onClick={() => scrollToSection('inicio')} className="flex items-center gap-3 group cursor-pointer text-left">
           <img src={logoNegro} alt="Logo Chicharronera El Cacique" className="h-10 w-auto object-contain transition-transform group-hover:scale-105" />
           <div>
@@ -42,7 +44,7 @@ export default function Navbar() {
           </div>
         </button>
 
-        {/* NAVEGACIÓN PÚBLICA Y PRIVADA */}
+        {/* NAVEGACIÓN */}
         <nav className="hidden md:flex items-center gap-5 text-xs font-bold tracking-wider uppercase">
           <button onClick={() => scrollToSection('inicio')} className="hover:text-[#D16014] transition-colors cursor-pointer">
             Inicio
@@ -60,35 +62,38 @@ export default function Navbar() {
             <Calendar className="w-3.5 h-3.5" /> Eventos
           </button>
 
-          {/* ACCESOS OPERATIVOS EXCLUSIVOS PARA PERSONAL AUTENTICADO */}
           {(user?.rol === 'mesero' || user?.rol === 'administrador') && (
-            <Link to="/waiter" className="px-3 py-1.5 rounded-xl bg-[#659B5E]/20 border border-[#659B5E]/50 text-[#659B5E] flex items-center gap-1.5 transition-all hover:bg-[#659B5E]/30">
+            <Link to="/waiter" className="px-3 py-1.5 rounded-xl bg-[#659B5E]/20 border border-[#659B5E]/50 text-[#659B5E] flex items-center gap-1.5 hover:bg-[#659B5E]/30">
               <Monitor className="w-3.5 h-3.5" /> Panel Mesero
             </Link>
           )}
 
           {(user?.rol === 'mesero' || user?.rol === 'administrador') && (
-            <Link to="/kitchen" className="px-3 py-1.5 rounded-xl bg-[#D16014]/20 border border-[#D16014]/50 text-[#D16014] flex items-center gap-1.5 transition-all hover:bg-[#D16014]/30">
+            <Link to="/kitchen" className="px-3 py-1.5 rounded-xl bg-[#D16014]/20 border border-[#D16014]/50 text-[#D16014] flex items-center gap-1.5 hover:bg-[#D16014]/30">
               <ChefHat className="w-3.5 h-3.5" /> Cocina KDS
             </Link>
           )}
 
           {user?.rol === 'administrador' && (
-            <Link to="/admin" className="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-400 flex items-center gap-1.5 transition-all hover:bg-amber-500/30">
+            <Link to="/admin" className="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-400 flex items-center gap-1.5 hover:bg-amber-500/30">
               <ShieldAlert className="w-3.5 h-3.5" /> Panel Admin
             </Link>
           )}
         </nav>
 
-        {/* USUARIO Y SESIÓN */}
+        {/* USUARIO */}
         <div className="hidden md:flex items-center gap-4 text-xs font-bold">
           {user ? (
             <div className="flex items-center gap-3 border-l border-[#F8FFE5]/15 pl-4">
               <div className="text-right">
                 <span className="block text-[#F8FFE5] font-bold leading-tight">{user.nombre || user.email.split('@')[0]}</span>
-                <span className="block text-[9px] text-[#659B5E] capitalize">{user.rol} • Sede {user.sede ? user.sede.toUpperCase() : 'ESCAZÚ'}</span>
+                <span className="block text-[9px] text-[#659B5E] capitalize">{user.rol} • Sede {formatSedeName(user.sede)}</span>
               </div>
-              <button onClick={logout} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl cursor-pointer" title="Cerrar Sesión">
+              <button 
+                onClick={() => setIsLogoutModalOpen(true)} 
+                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl cursor-pointer" 
+                title="Cerrar Sesión"
+              >
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
@@ -116,10 +121,45 @@ export default function Navbar() {
             <Link to="/kitchen" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-[#D16014]">Panel Cocina</Link>
           )}
           {user ? (
-            <button onClick={logout} className="w-full text-left py-2 text-red-400">Cerrar Sesión</button>
+            <button onClick={() => { setMobileMenuOpen(false); setIsLogoutModalOpen(true); }} className="w-full text-left py-2 text-red-400">Cerrar Sesión</button>
           ) : (
             <button onClick={() => navigate('/login')} className="w-full py-2.5 bg-[#D16014] rounded-xl text-center text-white mt-2">Iniciar Sesión</button>
           )}
+        </div>
+      )}
+
+      {/* MODAL ADVERTENCIA CIERRE SESIÓN */}
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-sans">
+          <div className="w-full max-w-sm bg-[#001812] border border-red-500/40 rounded-3xl p-6 space-y-5 text-center shadow-2xl text-xs text-[#F8FFE5]">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center mx-auto text-red-400">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-white">¿Cerrar Sesión Activa?</h3>
+              <p className="text-gray-400">¿Estás seguro de que deseas salir del sistema?</p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="flex-1 py-3 rounded-xl bg-[#0A090C] border border-[#F8FFE5]/15 text-gray-300 font-bold hover:text-white cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  setIsLogoutModalOpen(false);
+                  logout();
+                  navigate('/login');
+                }}
+                className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-extrabold shadow-lg cursor-pointer"
+              >
+                Sí, Cerrar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </header>

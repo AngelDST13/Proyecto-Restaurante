@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
+import { triggerN8nAutomation } from '../services/n8nService';
 import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket } from 'lucide-react';
 import logoNegro from '../assets/img/LogoN.svg';
 
@@ -50,7 +51,7 @@ export default function Login() {
     return true;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) return;
@@ -63,7 +64,14 @@ export default function Login() {
       }
 
       setNewCoupon(res.coupon);
-      showToast('¡Registro exitoso! Se ha asignado tu cupón del 5% de descuento.', 'success');
+      showToast('¡Registro exitoso! Se ha asignado tu cupón del 5% OFF.', 'success');
+
+      // Notificar a n8n
+      triggerN8nAutomation('REGISTRO_CLIENTE', {
+        nombre: nombre,
+        email: email
+      });
+
       setTimeout(() => navigate('/menu'), 1000);
 
     } else {
@@ -101,7 +109,6 @@ export default function Login() {
       >
         <div className="text-center space-y-3">
           
-          {/* CONTENEDOR CON TAMAÑO FIJO Y CONTROLADO DEL LOGO */}
           <div className="w-20 h-20 max-w-[80px] max-h-[80px] rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 shadow-lg mx-auto flex items-center justify-center p-2.5 overflow-hidden shrink-0">
             <img 
               src={logoNegro} 
@@ -207,11 +214,13 @@ export default function Login() {
           </div>
 
           {!isRegister && (
-            <div className="p-3 bg-[#0A090C] border border-[#F8FFE5]/10 rounded-xl space-y-1 text-[10px]">
-              <span className="text-gray-400 font-extrabold block uppercase tracking-wider">Credenciales Oficiales:</span>
+            <div className="p-3 bg-[#0A090C] border border-[#F8FFE5]/10 rounded-xl space-y-1.5 text-[10px]">
+              <span className="text-gray-400 font-extrabold block uppercase tracking-wider">Credenciales de las 4 Sucursales:</span>
               <p className="text-amber-400 font-mono"><strong>Admin:</strong> admin@elcacique.com | AdminCacique2026!</p>
-              <p className="text-[#659B5E] font-mono"><strong>Mesero Escazú:</strong> mesero.escazu@elcacique.com | MeseroEscazu2026!</p>
-              <p className="text-cyan-400 font-mono"><strong>Mesero Santa Ana:</strong> mesero.santaana@elcacique.com | MeseroSantaAna2026!</p>
+              <p className="text-[#659B5E] font-mono"><strong>Escazú:</strong> mesero.escazu@elcacique.com | MeseroEscazu2026!</p>
+              <p className="text-cyan-400 font-mono"><strong>Santa Ana:</strong> mesero.santaana@elcacique.com | MeseroSantaAna2026!</p>
+              <p className="text-purple-400 font-mono"><strong>Cartago:</strong> mesero.cartago@elcacique.com | MeseroCartago2026!</p>
+              <p className="text-emerald-400 font-mono"><strong>Heredia:</strong> mesero.heredia@elcacique.com | MeseroHeredia2026!</p>
             </div>
           )}
 

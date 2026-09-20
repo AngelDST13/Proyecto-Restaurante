@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
+import { formatSedeName } from '../services/authSecurity';
 import { 
   ShieldCheck, DollarSign, ShoppingBag, Users, Clock, 
   TrendingUp, RefreshCw, AlertTriangle, Plus, Trash2, Pencil, CheckCircle2,
   BarChart3, Package, CreditCard, Calendar, MapPin, LogOut, ExternalLink,
-  Search, Sliders, Flame
+  Search, Sliders, Flame, AlertCircle
 } from 'lucide-react';
 import logoNegro from '../assets/img/LogoN.svg';
 
@@ -17,6 +18,7 @@ export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('resumen');
   const [selectedSede, setSelectedSede] = useState('escazu');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // FILTROS Y BÚSQUEDA DE INVENTARIO
   const [searchInsumo, setSearchInsumo] = useState('');
@@ -221,7 +223,7 @@ export default function AdminDashboard() {
           </button>
 
           <button
-            onClick={logout}
+            onClick={() => setIsLogoutModalOpen(true)}
             className="w-full py-2.5 px-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
             <LogOut className="w-4 h-4" /> Cerrar Sesión
@@ -257,7 +259,7 @@ export default function AdminDashboard() {
                 value={selectedSede}
                 onChange={e => {
                   setSelectedSede(e.target.value);
-                  showToast(`Filtros aplicados para Sede ${e.target.value.toUpperCase()}`, 'info');
+                  showToast(`Filtros aplicados para Sede ${formatSedeName(e.target.value)}`, 'info');
                 }}
                 className="w-full bg-[#0A090C] border border-[#659B5E]/40 rounded-2xl pl-10 pr-4 py-3 text-xs font-bold text-[#F8FFE5] focus:outline-none focus:border-[#D16014] cursor-pointer"
               >
@@ -285,7 +287,7 @@ export default function AdminDashboard() {
               <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
               <div>
                 <strong className="font-extrabold block">Atención: Reabastecimiento Requerido</strong>
-                <span>Hay {criticalItemsCount} insumo(s) en Sede {selectedSede.toUpperCase()} por debajo de su Límite Mínimo.</span>
+                <span>Hay {criticalItemsCount} insumo(s) en Sede {formatSedeName(selectedSede)} por debajo de su Límite Mínimo.</span>
               </div>
             </div>
             <button 
@@ -485,7 +487,7 @@ export default function AdminDashboard() {
         {/* PERSONAL */}
         {activeSection === 'personal' && (
           <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-4 text-xs shadow-2xl">
-            <h3 className="font-extrabold text-base text-[#F8FFE5]">Nómina de Personal Activo - Sede {selectedSede.toUpperCase()}</h3>
+            <h3 className="font-extrabold text-base text-[#F8FFE5]">Nómina de Personal Activo - Sede {formatSedeName(selectedSede)}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 flex justify-between items-center">
                 <div>
@@ -509,7 +511,7 @@ export default function AdminDashboard() {
         {/* MESAS */}
         {activeSection === 'mesas' && (
           <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-4 text-xs shadow-2xl">
-            <h3 className="font-extrabold text-base text-[#F8FFE5]">Control de Mesas - Sede {selectedSede.toUpperCase()}</h3>
+            <h3 className="font-extrabold text-base text-[#F8FFE5]">Control de Mesas - Sede {formatSedeName(selectedSede)}</h3>
             <p className="text-gray-400">Total de mesas registradas: {currentMetrics.mesasTotal} | Mesas libres: {currentMetrics.mesasLibres}</p>
           </div>
         )}
@@ -609,6 +611,40 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-sm bg-[#001812] border border-red-500/40 rounded-3xl p-6 space-y-5 text-center shadow-2xl text-xs text-[#F8FFE5]">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center mx-auto text-red-400">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-white">¿Cerrar Sesión Operativa?</h3>
+              <p className="text-gray-400">Se finalizará la sesión activa de administración general.</p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setIsLogoutModalOpen(false)}
+                className="flex-1 py-3 rounded-xl bg-[#0A090C] border border-[#F8FFE5]/15 text-gray-300 font-bold hover:text-white cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  setIsLogoutModalOpen(false);
+                  logout();
+                  navigate('/login');
+                }}
+                className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-extrabold shadow-lg cursor-pointer"
+              >
+                Sí, Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

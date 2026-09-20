@@ -1,7 +1,6 @@
-// Servicio de Autenticación con Meseros Ampliados por Sede
 const JWT_SECRET = 'CACIQUE_SECRET_2026_CR_PROTECTED_SESSION';
 
-const VALID_ACCOUNTS = {
+export const VALID_ACCOUNTS = {
   'admin@elcacique.com': {
     password: 'AdminCacique2026!',
     nombre: 'Angel Daniela Salazar T.',
@@ -38,6 +37,17 @@ const VALID_ACCOUNTS = {
     sede: 'heredia'
   }
 };
+
+export function formatSedeName(sedeKey) {
+  if (!sedeKey) return 'Escazú';
+  const names = {
+    escazu: 'Escazú',
+    santa_ana: 'Santa Ana',
+    cartago: 'Cartago',
+    heredia: 'Heredia'
+  };
+  return names[sedeKey.toLowerCase()] || sedeKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
 
 export function generateJWT(userData) {
   const header = { alg: 'HS256', typ: 'JWT' };
