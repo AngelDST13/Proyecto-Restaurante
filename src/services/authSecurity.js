@@ -1,4 +1,4 @@
-// Servicio de Autenticación 100% Garantizado para El Cacique
+// Servicio de Autenticación & Criptografía Nativa de El Cacique
 const JWT_SECRET = 'CACIQUE_SECRET_2026_CR_PROTECTED_SESSION';
 
 const VALID_ACCOUNTS = {
@@ -53,11 +53,12 @@ export function verifyJWT(token) {
 }
 
 export function authenticateCredentials(email, password) {
-  const cleanEmail = email.trim().toLowerCase();
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanPassword = (password || '').trim();
   const account = VALID_ACCOUNTS[cleanEmail];
 
   if (account) {
-    if (account.password === password.trim()) {
+    if (account.password === cleanPassword) {
       return { success: true, user: { email: cleanEmail, ...account } };
     }
     return { success: false, message: 'Contraseña incorrecta para el usuario ingresado.' };
@@ -67,17 +68,17 @@ export function authenticateCredentials(email, password) {
   const client = storedClients[cleanEmail];
 
   if (client) {
-    if (client.password === password.trim()) {
+    if (client.password === cleanPassword) {
       return { success: true, user: { email: cleanEmail, ...client } };
     }
     return { success: false, message: 'Contraseña incorrecta.' };
   }
 
-  return { success: false, message: 'El usuario no está registrado en el sistema.' };
+  return { success: false, message: 'El usuario ingresado no existe en el sistema.' };
 }
 
 export function registerNewClient(email, password, nombre) {
-  const cleanEmail = email.trim().toLowerCase();
+  const cleanEmail = (email || '').trim().toLowerCase();
   const storedClients = JSON.parse(localStorage.getItem('cacique_registered_clients') || '{}');
 
   if (storedClients[cleanEmail] || VALID_ACCOUNTS[cleanEmail]) {

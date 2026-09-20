@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Landing from '../pages/Landing';
 import Login from '../pages/Login';
 import Menu from '../pages/Menu';
@@ -14,6 +14,9 @@ import { useAuth } from '../context/AuthContext';
 
 export function AppRouter() {
   const { inactivityToast, setInactivityToast } = useAuth();
+  const location = useLocation();
+
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
     <div className="flex flex-col min-h-screen bg-[#0A090C] text-[#F8FFE5]">
@@ -25,7 +28,8 @@ export function AppRouter() {
         />
       )}
 
-      <Navbar />
+      {!isAdminRoute && <Navbar />}
+
       <div className="flex-grow">
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -43,7 +47,7 @@ export function AppRouter() {
             } 
           />
 
-          {/* RUTA PROTEGIDA ADMINISTRADOR */}
+          {/* PANEL ADMINISTRATIVO DEDICADO */}
           <Route 
             path="/admin" 
             element={
@@ -54,7 +58,8 @@ export function AppRouter() {
           />
         </Routes>
       </div>
-      <Footer />
+
+      {!isAdminRoute && <Footer />}
     </div>
   );
 }

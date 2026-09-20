@@ -40,7 +40,7 @@ export default function Login() {
 
       setNewCoupon(res.coupon);
       showToast('¡Registro exitoso! Se ha asignado tu cupón del 5% de descuento.', 'success');
-      setTimeout(() => navigate('/menu'), 1500);
+      setTimeout(() => navigate('/menu'), 1000);
 
     } else {
       if (!email || !password) {
@@ -55,11 +55,17 @@ export default function Login() {
       }
 
       showToast(`¡Bienvenido ${res.user.nombre || res.user.alias}!`, 'success');
+
       setTimeout(() => {
-        if (res.user.rol === 'administrador') navigate('/admin');
-        else if (res.user.rol === 'mesero') navigate('/waiter');
-        else navigate('/menu');
-      }, 600);
+        if (res.user.rol === 'administrador') {
+          window.open('/admin', '_blank');
+          navigate('/admin');
+        } else if (res.user.rol === 'mesero') {
+          navigate('/waiter');
+        } else {
+          navigate('/menu');
+        }
+      }, 500);
     }
   };
 

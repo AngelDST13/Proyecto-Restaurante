@@ -21,7 +21,6 @@ export function AuthProvider({ children }) {
     if (timerRef.current) clearTimeout(timerRef.current);
   }, []);
 
-  // TEMPORIZADOR DE 3 MINUTOS DE INACTIVIDAD (SOLO CLIENTES)
   useEffect(() => {
     if (!user || user.rol !== 'cliente') {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -32,7 +31,6 @@ export function AuthProvider({ children }) {
       if (timerRef.current) clearTimeout(timerRef.current);
       warnedRef.current = false;
 
-      // 180,000 ms = 3 Minutos
       timerRef.current = setTimeout(() => {
         if (!warnedRef.current) {
           warnedRef.current = true;
@@ -52,8 +50,8 @@ export function AuthProvider({ children }) {
     };
   }, [user, logout]);
 
-  const loginWithCredentials = async (email, password) => {
-    const result = await authenticateCredentials(email, password);
+  const loginWithCredentials = (email, password) => {
+    const result = authenticateCredentials(email, password);
     if (!result.success) return result;
 
     const token = generateJWT(result.user);
@@ -64,8 +62,8 @@ export function AuthProvider({ children }) {
     return { success: true, user: sessionUser };
   };
 
-  const registerClient = async (email, password, nombre) => {
-    const result = await registerNewClient(email, password, nombre);
+  const registerClient = (email, password, nombre) => {
+    const result = registerNewClient(email, password, nombre);
     if (!result.success) return result;
 
     const token = generateJWT(result.user);
@@ -83,6 +81,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// Kept here for backwards compatibility; move shared hooks to a separate module when refactoring imports.
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
