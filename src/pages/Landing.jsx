@@ -30,9 +30,9 @@ export default function Landing() {
   };
 
   const dishes = [
-    ['Chifrijo Especial Cacique', 'Pork belly crujiente, cubaces tiernos en su caldo, pico de gallo criollo, aguacate fresco y patacones tostados.', '₡6,800', 'MÁS VENDIDO'],
-    ['Vigorón Criollo de Paila (1 kg)', 'Chicharrones de carne y concha tostada sobre yuca al vapor y ensalada agria tradicional.', '₡14,500', 'PARA COMPARTIR'],
-    ['Costilla a la Leña Ahumada', 'Corte jugoso marinado en especias autóctonas, ahumado con leña de café y chimichurri.', '₡9,200', 'RECOMENDACIÓN DEL CHEF']
+    ['Chifrijo Especial Cacique', 'Pork belly crujiente, cubaces tiernos en su caldo, pico de gallo criollo, aguacate fresco y patacones tostados.', '₡6,800', 'MÁS VENDIDO', 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80'],
+    ['Vigorón Criollo de Paila (1 kg)', 'Chicharrones de carne y concha tostada sobre yuca suave al vapor y ensalada agria tradicional.', '₡14,500', 'PARA COMPARTIR', 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80'],
+    ['Costilla a la Leña Ahumada', 'Corte jugoso marinado en especias autóctonas, ahumado con leña de café y bañado en chimichurri de la casa.', '₡9,200', 'RECOMENDACIÓN DEL CHEF', 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=600&q=80']
   ];
 
   return (
@@ -58,7 +58,7 @@ export default function Landing() {
       <section className="py-20 px-6 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-3"><span className="text-xs font-black text-[#D16014] uppercase tracking-widest">Favoritos del Menú</span><h2 className="text-3xl sm:text-5xl font-black text-white">Nuestra Especialidad Criolla</h2><div className="w-20 h-1 bg-[#659B5E] mx-auto rounded-full" /></div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {dishes.map(([nombre, desc, precio, tag]) => <div key={nombre} className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 sm:p-8 space-y-4 shadow-2xl hover:border-[#D16014] transition-all group flex flex-col justify-between"><div className="space-y-3"><div className="flex justify-between items-start gap-2"><span className="px-3 py-1 rounded-full bg-[#D16014]/20 text-[#D16014] border border-[#D16014]/40 text-[10px] font-black uppercase">{tag}</span><span className="font-mono text-xl font-black text-[#659B5E]">{precio}</span></div><h3 className="text-xl font-black text-white group-hover:text-[#D16014]">{nombre}</h3><p className="text-xs text-gray-400 leading-relaxed">{desc}</p></div><button onClick={() => navigate('/menu')} className="w-full py-3 rounded-xl bg-[#0A090C] border border-[#F8FFE5]/15 hover:border-[#659B5E] text-xs font-bold text-gray-200 flex items-center justify-center gap-2 cursor-pointer"><span>Ordenar en Comanda</span><ChevronRight className="w-4 h-4 text-[#659B5E]" /></button></div>)}
+          {dishes.map(([nombre, desc, precio, tag, imagen]) => <div key={nombre} className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-5 space-y-4 shadow-2xl hover:border-[#D16014] transition-all group flex flex-col justify-between overflow-hidden"><div className="h-48 sm:h-52 w-full overflow-hidden rounded-2xl relative"><img src={imagen} alt={nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" /><div className="absolute inset-0 bg-gradient-to-t from-[#001812] via-transparent to-transparent opacity-80" /><span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#D16014] text-white text-[10px] font-black uppercase shadow-lg">{tag}</span></div><div className="space-y-2"><div className="flex justify-between items-center gap-2"><h3 className="text-lg font-black text-white group-hover:text-[#D16014]">{nombre}</h3><span className="font-mono text-base font-black text-[#659B5E] shrink-0">{precio}</span></div><p className="text-xs text-gray-400 leading-relaxed">{desc}</p></div><button onClick={() => navigate('/menu')} className="w-full py-3 rounded-xl bg-[#0A090C] border border-[#F8FFE5]/15 hover:border-[#659B5E] text-xs font-bold text-gray-200 flex items-center justify-center gap-2 cursor-pointer"><span>Ordenar en Comanda</span><ChevronRight className="w-4 h-4 text-[#659B5E]" /></button></div>)}
         </div>
       </section>
 
