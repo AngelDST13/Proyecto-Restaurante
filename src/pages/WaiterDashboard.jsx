@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { formatSedeName } from '../services/authSecurity';
+import { subscribeToLiveEvents } from '../services/n8nService';
 import Toast from '../components/Toast';
 import { 
   Utensils, LogOut, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, 
   ShieldCheck, CheckCircle2, Search, AlertCircle, FileText, Send, Trash2, 
-  Sparkles, Coffee, BellRing, X
+  Sparkles, Coffee, BellRing
 } from 'lucide-react';
 
 const READY_ORDERS_STORAGE_KEY = 'cacique_ready_order_notifications';
@@ -18,7 +20,7 @@ export default function WaiterDashboard() {
   const [orderItems, setOrderItems] = useState([]);
   const [orderNote, setOrderNote] = useState('');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
-  const [readyOrder, setReadyOrder] = useState(null);
+  const [readyNotifications, setReadyNotifications] = useState([]);
 
   const sedesNombre = {
     escazu: 'Sede Escazú • Centro Culinario',
@@ -61,33 +63,53 @@ export default function WaiterDashboard() {
   };
 
   useEffect(() => {
-    const readReadyOrder = () => {
+    const currentSede = user?.sede || 'escazu';
+    const addNotification = event => {
+      if (event.modulo !== 'PEDIDO_MENU' || event.accion !== 'NOTIFICAR_MESERO_LISTO' || event.sede !== currentSede) return;
+
+      const notification = {
+        id: event.id || `${event.orderId || 'pedido'}-${event.fechaEnvio || Date.now()}`,
+        mesa: event.mesa || 'Mesa desconocida',
+        orderId: event.orderId || 'ORD-100',
+        sede: event.sede,
+        hora: new Date(event.fechaEnvio || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setReadyNotifications(previous => {
+        if (previous.some(item => item.id === notification.id || item.orderId === notification.orderId)) return previous;
+        return [notification, ...previous];
+      });
+      showToast(`Cocina avisa: pedido de ${notification.mesa} listo para servir`, 'success');
+    };
+
+    const readPendingNotifications = () => {
       const notifications = JSON.parse(localStorage.getItem(READY_ORDERS_STORAGE_KEY) || '[]');
-      const matchingNotification = notifications
+      const matchingNotifications = notifications
         .filter(notification => notification.sede === (user?.sede || 'escazu'))
-        .sort((first, second) => second.createdAt - first.createdAt)[0];
+        .sort((first, second) => second.createdAt - first.createdAt)
+        .map(notification => ({
+          ...notification,
+          hora: new Date(notification.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
 
-      if (matchingNotification) setReadyOrder(matchingNotification);
+      setReadyNotifications(previous => {
+        const knownIds = new Set(previous.map(item => item.id));
+        return [...previous, ...matchingNotifications.filter(item => !knownIds.has(item.id))];
+      });
     };
 
-    const handleReadyOrder = event => {
-      if (event.detail?.sede === (user?.sede || 'escazu')) {
-        setReadyOrder(event.detail);
-      }
-    };
-
-    readReadyOrder();
-    window.addEventListener('storage', readReadyOrder);
-    window.addEventListener('cacique:order-ready', handleReadyOrder);
+    readPendingNotifications();
+    const unsubscribe = subscribeToLiveEvents(addNotification);
+    window.addEventListener('storage', readPendingNotifications);
 
     return () => {
-      window.removeEventListener('storage', readReadyOrder);
-      window.removeEventListener('cacique:order-ready', handleReadyOrder);
+      unsubscribe();
+      window.removeEventListener('storage', readPendingNotifications);
     };
   }, [user?.sede]);
 
-  const dismissReadyOrder = () => {
-    setReadyOrder(null);
+  const dismissReadyNotification = (notificationId) => {
+    setReadyNotifications(previous => previous.filter(notification => notification.id !== notificationId));
   };
 
   const handleSelectTable = (table) => {
@@ -166,25 +188,36 @@ export default function WaiterDashboard() {
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
       )}
 
-      {readyOrder && (
-        <div className="fixed top-24 left-1/2 z-40 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl border border-emerald-400/50 bg-[#082218] p-4 text-[#F8FFE5] shadow-2xl shadow-emerald-950/50">
-          <div className="flex items-start gap-3">
-            <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-black">Pedido listo para entregar</p>
-              <p className="mt-1 text-xs text-emerald-100/80">
-                Cocina completó la comanda {readyOrder.orderId} de {readyOrder.mesa}.
-              </p>
+      {readyNotifications.length > 0 && (
+        <div className="fixed top-24 left-1/2 z-40 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 space-y-3">
+          {readyNotifications.map(notification => (
+            <div key={notification.id} className="rounded-2xl border-2 border-[#D16014] bg-[#D16014]/20 p-4 text-[#F8FFE5] shadow-2xl">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="rounded-xl bg-[#D16014] p-2.5 text-white">
+                    <BellRing className="h-6 w-6 animate-bounce" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-black uppercase tracking-widest text-[#D16014]">
+                      Pedido listo en cocina • {notification.hora}
+                    </span>
+                    <strong className="block truncate text-sm font-black text-white sm:text-base">
+                      {notification.mesa} ({notification.orderId}) listo para servir en Sede {formatSedeName(notification.sede)}
+                    </strong>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    dismissReadyNotification(notification.id);
+                    showToast(`Servicio entregado a ${notification.mesa}`, 'success');
+                  }}
+                  className="shrink-0 rounded-xl bg-[#659B5E] px-3 py-2 text-[10px] font-black text-white shadow-lg transition-colors hover:bg-[#52824c] sm:px-5 sm:py-2.5 sm:text-xs"
+                >
+                  Confirmar Entrega
+                </button>
+              </div>
             </div>
-            <button
-              onClick={dismissReadyOrder}
-              className="rounded-lg p-1 text-emerald-100/70 transition-colors hover:bg-white/10 hover:text-white"
-              title="Cerrar notificación"
-              aria-label="Cerrar notificación de pedido listo"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          ))}
         </div>
       )}
 

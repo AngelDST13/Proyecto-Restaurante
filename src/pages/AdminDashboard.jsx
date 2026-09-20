@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [emailResponse, setEmailResponse] = useState(null);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -127,6 +128,12 @@ export default function AdminDashboard() {
     heredia: { personal: 9, mesasLibres: 3, mesasTotal: 16 }
   };
   const currentMetrics = { ...metricsByPeriod[timePeriod][selectedSede], ...branchDetails[selectedSede] };
+  const salesTrendByPeriod = {
+    dia: [58, 66, 52, 78, 70, 92],
+    semana: [64, 72, 68, 86, 80, 100],
+    mes: [48, 62, 74, 68, 88, 100]
+  };
+  const currentSalesTrend = salesTrendByPeriod[timePeriod];
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -194,9 +201,21 @@ export default function AdminDashboard() {
       return;
     }
     showToast('Enviando comunicado mediante n8n...', 'info');
-    await triggerN8nAutomation('EMAIL_ENVIO', { ...emailData, sede: selectedSede, remitente: 'admin@elcacique.com' });
+    const response = await triggerN8nAutomation('EMAIL_ENVIO', { ...emailData, sede: selectedSede, remitente: 'admin@elcacique.com' });
+    setEmailResponse(response);
+
+    if (!response.success) {
+      showToast(response.message || 'No se pudo procesar el comunicado', 'error');
+      return;
+    }
+
     setEmailData({ destinatarioTipo: 'todos_clientes', especifico: '', asunto: '', mensaje: '' });
-    showToast('Comunicado enviado correctamente', 'success');
+    showToast(`Comunicado procesado (${response.mode === 'n8n_online' ? 'n8n conectado' : 'modo local'})`, 'success');
+  };
+
+  const handlePeriodChange = (period) => {
+    setTimePeriod(period);
+    showToast(`Métricas actualizadas: ${period === 'dia' ? 'Día' : period === 'semana' ? 'Semana' : 'Mes'}`, 'info');
   };
 
   // MANEJO DE MODAL DE INVENTARIO
@@ -398,7 +417,7 @@ export default function AdminDashboard() {
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div className="flex bg-[#0A090C] p-1 rounded-2xl border border-[#659B5E]/40 text-xs font-extrabold">
               {['dia', 'semana', 'mes'].map(period => (
-                <button key={period} onClick={() => setTimePeriod(period)} className={`px-3 py-1.5 rounded-xl cursor-pointer transition-all ${timePeriod === period ? 'bg-[#D16014] text-white' : 'text-gray-400 hover:text-white'}`}>
+                <button key={period} onClick={() => handlePeriodChange(period)} className={`px-3 py-1.5 rounded-xl cursor-pointer transition-all ${timePeriod === period ? 'bg-[#D16014] text-white' : 'text-gray-400 hover:text-white'}`}>
                   {period === 'dia' ? 'Día' : period === 'semana' ? 'Semana' : 'Mes'}
                 </button>
               ))}
@@ -504,13 +523,13 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-center border-b border-[#F8FFE5]/10 pb-4">
                   <div>
                     <h3 className="font-extrabold text-base text-[#F8FFE5]">Tendencia de Ventas</h3>
-                    <p className="text-xs text-gray-400">Evolución mensual en Sede {formatSedeName(selectedSede)}.</p>
+                    <p className="text-xs text-gray-400">Evolución del periodo {timePeriod} en Sede {formatSedeName(selectedSede)}.</p>
                   </div>
                   <TrendingUp className="w-5 h-5 text-[#659B5E]" />
                 </div>
                 <div className="h-48 flex items-end justify-between gap-3 pt-6 px-2 border-b border-[#F8FFE5]/10">
-                  {[60, 75, 50, 90, 80, 100].map((value, index) => (
-                    <div key={value} className="flex-1 flex flex-col items-center gap-2 group">
+                  {currentSalesTrend.map((value, index) => (
+                    <div key={`${timePeriod}-${index}`} className="flex-1 flex flex-col items-center gap-2 group">
                       <div className="w-full bg-gradient-to-t from-[#659B5E] to-[#D16014] rounded-t-xl group-hover:brightness-125 transition-all" style={{ height: `${value}%` }} />
                       <span className="text-[10px] font-bold text-gray-400">{['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'][index]}</span>
                     </div>
@@ -591,6 +610,12 @@ export default function AdminDashboard() {
               <textarea rows="6" placeholder="Escriba el mensaje..." value={emailData.mensaje} onChange={event => setEmailData({ ...emailData, mensaje: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-3" />
               <button type="submit" className="py-3 px-6 bg-[#D16014] text-white font-extrabold rounded-xl flex items-center gap-2 cursor-pointer"><Send className="w-4 h-4" /> Despachar con n8n</button>
             </form>
+            {emailResponse && (
+              <div className={`max-w-2xl rounded-2xl border p-4 text-xs ${emailResponse.success ? 'border-[#659B5E]/40 bg-[#659B5E]/10 text-[#B9E3B3]' : 'border-red-500/40 bg-red-500/10 text-red-300'}`}>
+                <strong className="block font-extrabold">{emailResponse.success ? 'Respuesta del envío' : 'Error del envío'}</strong>
+                <span>{emailResponse.success ? `Comunicado aceptado por ${emailResponse.mode === 'n8n_online' ? 'n8n' : 'el modo local de respaldo'}.` : emailResponse.message}</span>
+              </div>
+            )}
           </div>
         )}
 
