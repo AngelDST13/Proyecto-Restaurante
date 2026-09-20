@@ -1,4 +1,4 @@
-// Servicio de Autenticación & Criptografía Nativa de El Cacique
+// Servicio de Autenticación con Meseros Ampliados por Sede
 const JWT_SECRET = 'CACIQUE_SECRET_2026_CR_PROTECTED_SESSION';
 
 const VALID_ACCOUNTS = {
@@ -15,6 +15,27 @@ const VALID_ACCOUNTS = {
     alias: 'Carlos',
     rol: 'mesero',
     sede: 'escazu'
+  },
+  'mesero.santaana@elcacique.com': {
+    password: 'MeseroSantaAna2026!',
+    nombre: 'Bryan Gómez',
+    alias: 'Bryan',
+    rol: 'mesero',
+    sede: 'santa_ana'
+  },
+  'mesero.cartago@elcacique.com': {
+    password: 'MeseroCartago2026!',
+    nombre: 'Aiden Ruiz',
+    alias: 'Aiden',
+    rol: 'mesero',
+    sede: 'cartago'
+  },
+  'mesero.heredia@elcacique.com': {
+    password: 'MeseroHeredia2026!',
+    nombre: 'Victor González',
+    alias: 'Victor',
+    rol: 'mesero',
+    sede: 'heredia'
   }
 };
 

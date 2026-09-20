@@ -4,6 +4,7 @@ import Login from '../pages/Login';
 import Menu from '../pages/Menu';
 import AdminDashboard from '../pages/AdminDashboard';
 import WaiterDashboard from '../pages/WaiterDashboard';
+import KitchenDashboard from '../pages/KitchenDashboard';
 import Unauthorized from '../pages/Unauthorized';
 
 import ProtectedRoute from './ProtectedRoute';
@@ -37,7 +38,7 @@ export function AppRouter() {
           <Route path="/menu" element={<Menu />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* RUTA PROTEGIDA MESEROS */}
+          {/* RUTA MESEROS */}
           <Route 
             path="/waiter" 
             element={
@@ -47,7 +48,17 @@ export function AppRouter() {
             } 
           />
 
-          {/* PANEL ADMINISTRATIVO DEDICADO */}
+          {/* RUTA PANEL DE COCINA KDS */}
+          <Route 
+            path="/kitchen" 
+            element={
+              <ProtectedRoute allowedRoles={['mesero', 'administrador']}>
+                <KitchenDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* RUTA ADMINISTRADOR DEDICADA */}
           <Route 
             path="/admin" 
             element={

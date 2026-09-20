@@ -10,15 +10,36 @@ export default function Menu() {
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
 
+  // CATÁLOGO CULINARIO EXTENDIDO
   const fullMenu = [
+    // PAILA Y CHICHARRONES
     { id: 1, nombre: 'Chifrijo Especial de Paila', cat: 'paila', precio: 6800, desc: 'Chicharrón crujiente de concha y carne, frijoles tiernos cubaces, pico de gallo y aguacate Hass.', badge: 'Más Vendido' },
     { id: 2, nombre: 'Vigorón Criollo Cacique (1kg)', cat: 'paila', precio: 14500, desc: 'Surtido de chicharrón con yuca al vapor, ensalada de repollo y chimichurri criollo.', badge: 'Familiar' },
-    { id: 3, nombre: 'Costilla Cerdo a la Leña', cat: 'cortes', precio: 9200, desc: 'Costilla jugosa ahumada con leña de café, acompañada de plátanos maduros con queso.', badge: 'Recomendado' },
-    { id: 4, nombre: 'Combo Caciquito: Mini Chicharroncitos', cat: 'ninos', precio: 3800, desc: 'Porción infantil de chicharritos suaves sin concha, papitas fritas y juguito de caja.', badge: 'Infantil' },
-    { id: 5, nombre: 'Ceviche de Tilapia Arreglado', cat: 'bocas', precio: 5500, desc: 'Marinado en jugo de limón natural, chile dulce, cilantro, aguacate y galletas soda.', badge: 'Fresco' },
-    { id: 6, nombre: 'Refresco Natural de Cas (500ml)', cat: 'bebidas', precio: 1800, desc: 'Cas criollo recién licuado con hielo frappé.' },
-    { id: 7, nombre: 'Agua de Sapo con Jengibre (500ml)', cat: 'bebidas', precio: 1900, desc: 'Bebida tradicional de tapa de dulce, limón criollo y jengibre fresco.' },
-    { id: 8, nombre: 'Flan de Coco Casero', cat: 'postres', precio: 2500, desc: 'Postre tradicional bañado en caramelo de caña dulce.' }
+    { id: 3, nombre: 'Chicharrones de Carne en Tira (500g)', cat: 'paila', precio: 8200, desc: 'Tiras jugosas fritas a la paila con leña de café, acompañadas de limones criollos.' },
+    { id: 4, nombre: 'Yuca Frita con Chicharrón de Concha', cat: 'paila', precio: 5900, desc: 'Bastones crocantes de yuca con concha dorada al punto perfecto.' },
+
+    // CORTES A LA LEÑA
+    { id: 5, nombre: 'Costilla Cerdo a la Leña', cat: 'cortes', precio: 9200, desc: 'Costilla jugosa ahumada con leña de café, acompañada de plátanos maduros con queso.', badge: 'Recomendado' },
+    { id: 6, nombre: 'Lomito de Cerdo Encebollado', cat: 'cortes', precio: 8900, desc: 'Corte magro a la parrilla con cebollitas caramelizadas y puré de yuca.' },
+    { id: 7, nombre: 'Parrillada El Cacique (2 personas)', cat: 'cortes', precio: 17800, desc: 'Costilla, chicharrón, chorizo criollo, carne de res y elote frito.' },
+
+    // MENÚ INFANTIL
+    { id: 8, nombre: 'Combo Caciquito: Mini Chicharroncitos', cat: 'ninos', precio: 3800, desc: 'Porción infantil de chicharritos suaves sin concha, papitas fritas y juguito de caja.', badge: 'Infantil' },
+    { id: 9, nombre: 'Deditos de Pollo Crispy', cat: 'ninos', precio: 3500, desc: 'Pechuguita empanizada con bastones de yuca y salsa rosa.' },
+
+    // BOCAS Y CEVICHES
+    { id: 10, nombre: 'Ceviche de Tilapia Arreglado', cat: 'bocas', precio: 5500, desc: 'Marinado en jugo de limón natural, chile dulce, cilantro, aguacate y galletas soda.', badge: 'Fresco' },
+    { id: 11, nombre: 'Patacones Especiales con Carne', cat: 'bocas', precio: 4900, desc: 'Patacones dobles cubiertos de frijoles refritos y carne desmechada.' },
+    { id: 12, nombre: 'Sopa de Pulpería con Costilla', cat: 'bocas', precio: 4200, desc: 'Sopa tradicional reconfortante con verduras de la zona.' },
+
+    // BEBIDAS Y LICORES
+    { id: 13, nombre: 'Refresco Natural de Cas (500ml)', cat: 'bebidas', precio: 1800, desc: 'Cas criollo recién licuado con hielo frappé.' },
+    { id: 14, nombre: 'Agua de Sapo con Jengibre (500ml)', cat: 'bebidas', precio: 1900, desc: 'Tapa de dulce, limón criollo y jengibre fresco.' },
+    { id: 15, nombre: 'Cerveza Imperial Helada (350ml)', cat: 'bebidas', precio: 2200, desc: 'Servida en vaso congelado de tarro.' },
+
+    // POSTRES
+    { id: 16, nombre: 'Flan de Coco Casero', cat: 'postres', precio: 2500, desc: 'Postre tradicional bañado en caramelo de caña dulce.' },
+    { id: 17, nombre: 'Empanada Dulce de Plátano y Queso', cat: 'postres', precio: 2200, desc: 'Rellena de queso Turrialba con toque de canela.' }
   ];
 
   const showToast = (message, type = 'success') => {
@@ -33,7 +54,7 @@ export default function Menu() {
       }
       return [...prev, { ...item, cantidad: 1 }];
     });
-    showToast(`${item.nombre} agregado al pedido`, 'info');
+    showToast(`${item.nombre} agregado a la selección`, 'info');
   };
 
   const handleQuantityChange = (id, delta) => {
@@ -174,7 +195,6 @@ export default function Menu() {
           </div>
         )}
 
-        {/* DESPLEGABLE DE SELECCIÓN */}
         {isCartOpen && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end">
             <div className="w-full max-w-md bg-[#001812] h-full p-6 space-y-6 flex flex-col justify-between border-l border-[#659B5E]/30 text-xs">
