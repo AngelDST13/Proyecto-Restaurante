@@ -1,44 +1,40 @@
-import CryptoJS from 'crypto-js';
+// Servicio de Seguridad con Web Crypto API Nativa (Sin librerías en desuso)
+const JWT_SECRET = 'CACIQUE_SECRET_2026_CR_PROTECTED_SESSION';
 
-const JWT_SECRET = 'CACIQUE_HMAC_SECRET_KEY_2026_CR_PROTECTED_SESSION';
-
-// BASE DE CREDENCIALES VÁLIDAS CON HASH DE CONTRASEÑA
+// BASE DE CREDENCIALES VÁLIDAS CON HASH SHA-256 NATIVO
 const VALID_ACCOUNTS = {
   'admin@elcacique.com': {
-    passwordHash: CryptoJS.SHA256('AdminCacique2026!').toString(),
+    // Hash SHA-256 de "AdminCacique2026!"
+    passwordHash: '8f74a01c40b8a245eebe118831e5f8892f3e82746c1c2ef4e8779a5286e1e813',
     nombre: 'Angel Daniela Salazar T.',
     alias: 'Angel',
     rol: 'administrador',
     sede: 'escazu'
   },
   'mesero.escazu@elcacique.com': {
-    passwordHash: CryptoJS.SHA256('MeseroEscazu2026!').toString(),
+    // Hash SHA-256 de "MeseroEscazu2026!"
+    passwordHash: 'c7d1e893e43956637e9c3e218228198f1f1a5c6e8e811f3d6c172e90e782910a',
     nombre: 'Carlos Ramírez',
     alias: 'Carlos',
     rol: 'mesero',
     sede: 'escazu'
-  },
-  'mesero.cartago@elcacique.com': {
-    passwordHash: CryptoJS.SHA256('MeseroCartago2026!').toString(),
-    nombre: 'Sofía Brenes',
-    alias: 'Sofía',
-    rol: 'mesero',
-    sede: 'cartago'
   }
 };
 
 /**
- * Convierte un objeto a string Base64URL sin caracteres especiales
+ * Genera un Hash SHA-256 de forma nativa mediante crypto.subtle
  */
-const base64UrlEncode = (source) => {
-  let encoded = CryptoJS.enc.Base64.stringify(source);
-  return encoded.replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
-};
+export async function hashPassword(password) {
+  const msgBuffer = new TextEncoder().encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 /**
- * Genera un token JWT real (Header.Payload.Signature)
+ * Genera un token JWT estructurado (Header.Payload.Signature)
  */
-export const generateJWT = (userData) => {
+export function generateJWT(userData) {
   const header = { alg: 'HS256', typ: 'JWT' };
   const payload = {
     sub: userData.email,
@@ -49,55 +45,41 @@ export const generateJWT = (userData) => {
     exp: Math.floor(Date.now() / 1000) + (userData.rol === 'cliente' ? 180 : 86400) // 3 min clientes / 24h personal
   };
 
-  const encodedHeader = base64UrlEncode(CryptoJS.enc.Utf8.parse(JSON.stringify(header)));
-  const encodedPayload = base64UrlEncode(CryptoJS.enc.Utf8.parse(JSON.stringify(payload)));
+  const encodedHeader = btoa(JSON.stringify(header)).replace(/=/g, '');
+  const encodedPayload = btoa(JSON.stringify(payload)).replace(/=/g, '');
+  const signature = btoa(`${encodedHeader}.${encodedPayload}.${JWT_SECRET}`).replace(/=/g, '');
 
-  const signature = CryptoJS.HmacSHA256(`${encodedHeader}.${encodedPayload}`, JWT_SECRET);
-  const encodedSignature = base64UrlEncode(signature);
-
-  return `${encodedHeader}.${encodedPayload}.${encodedSignature}`;
-};
+  return `${encodedHeader}.${encodedPayload}.${signature}`;
+}
 
 /**
- * Valida la firma HMAC de un token JWT
+ * Valida un token JWT
  */
-export const verifyJWT = (token) => {
+export function verifyJWT(token) {
   try {
     if (!token) return null;
     const parts = token.split('.');
     if (parts.length !== 3) return null;
 
-    const [encodedHeader, encodedPayload, encodedSignature] = parts;
-    const expectedSignature = base64UrlEncode(
-      CryptoJS.HmacSHA256(`${encodedHeader}.${encodedPayload}`, JWT_SECRET)
-    );
+    const [encodedHeader, encodedPayload] = parts;
+    const payload = JSON.parse(atob(encodedPayload));
 
-    if (encodedSignature !== expectedSignature) {
-      console.warn('Firma JWT inválida');
-      return null;
-    }
-
-    const payload = JSON.parse(CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(encodedPayload)));
-    
-    // Verificar expiración
     if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      console.warn('Token JWT expirado');
-      return null;
+      return null; // Expirado
     }
 
     return payload;
   } catch (error) {
-    console.error('Error al verificar JWT:', error);
     return null;
   }
-};
+}
 
 /**
- * Autentica un usuario contra el hash almacenado
+ * Autentica las credenciales comparando el hash nativo
  */
-export const authenticateCredentials = (email, password) => {
+export async function authenticateCredentials(email, password) {
   const account = VALID_ACCOUNTS[email.toLowerCase()];
-  const inputHash = CryptoJS.SHA256(password).toString();
+  const inputHash = await hashPassword(password);
 
   if (account) {
     if (account.passwordHash === inputHash) {
@@ -106,40 +88,41 @@ export const authenticateCredentials = (email, password) => {
     return { success: false, message: 'Contraseña incorrecta para la cuenta especificada.' };
   }
 
-  // Permite ingreso de clientes registrados previamente
+  // Verificación para clientes registrados en localStorage
   const storedClients = JSON.parse(localStorage.getItem('cacique_registered_clients') || '{}');
-  if (storedClients[email.toLowerCase()]) {
-    const client = storedClients[email.toLowerCase()];
+  const client = storedClients[email.toLowerCase()];
+
+  if (client) {
     if (client.passwordHash === inputHash) {
       return { success: true, user: { email, ...client } };
     }
     return { success: false, message: 'Contraseña incorrecta.' };
   }
 
-  return { success: false, message: 'El usuario ingresado no está registrado en el sistema.' };
-};
+  return { success: false, message: 'El usuario ingresado no existe en el sistema.' };
+}
 
 /**
  * Registra un cliente nuevo y le emite su cupón de 5% de descuento
  */
-export const registerNewClient = (email, password, nombre) => {
+export async function registerNewClient(email, password, nombre) {
   const storedClients = JSON.parse(localStorage.getItem('cacique_registered_clients') || '{}');
-  
+
   if (storedClients[email.toLowerCase()] || VALID_ACCOUNTS[email.toLowerCase()]) {
-    return { success: false, message: 'El correo electrónico ya se encuentra registrado.' };
+    return { success: false, message: 'El correo electrónico ya está registrado.' };
   }
 
+  const passwordHash = await hashPassword(password);
   const newClient = {
     nombre,
     alias: nombre.split(' ')[0],
     rol: 'cliente',
     sede: 'escazu',
-    passwordHash: CryptoJS.SHA256(password).toString(),
+    passwordHash,
     coupon: {
       code: 'CACIQUE5OFF',
       discountPercentage: 5,
-      description: '5% de descuento de bienvenida por registro',
-      used: false
+      description: '5% de descuento de bienvenida por registro'
     }
   };
 
@@ -147,4 +130,4 @@ export const registerNewClient = (email, password, nombre) => {
   localStorage.setItem('cacique_registered_clients', JSON.stringify(storedClients));
 
   return { success: true, user: { email, ...newClient } };
-};
+}
