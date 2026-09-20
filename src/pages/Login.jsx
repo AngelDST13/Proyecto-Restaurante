@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket } from 'lucide-react';
@@ -22,24 +23,24 @@ export default function Login() {
     setToast({ show: true, message, type });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isRegister) {
       if (!nombre || !email || !password) {
-        showToast('Por favor complete todos los datos de registro', 'error');
+        showToast('Complete todos los campos requeridos', 'error');
         return;
       }
 
-      const res = registerClient(email, password, nombre);
+      const res = await registerClient(email, password, nombre);
       if (!res.success) {
         showToast(res.message, 'error');
         return;
       }
 
       setNewCoupon(res.coupon);
-      showToast('¡Registro completado! Se ha generado tu cupón de 5% de descuento', 'success');
-      setTimeout(() => navigate('/menu'), 2500);
+      showToast('¡Registro exitoso! Se ha asignado tu cupón de 5% de descuento.', 'success');
+      setTimeout(() => navigate('/menu'), 2000);
 
     } else {
       if (!email || !password) {
@@ -47,7 +48,7 @@ export default function Login() {
         return;
       }
 
-      const res = loginWithCredentials(email, password);
+      const res = await loginWithCredentials(email, password);
       if (!res.success) {
         showToast(res.message, 'error');
         return;
@@ -65,28 +66,42 @@ export default function Login() {
   return (
     <div className="min-h-screen pt-28 pb-16 px-4 flex items-center justify-center bg-[#0A090C] relative overflow-hidden font-sans">
       
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#D16014]/15 rounded-full blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#659B5E]/15 rounded-full blur-3xl pointer-events-none animate-pulse" />
+      {/* LUZ AMBIENTAL DE FONDO ANIMADA */}
+      <motion.div 
+        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-32 -left-32 w-96 h-96 bg-[#D16014]/20 rounded-full blur-3xl pointer-events-none" 
+      />
+      <motion.div 
+        animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#659B5E]/20 rounded-full blur-3xl pointer-events-none" 
+      />
 
       {toast.show && (
-        <Toast 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast({ ...toast, show: false })} 
-        />
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
       )}
 
-      <div className="w-full max-w-md bg-[#001812]/95 backdrop-blur-2xl border border-[#659B5E]/30 rounded-3xl p-8 space-y-6 shadow-2xl relative z-10">
-        
-        {/* LOGO E IDENTIDAD INSTITUCIONAL */}
+      {/* TARJETA DE LOGIN CON EFECTO 3D DE ENTRADA Y ELEVACIÓN */}
+      <motion.div 
+        initial={{ opacity: 0, y: 30, rotateX: -10 }}
+        animate={{ opacity: 1, y: 0, rotateX: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        whileHover={{ rotateY: 2, rotateX: -2 }}
+        className="w-full max-w-md bg-[#001812]/95 backdrop-blur-2xl border border-[#659B5E]/30 rounded-3xl p-8 space-y-6 shadow-2xl relative z-10"
+        style={{ perspective: 1000 }}
+      >
         <div className="text-center space-y-3">
-          <div className="w-20 h-20 rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 shadow-lg mx-auto flex items-center justify-center p-3">
+          <motion.div 
+            whileHover={{ scale: 1.08, rotateZ: 3 }}
+            className="w-20 h-20 rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 shadow-lg mx-auto flex items-center justify-center p-3"
+          >
             <img 
               src={logoNegro} 
               alt="Logo El Cacique" 
               className="w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(209,96,20,0.4)]"
             />
-          </div>
+          </motion.div>
 
           <div>
             <h2 className="text-2xl font-black text-[#F8FFE5] tracking-tight">
@@ -98,40 +113,39 @@ export default function Login() {
             </p>
           </div>
 
-          {/* CONMUTADOR LOGIN / REGISTRO */}
           <div className="flex bg-[#0A090C] p-1 rounded-xl border border-[#F8FFE5]/10 text-xs font-bold">
             <button
               type="button"
-              onClick={() => setIsRegister(false)}
-              className={`flex-1 py-2 rounded-lg transition-all ${!isRegister ? 'bg-[#D16014] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
+              onClick={() => { setIsRegister(false); setEmail(''); setPassword(''); }}
+              className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${!isRegister ? 'bg-[#D16014] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
             >
               Iniciar Sesión
             </button>
             <button
               type="button"
-              onClick={() => setIsRegister(true)}
-              className={`flex-1 py-2 rounded-lg transition-all ${isRegister ? 'bg-[#D16014] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
+              onClick={() => { setIsRegister(true); setEmail(''); setPassword(''); }}
+              className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${isRegister ? 'bg-[#D16014] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
             >
               Crear Cuenta (+5% OFF)
             </button>
           </div>
         </div>
 
-        {/* ALERTA DE CUPÓN GENERADO */}
         {newCoupon && (
-          <div className="p-4 bg-[#659B5E]/20 border border-[#659B5E]/50 rounded-2xl text-center space-y-1 animate-bounce">
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="p-4 bg-[#659B5E]/20 border border-[#659B5E]/50 rounded-2xl text-center space-y-1"
+          >
             <div className="flex items-center justify-center gap-2 text-[#659B5E] font-black text-xs uppercase">
               <Ticket className="w-4 h-4" />
               <span>¡Cupón de Bienvenida Asignado!</span>
             </div>
             <p className="text-sm font-black text-white tracking-widest">{newCoupon.code}</p>
-            <p className="text-[10px] text-gray-300">Aplica 5% de descuento en tu primer pedido digital</p>
-          </div>
+          </motion.div>
         )}
 
-        {/* FORMULARIO */}
         <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4 text-xs">
-          
           {isRegister && (
             <div className="space-y-1">
               <label className="block font-bold text-[#F8FFE5]/80">Nombre Completo</label>
@@ -139,7 +153,7 @@ export default function Login() {
                 <UserPlus className="w-4 h-4 absolute left-3.5 top-3 text-[#F8FFE5]/40" />
                 <input 
                   type="text" 
-                  placeholder="ej: María Alvarado"
+                  placeholder="ej: Angel Salazar"
                   value={nombre}
                   onChange={e => setNombre(e.target.value)}
                   required 
@@ -179,7 +193,7 @@ export default function Login() {
               <button 
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-3 text-gray-400 hover:text-white"
+                className="absolute right-3.5 top-3 text-gray-400 hover:text-white cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -188,20 +202,22 @@ export default function Login() {
 
           {!isRegister && (
             <div className="p-3 bg-[#0A090C] border border-[#F8FFE5]/10 rounded-xl space-y-1 text-[10px]">
-              <span className="text-gray-400 font-bold block uppercase">Credenciales Oficiales de Acceso:</span>
+              <span className="text-gray-400 font-bold block uppercase">Credenciales Oficiales:</span>
               <p className="text-[#659B5E] font-mono">Admin: admin@elcacique.com | AdminCacique2026!</p>
               <p className="text-amber-400 font-mono">Mesero: mesero.escazu@elcacique.com | MeseroEscazu2026!</p>
             </div>
           )}
 
-          <button 
+          <motion.button 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             type="submit" 
-            className="w-full py-3.5 rounded-xl bg-[#D16014] hover:bg-[#b8510f] font-extrabold text-white text-xs shadow-lg shadow-[#D16014]/30 transition-all uppercase tracking-wider cursor-pointer"
+            className="w-full py-3.5 rounded-xl bg-[#D16014] hover:bg-[#b8510f] font-extrabold text-white text-xs shadow-lg shadow-[#D16014]/30 uppercase tracking-wider cursor-pointer"
           >
             {isRegister ? 'Registrarme y Obtener Cupón 5% OFF' : 'Iniciar Sesión'}
-          </button>
+          </motion.button>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

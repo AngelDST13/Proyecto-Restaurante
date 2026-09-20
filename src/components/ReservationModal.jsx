@@ -1,226 +1,179 @@
 import { useState } from 'react';
-import { MessageSquare, Phone, Calendar, PartyPopper, X, Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Calendar, Clock, Users, MapPin, Sparkles, Send } from 'lucide-react';
 
-export default function ReservationModal({ isOpen, onClose, onShowToast }) {
-  const [method, setMethod] = useState('web');
-  const [formData, setFormData] = useState({
-    nombre: '',
-    telefono: '',
-    sede: 'escazu',
-    personas: '2',
-    fecha: new Date().toISOString().split('T')[0],
-    hora: '19:00',
-    tipoEvento: 'Cumpleaños',
-    notas: ''
-  });
+export default function ReservationModal({ isOpen, onClose, initialEventType = 'General', onSuccess }) {
+  const [sede, setSede] = useState('escazu');
+  const [fecha, setFecha] = useState('');
+  const [hora, setHora] = useState('12:00');
+  const [personas, setPersonas] = useState(2);
+  const [tipoEvento, setTipoEvento] = useState(initialEventType);
+  const [nombre, setNombre] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [notas, setNotas] = useState('');
 
   if (!isOpen) return null;
 
-  const handleWhatsAppSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const phone = '50622008888';
-    const isEvento = method === 'eventos';
-    const text = encodeURIComponent(
-      `¡Hola Chicharronera El Cacique! Deseo solicitar un ${isEvento ? 'EVENTO ESPECIAL' : 'RESERVA'}:\n` +
-      `• Nombre: ${formData.nombre}\n` +
-      `• Teléfono: ${formData.telefono}\n` +
-      `• Sede: ${formData.sede.toUpperCase()}\n` +
-      `• Personas: ${formData.personas}\n` +
-      `• Fecha: ${formData.fecha}\n` +
-      `• Hora: ${formData.hora}\n` +
-      (isEvento ? `• Tipo de Evento: ${formData.tipoEvento}\n` : '') +
-      `• Notas: ${formData.notas || 'Ninguna'}`
-    );
-    window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
-    onShowToast('Redirigiendo a WhatsApp API...', 'info');
-    onClose();
-  };
+    if (!fecha || !nombre || !telefono) return;
 
-  const handleWebSubmit = (e) => {
-    e.preventDefault();
-    onShowToast(`¡Solicitud enviada para ${formData.nombre} el ${formData.fecha}!`, 'success');
+    onSuccess(`¡Reserva confirmada para ${nombre} el ${fecha} a las ${hora} en Sede ${sede.toUpperCase()}!`);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-2xl max-w-lg w-full p-6 text-[#F8FFE5] space-y-6 shadow-2xl relative">
-        
-        <button onClick={onClose} className="absolute right-4 top-4 p-1 rounded-lg text-[#F8FFE5]/40 hover:text-[#F8FFE5]">
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="space-y-1">
-          <h3 className="text-xl font-extrabold tracking-tight text-[#F8FFE5]">Reservas &amp; Eventos • El Cacique</h3>
-          <p className="text-xs text-[#F8FFE5]/60">Selecciona el canal para agendar tu mesa o celebración:</p>
-        </div>
-
-        <div className="grid grid-cols-4 gap-1.5 bg-[#001812] p-1.5 rounded-xl border border-[#F8FFE5]/10 text-[11px] font-bold">
-          <button
-            onClick={() => setMethod('web')}
-            className={`py-2 rounded-lg flex items-center justify-center gap-1 transition-all ${
-              method === 'web' ? 'bg-[#D16014] text-white' : 'text-[#F8FFE5]/60'
-            }`}
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9, rotateX: 15 }}
+          animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+          exit={{ opacity: 0, scale: 0.9, rotateX: -15 }}
+          transition={{ duration: 0.3 }}
+          className="w-full max-w-lg bg-[#001812] border border-[#659B5E]/40 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative text-xs text-[#F8FFE5]"
+        >
+          <button 
+            onClick={onClose} 
+            className="absolute top-5 right-5 text-gray-400 hover:text-white p-2 rounded-xl bg-[#0A090C] border border-[#F8FFE5]/10 cursor-pointer"
           >
-            <Calendar className="w-3.5 h-3.5" /> En Línea
+            <X className="w-4 h-4" />
           </button>
 
-          <button
-            onClick={() => setMethod('whatsapp')}
-            className={`py-2 rounded-lg flex items-center justify-center gap-1 transition-all ${
-              method === 'whatsapp' ? 'bg-emerald-600 text-white' : 'text-[#F8FFE5]/60'
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5" /> WhatsApp
-          </button>
+          <div className="space-y-1">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-[#D16014] uppercase tracking-wider bg-[#D16014]/10 px-3 py-1 rounded-full border border-[#D16014]/30">
+              <Sparkles className="w-3 h-3" /> Sistema Culinario de Reservas
+            </span>
+            <h3 className="text-2xl font-black text-[#F8FFE5]">Agendar Mesa o Evento</h3>
+            <p className="text-gray-400">Reserva tu espacio en salón o terraza con atención preferencial.</p>
+          </div>
 
-          <button
-            onClick={() => setMethod('eventos')}
-            className={`py-2 rounded-lg flex items-center justify-center gap-1 transition-all ${
-              method === 'eventos' ? 'bg-purple-600 text-white' : 'text-[#F8FFE5]/60'
-            }`}
-          >
-            <PartyPopper className="w-3.5 h-3.5" /> Eventos
-          </button>
-
-          <button
-            onClick={() => setMethod('phone')}
-            className={`py-2 rounded-lg flex items-center justify-center gap-1 transition-all ${
-              method === 'phone' ? 'bg-amber-600 text-white' : 'text-[#F8FFE5]/60'
-            }`}
-          >
-            <Phone className="w-3.5 h-3.5" /> Celular
-          </button>
-        </div>
-
-        {(method === 'web' || method === 'eventos') && (
-          <form onSubmit={method === 'eventos' ? handleWhatsAppSubmit : handleWebSubmit} className="space-y-3 text-xs">
-            <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block mb-1 font-semibold text-[#F8FFE5]/80">Nombre Completo</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Tu Nombre"
-                  value={formData.nombre}
-                  onChange={e => setFormData({ ...formData, nombre: e.target.value })}
-                  className="w-full bg-[#00241B]/60 border border-[#F8FFE5]/15 rounded-xl px-3 py-2 text-[#F8FFE5]"
-                />
+                <label className="block mb-1 font-bold text-gray-300">Sede Preferida</label>
+                <div className="relative">
+                  <MapPin className="w-4 h-4 absolute left-3 top-3 text-[#659B5E]" />
+                  <select 
+                    value={sede} 
+                    onChange={e => setSede(e.target.value)}
+                    className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl pl-9 pr-3 py-2.5 text-[#F8FFE5] font-bold focus:outline-none focus:border-[#D16014]"
+                  >
+                    <option value="escazu">Sede Escazú</option>
+                    <option value="santa_ana">Sede Santa Ana</option>
+                    <option value="cartago">Sede Cartago</option>
+                    <option value="heredia">Sede Heredia</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="block mb-1 font-semibold text-[#F8FFE5]/80">Teléfono Móvil</label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="8888-8888"
-                  value={formData.telefono}
-                  onChange={e => setFormData({ ...formData, telefono: e.target.value })}
-                  className="w-full bg-[#00241B]/60 border border-[#F8FFE5]/15 rounded-xl px-3 py-2 text-[#F8FFE5]"
-                />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block mb-1 font-semibold text-[#F8FFE5]/80">Sede El Cacique</label>
-                <select
-                  value={formData.sede}
-                  onChange={e => setFormData({ ...formData, sede: e.target.value })}
-                  className="w-full bg-[#00241B]/60 border border-[#F8FFE5]/15 rounded-xl px-3 py-2 text-[#F8FFE5]"
+                <label className="block mb-1 font-bold text-gray-300">Tipo de Celebración</label>
+                <select 
+                  value={tipoEvento} 
+                  onChange={e => setTipoEvento(e.target.value)}
+                  className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5 text-[#F8FFE5] font-bold focus:outline-none focus:border-[#D16014]"
                 >
-                  <option value="escazu">Sede Escazú</option>
-                  <option value="santa_ana">Sede Santa Ana</option>
-                  <option value="cartago">Sede Cartago</option>
-                  <option value="heredia">Sede Heredia</option>
+                  <option value="General">Mesa Regular</option>
+                  <option value="Empresarial">Fiesta Empresarial</option>
+                  <option value="Cumpleaños">Cumpleaños / Familiar</option>
+                  <option value="Express">Cotización Express</option>
                 </select>
               </div>
-
-              {method === 'eventos' ? (
-                <div>
-                  <label className="block mb-1 font-semibold text-[#F8FFE5]/80">Tipo de Evento</label>
-                  <select
-                    value={formData.tipoEvento}
-                    onChange={e => setFormData({ ...formData, tipoEvento: e.target.value })}
-                    className="w-full bg-[#00241B]/60 border border-[#F8FFE5]/15 rounded-xl px-3 py-2 text-[#F8FFE5]"
-                  >
-                    <option value="Cumpleaños">Cumpleaños</option>
-                    <option value="Evento Corporativo">Evento Corporativo</option>
-                    <option value="Reunión Familiar">Reunión Familiar</option>
-                  </select>
-                </div>
-              ) : (
-                <div>
-                  <label className="block mb-1 font-semibold text-[#F8FFE5]/80">Cantidad Personas</label>
-                  <select
-                    value={formData.personas}
-                    onChange={e => setFormData({ ...formData, personas: e.target.value })}
-                    className="w-full bg-[#00241B]/60 border border-[#F8FFE5]/15 rounded-xl px-3 py-2 text-[#F8FFE5]"
-                  >
-                    <option value="2">2 Personas</option>
-                    <option value="4">4 Personas</option>
-                    <option value="6">6 Personas</option>
-                    <option value="8">8+ Personas</option>
-                  </select>
-                </div>
-              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block mb-1 font-semibold text-[#F8FFE5]/80">Fecha</label>
-                <input
-                  type="date"
-                  required
-                  value={formData.fecha}
-                  onChange={e => setFormData({ ...formData, fecha: e.target.value })}
-                  className="w-full bg-[#00241B]/60 border border-[#F8FFE5]/15 rounded-xl px-3 py-2 text-[#F8FFE5]"
-                />
+                <label className="block mb-1 font-bold text-gray-300">Fecha</label>
+                <div className="relative">
+                  <Calendar className="w-4 h-4 absolute left-3 top-3 text-[#D16014]" />
+                  <input 
+                    type="date" 
+                    value={fecha} 
+                    onChange={e => setFecha(e.target.value)}
+                    required
+                    className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl pl-9 pr-2 py-2.5 text-[#F8FFE5] font-bold focus:outline-none focus:border-[#D16014]"
+                  />
+                </div>
               </div>
+
               <div>
-                <label className="block mb-1 font-semibold text-[#F8FFE5]/80">Hora</label>
-                <input
-                  type="time"
-                  required
-                  value={formData.hora}
-                  onChange={e => setFormData({ ...formData, hora: e.target.value })}
-                  className="w-full bg-[#00241B]/60 border border-[#F8FFE5]/15 rounded-xl px-3 py-2 text-[#F8FFE5]"
-                />
+                <label className="block mb-1 font-bold text-gray-300">Hora</label>
+                <div className="relative">
+                  <Clock className="w-4 h-4 absolute left-3 top-3 text-[#D16014]" />
+                  <input 
+                    type="time" 
+                    value={hora} 
+                    onChange={e => setHora(e.target.value)}
+                    required
+                    className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl pl-9 pr-2 py-2.5 text-[#F8FFE5] font-bold focus:outline-none focus:border-[#D16014]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block mb-1 font-bold text-gray-300">Personas</label>
+                <div className="relative">
+                  <Users className="w-4 h-4 absolute left-3 top-3 text-amber-400" />
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="50" 
+                    value={personas} 
+                    onChange={e => setPersonas(e.target.value)}
+                    required
+                    className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl pl-9 pr-2 py-2.5 text-[#F8FFE5] font-bold focus:outline-none focus:border-[#D16014]"
+                  />
+                </div>
               </div>
             </div>
 
-            <button type="submit" className="w-full py-3 bg-[#D16014] text-white font-bold rounded-xl hover:bg-[#b8510f]">
-              {method === 'eventos' ? 'Finalizar Cotización en WhatsApp' : 'Confirmar Reserva Web'}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block mb-1 font-bold text-gray-300">Nombre de Titular</label>
+                <input 
+                  type="text" 
+                  placeholder="ej: Angel Salazar"
+                  value={nombre} 
+                  onChange={e => setNombre(e.target.value)}
+                  required
+                  className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5 text-[#F8FFE5] focus:outline-none focus:border-[#D16014]"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-bold text-gray-300">Teléfono / WhatsApp</label>
+                <input 
+                  type="tel" 
+                  placeholder="ej: +506 8888-8888"
+                  value={telefono} 
+                  onChange={e => setTelefono(e.target.value)}
+                  required
+                  className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5 text-[#F8FFE5] focus:outline-none focus:border-[#D16014]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block mb-1 font-bold text-gray-300">Solicitudes Especiales (Opcional)</label>
+              <textarea 
+                rows="2"
+                placeholder="Ej: Silla de bebé, ubicación en terraza, alergias..."
+                value={notas}
+                onChange={e => setNotas(e.target.value)}
+                className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2 text-[#F8FFE5] focus:outline-none focus:border-[#D16014]"
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              className="w-full py-3.5 rounded-xl bg-[#D16014] hover:bg-[#b8510f] font-extrabold text-white text-xs shadow-lg shadow-[#D16014]/30 flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer"
+            >
+              <Send className="w-4 h-4" /> Confirmar Reservación
             </button>
           </form>
-        )}
-
-        {method === 'whatsapp' && (
-          <form onSubmit={handleWhatsAppSubmit} className="space-y-3 text-xs">
-            <input
-              type="text"
-              required
-              placeholder="Tu Nombre"
-              value={formData.nombre}
-              onChange={e => setFormData({ ...formData, nombre: e.target.value })}
-              className="w-full bg-[#00241B]/60 border border-[#F8FFE5]/15 rounded-xl px-3 py-2 text-[#F8FFE5]"
-            />
-            <button type="submit" className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700">
-              <Send className="w-4 h-4" /> Finalizar en WhatsApp API
-            </button>
-          </form>
-        )}
-
-        {method === 'phone' && (
-          <div className="space-y-3 text-xs text-center py-4 bg-[#001812]/80 p-6 rounded-2xl border border-[#F8FFE5]/10">
-            <Phone className="w-8 h-8 text-amber-500 mx-auto" />
-            <h4 className="font-bold text-sm text-[#F8FFE5]">Central de Llamadas Directas</h4>
-            <a href="tel:+50622008888" className="inline-block px-6 py-3 bg-amber-600 text-white font-bold rounded-xl text-sm">
-              Llamar al Celular: +506 2200-8888
-            </a>
-          </div>
-        )}
-
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   );
 }

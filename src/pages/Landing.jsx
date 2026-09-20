@@ -2,15 +2,20 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Flame, Utensils, ShieldCheck, Award, 
-  Calendar, ChevronLeft, ChevronRight, Sparkles, Phone, ArrowRight, Star, ShoppingBag 
+  Calendar, ChevronLeft, ChevronRight, Sparkles, Phone, ArrowRight, Star, ShoppingBag
 } from 'lucide-react';
 import { getWeatherByLocation } from '../services/weatherService';
 import logoNegro from '../assets/img/LogoN.svg';
+import ReservationModal from '../components/ReservationModal';
+import Toast from '../components/Toast';
 
 export default function Landing() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [weatherData, setWeatherData] = useState(null);
   const [selectedSede, setSelectedSede] = useState('escazu');
+  const [isReserveModalOpen, setIsReserveModalOpen] = useState(false);
+  const [reserveEventType, setReserveEventType] = useState('General');
+  const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
 
   // MAPAS DINÁMICOS SEGÚN LA SEDE SELECCIONADA
   const mapsBySede = {
@@ -74,8 +79,24 @@ export default function Landing() {
     return () => clearInterval(interval);
   }, [slides.length]);
 
+  const openReservation = (eventType = 'General') => {
+    setReserveEventType(eventType);
+    setIsReserveModalOpen(true);
+  };
+
   return (
     <div className="bg-[#0A090C] text-[#F8FFE5] min-h-screen font-sans selection:bg-[#D16014] selection:text-white">
+
+      {toast.show && (
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
+      )}
+
+      <ReservationModal
+        isOpen={isReserveModalOpen}
+        onClose={() => setIsReserveModalOpen(false)}
+        initialEventType={reserveEventType}
+        onSuccess={(message) => setToast({ show: true, message, type: 'success' })}
+      />
       
       {/* 1. HERO SLIDER */}
       <section className="relative h-[85vh] min-h-[550px] flex items-center justify-center overflow-hidden">
@@ -106,12 +127,12 @@ export default function Landing() {
             >
               <Utensils className="w-5 h-5" /> Ver Menú Digital
             </Link>
-            <a 
-              href="#eventos" 
+            <button
+              onClick={() => openReservation('General')}
               className="px-8 py-4 rounded-2xl bg-[#00241B] hover:bg-[#00382b] text-[#F8FFE5] font-extrabold text-sm border border-[#659B5E]/40 transition-all flex items-center gap-2"
             >
               <Calendar className="w-5 h-5 text-[#659B5E]" /> Agendar Reserva
-            </a>
+            </button>
           </div>
         </div>
 
@@ -344,22 +365,46 @@ export default function Landing() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-3">
-            <Sparkles className="w-6 h-6 text-[#D16014]" />
-            <h3 className="font-extrabold text-lg text-[#F8FFE5]">Fiestas Empresariales</h3>
-            <p className="text-xs text-gray-400 leading-relaxed">Parrilladas ejecutivas y reservaciones de salón completo con menú personalizado.</p>
+          <div className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <Sparkles className="w-6 h-6 text-[#D16014]" />
+              <h3 className="font-extrabold text-lg text-[#F8FFE5]">Fiestas Empresariales</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">Parrilladas ejecutivas y reservaciones de salón completo con menú personalizado.</p>
+            </div>
+            <button
+              onClick={() => openReservation('Empresarial')}
+              className="w-full py-2.5 rounded-xl bg-[#D16014] hover:bg-[#b8510f] text-white font-extrabold text-xs shadow-md cursor-pointer"
+            >
+              Reservar Evento Empresarial
+            </button>
           </div>
 
-          <div className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-3">
-            <Utensils className="w-6 h-6 text-[#659B5E]" />
-            <h3 className="font-extrabold text-lg text-[#F8FFE5]">Cumpleaños &amp; Familias</h3>
-            <p className="text-xs text-gray-400 leading-relaxed">Atención preferencial para grupos grandes con combos familiares y refrescos naturales.</p>
+          <div className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <Utensils className="w-6 h-6 text-[#659B5E]" />
+              <h3 className="font-extrabold text-lg text-[#F8FFE5]">Cumpleaños &amp; Familias</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">Atención preferencial para grupos grandes con combos familiares y refrescos naturales.</p>
+            </div>
+            <button
+              onClick={() => openReservation('Cumpleaños')}
+              className="w-full py-2.5 rounded-xl bg-[#659B5E] hover:bg-[#52824c] text-white font-extrabold text-xs shadow-md cursor-pointer"
+            >
+              Reservar Mesa Familiar
+            </button>
           </div>
 
-          <div className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-3">
-            <Phone className="w-6 h-6 text-amber-500" />
-            <h3 className="font-extrabold text-lg text-[#F8FFE5]">Cotizaciones Express</h3>
-            <p className="text-xs text-gray-400 leading-relaxed">Contáctanos vía central telefónica al +506 2200-8888 o por nuestro WhatsApp Oficial.</p>
+          <div className="p-6 rounded-3xl bg-[#001812] border border-[#659B5E]/30 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <Phone className="w-6 h-6 text-amber-500" />
+              <h3 className="font-extrabold text-lg text-[#F8FFE5]">Cotizaciones Express</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">Contáctanos vía central telefónica al +506 2200-8888 o por nuestro WhatsApp Oficial.</p>
+            </div>
+            <button
+              onClick={() => openReservation('Express')}
+              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-md cursor-pointer"
+            >
+              Solicitar Cotización Express
+            </button>
           </div>
         </div>
       </section>
