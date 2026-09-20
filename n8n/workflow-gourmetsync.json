@@ -1,0 +1,268 @@
+{
+  "name": "GourmetSync - Automatizaciones El Cacique",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [{ "leftValue": "={{ $json.notificarMesero }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-order-ready",
+      "name": "¿Pedido Listo para Mesero?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1100, 40]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cacique-master-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-cacique-master",
+      "name": "Webhook GourmetSync",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body ?? $json;\nconst modulo = String(body.modulo ?? '').trim().toUpperCase();\nreturn [{ json: { ...body, modulo, fechaProcesamiento: new Date().toISOString(), valido: Boolean(modulo) } }];"
+      },
+      "id": "normalize-gourmetsync-payload",
+      "name": "Normalizar Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 }, "conditions": [{ "leftValue": "={{ $json.modulo }}", "rightValue": "RESERVA", "operator": { "type": "string", "operation": "equals" } }], "combinator": "and" }, "renameOutput": true, "outputKey": "RESERVA" },
+            { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 }, "conditions": [{ "leftValue": "={{ $json.modulo }}", "rightValue": "PEDIDO_MENU", "operator": { "type": "string", "operation": "equals" } }], "combinator": "and" }, "renameOutput": true, "outputKey": "PEDIDO_MENU" },
+            { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 }, "conditions": [{ "leftValue": "={{ $json.modulo }}", "rightValue": "ALERTA_STOCK", "operator": { "type": "string", "operation": "equals" } }], "combinator": "and" }, "renameOutput": true, "outputKey": "ALERTA_STOCK" },
+            { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 }, "conditions": [{ "leftValue": "={{ $json.modulo }}", "rightValue": "REGISTRO_CLIENTE", "operator": { "type": "string", "operation": "equals" } }], "combinator": "and" }, "renameOutput": true, "outputKey": "REGISTRO_CLIENTE" },
+            { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 }, "conditions": [{ "leftValue": "={{ $json.modulo }}", "rightValue": "EMAIL_ENVIO", "operator": { "type": "string", "operation": "equals" } }], "combinator": "and" }, "renameOutput": true, "outputKey": "EMAIL_ENVIO" },
+            { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 }, "conditions": [{ "leftValue": "={{ $json.modulo }}", "rightValue": "PROMOCION_CACIQUE", "operator": { "type": "string", "operation": "equals" } }], "combinator": "and" }, "renameOutput": true, "outputKey": "PROMOCION_CACIQUE" }
+            ,{ "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 }, "conditions": [{ "leftValue": "={{ $json.modulo }}", "rightValue": "LOGIN_SUCCESS", "operator": { "type": "string", "operation": "equals" } }], "combinator": "and" }, "renameOutput": true, "outputKey": "LOGIN_SUCCESS" }
+          ]
+        },
+        "options": { "fallbackOutput": "extra" }
+      },
+      "id": "route-by-module",
+      "name": "Enrutar por Módulo",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": { "jsCode": "return [{ json: { ok: true, modulo: 'RESERVA', accion: 'RESERVA_RECIBIDA', sede: $json.sede ?? null, referencia: $json.reservaId ?? $json.id ?? null, recibidoEn: $json.fechaProcesamiento } }];" },
+      "id": "handle-reserva",
+      "name": "Procesar Reserva",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2.2,
+      "position": [980, -120]
+    },
+    {
+      "parameters": { "jsCode": "return [{ json: { ok: true, modulo: 'PEDIDO_MENU', accion: $json.accion ?? 'PEDIDO_RECIBIDO', orderId: $json.orderId ?? null, mesa: $json.mesa ?? null, sede: $json.sede ?? null, estado: $json.estadoNuevo ?? null, notificarMesero: $json.accion === 'NOTIFICAR_MESERO_LISTO', recibidoEn: $json.fechaProcesamiento } }];" },
+      "id": "handle-pedido",
+      "name": "Procesar Pedido de Menú",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2.2,
+      "position": [980, 40]
+    },
+    {
+      "parameters": { "jsCode": "return [{ json: { ok: true, modulo: 'ALERTA_STOCK', accion: 'ALERTA_STOCK_RECIBIDA', insumo: $json.insumo ?? null, stockActual: $json.stockActual ?? null, limiteMinimo: $json.limiteMinimo ?? null, sede: $json.sede ?? null, recibidoEn: $json.fechaProcesamiento } }];" },
+      "id": "handle-stock",
+      "name": "Procesar Alerta de Stock",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2.2,
+      "position": [980, 200]
+    },
+    {
+      "parameters": { "jsCode": "return [{ json: { ok: true, modulo: 'REGISTRO_CLIENTE', accion: 'CLIENTE_REGISTRADO', email: $json.email ?? null, nombre: $json.nombre ?? null, recibidoEn: $json.fechaProcesamiento } }];" },
+      "id": "handle-cliente",
+      "name": "Procesar Registro de Cliente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2.2,
+      "position": [980, 360]
+    },
+    {
+      "parameters": { "jsCode": "return [{ json: { ok: true, modulo: 'EMAIL_ENVIO', accion: 'COMUNICADO_RECIBIDO', destinatarioTipo: $json.destinatarioTipo ?? null, especifico: $json.especifico ?? null, asunto: $json.asunto ?? null, mensaje: $json.mensaje ?? '', sede: $json.sede ?? null, recibidoEn: $json.fechaProcesamiento } }];" },
+      "id": "handle-email",
+      "name": "Preparar Correo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2.2,
+      "position": [980, 520]
+    },
+    {
+      "parameters": { "jsCode": "return [{ json: { ok: true, modulo: 'PROMOCION_CACIQUE', accion: $json.accion ?? 'PROMOCION_RECIBIDA', codigo: $json.codigo ?? null, sede: $json.sede ?? null, recibidoEn: $json.fechaProcesamiento } }];" },
+      "id": "handle-promotion",
+      "name": "Procesar Promoción",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2.2,
+      "position": [980, 680]
+    },
+    {
+      "parameters": { "jsCode": "return [{ json: { ok: false, modulo: $json.modulo || null, error: 'Módulo no reconocido', modulosSoportados: ['RESERVA', 'PEDIDO_MENU', 'ALERTA_STOCK', 'REGISTRO_CLIENTE', 'EMAIL_ENVIO', 'PROMOCION_CACIQUE'], recibidoEn: $json.fechaProcesamiento } }];" },
+      "id": "handle-unknown",
+      "name": "Módulo No Reconocido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2.2,
+      "position": [980, 840]
+    },
+    {
+      "parameters": { "jsCode": "return [{ json: { ok: true, modulo: 'LOGIN_SUCCESS', accion: 'LOGIN_REGISTRADO', usuario: $json.usuario ?? null, rol: $json.rol ?? null, recibidoEn: $json.fechaProcesamiento } }];" },
+      "id": "handle-login",
+      "name": "Procesar Login",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2.2,
+      "position": [980, 760]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.GOURMETSYNC_EVENT_API_URL || 'http://host.docker.internal:3001/eventos' }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": { "timeout": 10000 },
+        "onError": "continueRegularOutput"
+      },
+      "id": "persist-gourmetsync-event",
+      "name": "Persistir Evento en GourmetSync",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1240, 980]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $env.RESEND_API_KEY }}" }, { "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ from: $env.GOURMETSYNC_FROM_EMAIL || 'admin@elcacique.com', to: [$json.especifico || $env.GOURMETSYNC_DEFAULT_EMAIL], subject: $json.asunto, text: $json.mensaje }) }}",
+        "options": { "timeout": 15000 },
+        "onError": "continueRegularOutput"
+      },
+      "id": "send-gourmetsync-email",
+      "name": "Enviar Correo con Resend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1240, 1120]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.GOURMETSYNC_WA_NOTIFY_URL }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ orderId: $json.orderId, mesa: $json.mesa, sede: $json.sede, mensaje: 'Pedido listo para entregar' }) }}",
+        "options": { "timeout": 10000 },
+        "onError": "continueRegularOutput"
+      },
+      "id": "notify-gourmetsync-waiter",
+      "name": "Notificar Mesero Pedido Listo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1240, 1260]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ { ok: true, procesado: true, evento: $json } }}", "options": {} },
+      "id": "respond-gourmetsync-event",
+      "name": "Responder Evento Procesado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1500, 980]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} },
+      "id": "respond-reserva",
+      "name": "Responder Reserva",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, -120]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} },
+      "id": "respond-pedido",
+      "name": "Responder Pedido",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, 40]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} },
+      "id": "respond-stock",
+      "name": "Responder Stock",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, 200]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} },
+      "id": "respond-cliente",
+      "name": "Responder Cliente",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, 360]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} },
+      "id": "respond-email",
+      "name": "Responder Email",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, 520]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} },
+      "id": "respond-promotion",
+      "name": "Responder Promoción",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, 680]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} },
+      "id": "respond-unknown",
+      "name": "Responder Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1240, 840]
+    }
+  ],
+  "connections": {
+    "Webhook GourmetSync": { "main": [[{ "node": "Normalizar Payload", "type": "main", "index": 0 }]] },
+    "Normalizar Payload": { "main": [[{ "node": "Enrutar por Módulo", "type": "main", "index": 0 }]] },
+    "Enrutar por Módulo": { "main": [[{ "node": "Procesar Reserva", "type": "main", "index": 0 }], [{ "node": "Procesar Pedido de Menú", "type": "main", "index": 0 }], [{ "node": "Procesar Alerta de Stock", "type": "main", "index": 0 }], [{ "node": "Procesar Registro de Cliente", "type": "main", "index": 0 }], [{ "node": "Preparar Correo", "type": "main", "index": 0 }], [{ "node": "Procesar Promoción", "type": "main", "index": 0 }], [{ "node": "Procesar Login", "type": "main", "index": 0 }], [{ "node": "Módulo No Reconocido", "type": "main", "index": 0 }]] },
+    "Procesar Reserva": { "main": [[{ "node": "Persistir Evento en GourmetSync", "type": "main", "index": 0 }]] },
+    "Procesar Pedido de Menú": { "main": [[{ "node": "¿Pedido Listo para Mesero?", "type": "main", "index": 0 }]] },
+    "Procesar Alerta de Stock": { "main": [[{ "node": "Persistir Evento en GourmetSync", "type": "main", "index": 0 }]] },
+    "Procesar Registro de Cliente": { "main": [[{ "node": "Persistir Evento en GourmetSync", "type": "main", "index": 0 }]] },
+    "Preparar Correo": { "main": [[{ "node": "Enviar Correo con Resend", "type": "main", "index": 0 }]] },
+    "Procesar Promoción": { "main": [[{ "node": "Persistir Evento en GourmetSync", "type": "main", "index": 0 }]] },
+    "Módulo No Reconocido": { "main": [[{ "node": "Responder Error", "type": "main", "index": 0 }]] },
+    "Procesar Login": { "main": [[{ "node": "Persistir Evento en GourmetSync", "type": "main", "index": 0 }]] },
+    "¿Pedido Listo para Mesero?": { "main": [[{ "node": "Notificar Mesero Pedido Listo", "type": "main", "index": 0 }], [{ "node": "Persistir Evento en GourmetSync", "type": "main", "index": 0 }]] },
+    "Notificar Mesero Pedido Listo": { "main": [[{ "node": "Persistir Evento en GourmetSync", "type": "main", "index": 0 }]] },
+    "Enviar Correo con Resend": { "main": [[{ "node": "Persistir Evento en GourmetSync", "type": "main", "index": 0 }]] },
+    "Persistir Evento en GourmetSync": { "main": [[{ "node": "Responder Evento Procesado", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "gourmetsync-master-workflow-v1",
+  "meta": { "templateCredsSetupCompleted": true },
+  "tags": []
+}

@@ -1,6 +1,5 @@
 const API_URL = 'http://localhost:3001';
-const N8N_WEBHOOK_AUTH = 'http://localhost:5678/webhook/auth-events';
-const N8N_WEBHOOK_ORDERS = 'http://localhost:5678/webhook/order-events';
+const N8N_WEBHOOK_MASTER = 'http://localhost:5678/webhook/cacique-master-webhook';
 
 export const api = {
   loginUser: async (email, password) => {
@@ -19,10 +18,11 @@ export const api = {
     const user = data[0];
 
     // Disparar evento a n8n en segundo plano
-    fetch(N8N_WEBHOOK_AUTH, {
+    fetch(N8N_WEBHOOK_MASTER, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        modulo: 'LOGIN_SUCCESS',
         evento: 'LOGIN_SUCCESS',
         usuario: user.email,
         rol: user.rol,
@@ -35,10 +35,10 @@ export const api = {
 
   sendOrderToN8n: async (orderData) => {
     try {
-      const res = await fetch(N8N_WEBHOOK_ORDERS, {
+      const res = await fetch(N8N_WEBHOOK_MASTER, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
+        body: JSON.stringify({ modulo: 'PEDIDO_MENU', ...orderData })
       });
       return await res.json();
     } catch (error) {
