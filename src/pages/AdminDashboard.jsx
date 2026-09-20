@@ -6,10 +6,10 @@ import { formatSedeName } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { 
   ShieldCheck, DollarSign, ShoppingBag, Users, Clock, 
-  TrendingUp, RefreshCw, AlertTriangle, Plus, Trash2, Pencil, CheckCircle2,
+  TrendingUp, AlertTriangle, Plus, Trash2, Pencil, CheckCircle2,
   BarChart3, Package, CreditCard, Calendar, MapPin, LogOut, ExternalLink,
   Search, Sliders, Flame, AlertCircle, Star, Ticket, MessageSquare,
-  Award, ArrowUpRight
+  Award, ArrowUpRight, Download, Upload, Mail, FileText, Truck, Send, Paperclip
 } from 'lucide-react';
 import logoNegro from '../assets/img/LogoN.svg';
 
@@ -19,8 +19,11 @@ export default function AdminDashboard() {
 
   const [activeSection, setActiveSection] = useState('resumen');
   const [selectedSede, setSelectedSede] = useState('escazu');
+  const [timePeriod, setTimePeriod] = useState('dia');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -46,6 +49,10 @@ export default function AdminDashboard() {
     sede: 'escazu'
   });
 
+  const [supplierForm, setSupplierForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', insumos: '', sede: 'escazu' });
+  const [invoiceForm, setInvoiceForm] = useState({ proveedor: '', monto: '', codigo: '', fecha: '', categoria: 'Insumos', archivoNombre: '' });
+  const [emailData, setEmailData] = useState({ destinatarioTipo: 'todos_clientes', especifico: '', asunto: '', mensaje: '' });
+
   // BASE DE DATOS LOCAL DE INVENTARIOS CON LÍMITES
   const [inventory, setInventory] = useState([
     { id: 1, nombre: 'Carne de Cerdo para Chicharrón', stock: 120, minLimit: 30, maxLimit: 200, unidad: 'kg', sede: 'escazu' },
@@ -54,6 +61,17 @@ export default function AdminDashboard() {
     { id: 4, nombre: 'Plátano Verde para Patacones', stock: 15, minLimit: 40, maxLimit: 200, unidad: 'unid', sede: 'santa_ana' },
     { id: 5, nombre: 'Costilla de Cerdo Ahumada', stock: 12, minLimit: 20, maxLimit: 80, unidad: 'kg', sede: 'heredia' },
     { id: 6, nombre: 'Cas Criollo para Naturales', stock: 45, minLimit: 10, maxLimit: 60, unidad: 'kg', sede: 'cartago' }
+  ]);
+
+  const [suppliers, setSuppliers] = useState([
+    { id: 1, nombre: 'Distribuidora Carnes San Martín', contacto: 'Mario San Martín', telefono: '+506 8888-1122', email: 'ventas@sanmartin.cr', insumos: 'Carne de Cerdo, Costilla, Chicharrón', sede: 'escazu', estado: 'Activo' },
+    { id: 2, nombre: 'Vegetales y Verduras de Zarcero', contacto: 'Ana María Mora', telefono: '+506 8765-4321', email: 'pedidos@zarcero.cr', insumos: 'Yuca, Plátano Verde, Tomate, Limón', sede: 'santa_ana', estado: 'Activo' },
+    { id: 3, nombre: 'Lácteos & Quesos Coronado', contacto: 'Jorge Hernández', telefono: '+506 8333-4455', email: 'contacto@coronadocruz.cr', insumos: 'Queso Turrialba, Natilla Criolla', sede: 'cartago', estado: 'Activo' }
+  ]);
+
+  const [invoices, setInvoices] = useState([
+    { id: 'FAC-2026-089', proveedor: 'Distribuidora Carnes San Martín', monto: 350000, fecha: '2026-09-18', estado: 'Pagada', categoria: 'Insumos Culinarios', archivoNombre: 'Factura_Carnes_089.pdf' },
+    { id: 'FAC-2026-090', proveedor: 'Vegetales y Verduras de Zarcero', monto: 125000, fecha: '2026-09-17', estado: 'Pendiente', categoria: 'Verduras', archivoNombre: 'Factura_Zarcero_090.xml' }
   ]);
 
   const topSellingFoods = [
@@ -81,18 +99,104 @@ export default function AdminDashboard() {
     { id: 3, cliente: 'Sofía Ramírez', sede: 'Cartago', rating: 5, comentario: 'La atención del equipo y la calidad de la paila fueron excelentes.' }
   ];
 
-  // DATOS MÉTRICOS POR SEDE
-  const sedeData = {
-    escazu: { ventas: 785400, comandas: 1890, clientes: 23847, personal: 12, coccion: '15 min', mesasLibres: 8, mesasTotal: 24, completados: 956, pendientes: 243, cancelados: 85 },
-    santa_ana: { ventas: 540200, comandas: 1320, clientes: 18200, personal: 8, coccion: '17 min', mesasLibres: 4, mesasTotal: 18, completados: 810, pendientes: 140, cancelados: 30 },
-    cartago: { ventas: 610900, comandas: 1450, clientes: 20400, personal: 10, coccion: '16 min', mesasLibres: 6, mesasTotal: 20, completados: 910, pendientes: 180, cancelados: 30 },
-    heredia: { ventas: 485250, comandas: 1284, clientes: 15900, personal: 9, coccion: '18 min', mesasLibres: 3, mesasTotal: 16, completados: 740, pendientes: 110, cancelados: 40 }
+  const metricsByPeriod = {
+    dia: {
+      escazu: { ventas: 785400, comandas: 189, clientes: 420, coccion: '15 min', completados: 165, pendientes: 18, cancelados: 6 },
+      santa_ana: { ventas: 540200, comandas: 132, clientes: 310, coccion: '17 min', completados: 115, pendientes: 12, cancelados: 5 },
+      cartago: { ventas: 610900, comandas: 145, clientes: 350, coccion: '16 min', completados: 130, pendientes: 11, cancelados: 4 },
+      heredia: { ventas: 485250, comandas: 118, clientes: 280, coccion: '18 min', completados: 102, pendientes: 12, cancelados: 4 }
+    },
+    semana: {
+      escazu: { ventas: 5497800, comandas: 1320, clientes: 2940, coccion: '14 min', completados: 1210, pendientes: 80, cancelados: 30 },
+      santa_ana: { ventas: 3781400, comandas: 924, clientes: 2170, coccion: '16 min', completados: 850, pendientes: 50, cancelados: 24 },
+      cartago: { ventas: 4276300, comandas: 1015, clientes: 2450, coccion: '15 min', completados: 940, pendientes: 55, cancelados: 20 },
+      heredia: { ventas: 3396750, comandas: 826, clientes: 1960, coccion: '17 min', completados: 760, pendientes: 46, cancelados: 20 }
+    },
+    mes: {
+      escazu: { ventas: 23562000, comandas: 5670, clientes: 12600, coccion: '15 min', completados: 5190, pendientes: 340, cancelados: 140 },
+      santa_ana: { ventas: 16206000, comandas: 3960, clientes: 9300, coccion: '16 min', completados: 3640, pendientes: 220, cancelados: 100 },
+      cartago: { ventas: 18327000, comandas: 4350, clientes: 10500, coccion: '15 min', completados: 4030, pendientes: 230, cancelados: 90 },
+      heredia: { ventas: 14557500, comandas: 3540, clientes: 8400, coccion: '17 min', completados: 3260, pendientes: 200, cancelados: 80 }
+    }
   };
 
-  const currentMetrics = sedeData[selectedSede];
+  const branchDetails = {
+    escazu: { personal: 12, mesasLibres: 8, mesasTotal: 24 },
+    santa_ana: { personal: 8, mesasLibres: 4, mesasTotal: 18 },
+    cartago: { personal: 10, mesasLibres: 6, mesasTotal: 20 },
+    heredia: { personal: 9, mesasLibres: 3, mesasTotal: 16 }
+  };
+  const currentMetrics = { ...metricsByPeriod[timePeriod][selectedSede], ...branchDetails[selectedSede] };
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
+  };
+
+  const exportReport = (format) => {
+    const report = {
+      restaurante: 'Chicharronera El Cacique',
+      sede: formatSedeName(selectedSede),
+      periodo: timePeriod,
+      fechaGeneracion: new Date().toISOString(),
+      metricas: currentMetrics,
+      inventarioCritico: inventory.filter(item => item.sede === selectedSede && item.stock <= item.minLimit)
+    };
+    const csv = `Métrica,Valor\nVentas,${currentMetrics.ventas}\nComandas,${currentMetrics.comandas}\nClientes,${currentMetrics.clientes}\nTiempo cocción,${currentMetrics.coccion}`;
+    const blob = new Blob([format === 'csv' ? csv : JSON.stringify(report, null, 2)], { type: format === 'csv' ? 'text/csv' : 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Reporte_ElCacique_${selectedSede}_${timePeriod}.${format}`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast(`Reporte ${format.toUpperCase()} descargado correctamente`, 'success');
+  };
+
+  const handleSaveSupplier = (event) => {
+    event.preventDefault();
+    if (!supplierForm.nombre || !supplierForm.contacto || !supplierForm.email) {
+      showToast('Complete nombre, contacto y correo del proveedor', 'error');
+      return;
+    }
+    setSuppliers(previous => [...previous, { ...supplierForm, id: Date.now(), estado: 'Activo' }]);
+    setSupplierForm({ nombre: '', contacto: '', telefono: '', email: '', insumos: '', sede: selectedSede });
+    setIsSupplierModalOpen(false);
+    showToast('Proveedor registrado correctamente', 'success');
+  };
+
+  const handleSaveInvoice = (event) => {
+    event.preventDefault();
+    if (!invoiceForm.proveedor || !invoiceForm.monto || !invoiceForm.codigo) {
+      showToast('Complete proveedor, monto y código de factura', 'error');
+      return;
+    }
+    setInvoices(previous => [{ ...invoiceForm, id: invoiceForm.codigo, monto: Number(invoiceForm.monto), fecha: invoiceForm.fecha || new Date().toISOString().slice(0, 10), estado: 'Pendiente', archivoNombre: invoiceForm.archivoNombre || `Factura_${invoiceForm.codigo}.pdf` }, ...previous]);
+    setInvoiceForm({ proveedor: '', monto: '', codigo: '', fecha: '', categoria: 'Insumos', archivoNombre: '' });
+    setIsInvoiceModalOpen(false);
+    showToast('Factura registrada correctamente', 'success');
+  };
+
+  const handleDownloadInvoice = (invoice) => {
+    const content = `CHICHARRONERA EL CACIQUE\nFactura: ${invoice.id}\nProveedor: ${invoice.proveedor}\nMonto: ₡${invoice.monto.toLocaleString()}\nFecha: ${invoice.fecha}\nEstado: ${invoice.estado}`;
+    const url = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = invoice.archivoNombre;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast(`Comprobante ${invoice.archivoNombre} descargado`, 'info');
+  };
+
+  const handleSendEmail = async (event) => {
+    event.preventDefault();
+    if (!emailData.asunto || !emailData.mensaje) {
+      showToast('Escriba asunto y mensaje para enviar el comunicado', 'error');
+      return;
+    }
+    showToast('Enviando comunicado mediante n8n...', 'info');
+    await triggerN8nAutomation('EMAIL_ENVIO', { ...emailData, sede: selectedSede, remitente: 'admin@elcacique.com' });
+    setEmailData({ destinatarioTipo: 'todos_clientes', especifico: '', asunto: '', mensaje: '' });
+    showToast('Comunicado enviado correctamente', 'success');
   };
 
   // MANEJO DE MODAL DE INVENTARIO
@@ -218,6 +322,9 @@ export default function AdminDashboard() {
             {[
                 { id: 'resumen', label: 'Resumen & Analíticas', icon: BarChart3 },
                 { id: 'inventario', label: 'Gestión de Inventario', icon: Package, badge: criticalItemsCount > 0 ? criticalItemsCount : null },
+                { id: 'proveedores', label: 'Proveedores', icon: Truck },
+                { id: 'facturas', label: 'Facturas & Finanzas', icon: FileText },
+                { id: 'correos', label: 'Centro de Correos', icon: Mail },
                 { id: 'cupones', label: 'Cupones & Promos', icon: Ticket },
                 { id: 'resenas', label: 'Reseñas & Clientes', icon: Star },
                 { id: 'arqueo', label: 'Arqueo de Caja & POS', icon: CreditCard },
@@ -288,7 +395,14 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div className="flex bg-[#0A090C] p-1 rounded-2xl border border-[#659B5E]/40 text-xs font-extrabold">
+              {['dia', 'semana', 'mes'].map(period => (
+                <button key={period} onClick={() => setTimePeriod(period)} className={`px-3 py-1.5 rounded-xl cursor-pointer transition-all ${timePeriod === period ? 'bg-[#D16014] text-white' : 'text-gray-400 hover:text-white'}`}>
+                  {period === 'dia' ? 'Día' : period === 'semana' ? 'Semana' : 'Mes'}
+                </button>
+              ))}
+            </div>
             <div className="relative flex-grow md:flex-grow-0">
               <MapPin className="w-4 h-4 absolute left-3.5 top-3.5 text-[#659B5E]" />
               <select
@@ -307,11 +421,18 @@ export default function AdminDashboard() {
             </div>
 
             <button
-              onClick={() => showToast('Métricas e inventario sincronizados', 'success')}
-              className="p-3 bg-[#0A090C] border border-[#F8FFE5]/15 hover:border-[#D16014] rounded-2xl text-gray-300 hover:text-white transition-colors cursor-pointer"
-              title="Sincronizar Datos"
+              onClick={() => exportReport('csv')}
+              className="px-3 py-2.5 bg-[#659B5E] hover:bg-[#52824c] rounded-2xl text-white text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+              title="Exportar CSV"
             >
-              <RefreshCw className="w-4 h-4" />
+              <Download className="w-4 h-4" /> CSV
+            </button>
+            <button
+              onClick={() => exportReport('json')}
+              className="px-3 py-2.5 bg-[#0A090C] border border-[#F8FFE5]/15 hover:border-[#D16014] rounded-2xl text-gray-300 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+              title="Exportar JSON"
+            >
+              <Download className="w-4 h-4" /> JSON
             </button>
           </div>
         </div>
@@ -341,7 +462,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
-                  <span>Ventas Acumuladas</span>
+                  <span>Ventas ({timePeriod})</span>
                   <DollarSign className="w-4 h-4 text-[#659B5E]" />
                 </div>
                 <div className="text-3xl font-black text-[#D16014]">₡{currentMetrics.ventas.toLocaleString()}</div>
@@ -352,7 +473,7 @@ export default function AdminDashboard() {
 
               <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
-                  <span>Órdenes de Hoy</span>
+                  <span>Comandas ({timePeriod})</span>
                   <ShoppingBag className="w-4 h-4 text-[#D16014]" />
                 </div>
                 <div className="text-3xl font-black text-[#F8FFE5]">{currentMetrics.comandas.toLocaleString()}</div>
@@ -432,6 +553,44 @@ export default function AdminDashboard() {
                 {liveActivities.map(activity => <div key={activity.id} className="p-3 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10"><p className="text-xs font-bold text-gray-200">{activity.texto}</p><span className="text-[10px] text-[#659B5E] font-mono">{activity.hora}</span></div>)}
               </div>
             </div>
+          </div>
+        )}
+
+        {activeSection === 'proveedores' && (
+          <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 text-xs shadow-2xl">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#F8FFE5]/10 pb-4">
+              <div><h3 className="font-extrabold text-lg">Directorio de Proveedores</h3><p className="text-gray-400 text-[11px]">Contactos e insumos para las sedes de El Cacique.</p></div>
+              <button onClick={() => setIsSupplierModalOpen(true)} className="px-5 py-3 rounded-2xl bg-[#D16014] text-white font-extrabold flex items-center gap-2 cursor-pointer"><Plus className="w-4 h-4" /> Registrar Proveedor</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {suppliers.filter(supplier => supplier.sede === selectedSede || suppliers.length < 4).map(supplier => (
+                <div key={supplier.id} className="p-5 bg-[#0A090C] border border-[#659B5E]/30 rounded-2xl space-y-3">
+                  <div className="flex justify-between gap-3"><div><span className="text-[10px] text-[#659B5E] font-black uppercase">Proveedor verificado</span><h4 className="font-extrabold text-base text-white">{supplier.nombre}</h4></div><span className="px-2 py-1 rounded-lg bg-[#659B5E]/20 text-[#659B5E] text-[10px] font-black">{supplier.estado}</span></div>
+                  <p className="text-gray-300">Contacto: <strong>{supplier.contacto}</strong></p><p className="text-gray-300">Tel: {supplier.telefono} · {supplier.email}</p><p className="text-amber-300">Insumos: {supplier.insumos}</p>
+                  <button onClick={() => { setEmailData({ destinatarioTipo: 'especifico', especifico: supplier.email, asunto: 'Solicitud de reabastecimiento', mensaje: '' }); setActiveSection('correos'); }} className="w-full py-2 rounded-xl border border-[#F8FFE5]/15 text-gray-300 hover:border-[#D16014] flex items-center justify-center gap-2 cursor-pointer"><Mail className="w-4 h-4" /> Contactar proveedor</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'facturas' && (
+          <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 text-xs shadow-2xl">
+            <div className="flex justify-between items-center border-b border-[#F8FFE5]/10 pb-4"><div><h3 className="font-extrabold text-lg">Gestión de Facturas</h3><p className="text-gray-400 text-[11px]">Registra comprobantes y descarga simulaciones de archivos.</p></div><button onClick={() => setIsInvoiceModalOpen(true)} className="px-5 py-3 rounded-2xl bg-[#D16014] text-white font-extrabold flex items-center gap-2 cursor-pointer"><Upload className="w-4 h-4" /> Subir Factura</button></div>
+            <div className="overflow-x-auto rounded-2xl border border-[#F8FFE5]/10"><table className="w-full text-left"><thead><tr className="bg-[#0A090C] uppercase text-[10px]"><th className="p-4">Código</th><th className="p-4">Proveedor</th><th className="p-4">Monto</th><th className="p-4">Fecha</th><th className="p-4">Estado</th><th className="p-4 text-right">Archivo</th></tr></thead><tbody className="divide-y divide-[#F8FFE5]/10">{invoices.map(invoice => <tr key={invoice.id}><td className="p-4 text-[#D16014] font-bold">{invoice.id}</td><td className="p-4">{invoice.proveedor}</td><td className="p-4 text-[#659B5E] font-bold">₡{invoice.monto.toLocaleString()}</td><td className="p-4 text-gray-400">{invoice.fecha}</td><td className="p-4"><span className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-400 text-[10px] font-bold">{invoice.estado}</span></td><td className="p-4 text-right"><button onClick={() => handleDownloadInvoice(invoice)} className="px-3 py-1.5 border border-[#F8FFE5]/15 rounded-xl flex items-center gap-1 ml-auto cursor-pointer"><Download className="w-3.5 h-3.5" /> Descargar</button></td></tr>)}</tbody></table></div>
+          </div>
+        )}
+
+        {activeSection === 'correos' && (
+          <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 sm:p-8 space-y-6 text-xs shadow-2xl">
+            <div className="border-b border-[#F8FFE5]/10 pb-4"><h3 className="font-extrabold text-lg flex items-center gap-2"><Mail className="w-5 h-5 text-[#D16014]" /> Centro de Correos y Comunicados</h3><p className="text-gray-400 text-[11px]">Envía comunicaciones a clientes, proveedores o personal mediante n8n.</p></div>
+            <form onSubmit={handleSendEmail} className="space-y-4 max-w-2xl">
+              <select value={emailData.destinatarioTipo} onChange={event => setEmailData({ ...emailData, destinatarioTipo: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5"><option value="todos_clientes">Todos los clientes</option><option value="todos_proveedores">Todos los proveedores</option><option value="personal_meseros">Personal y cocina</option><option value="especifico">Correo específico</option></select>
+              {emailData.destinatarioTipo === 'especifico' && <input type="email" placeholder="destinatario@correo.cr" value={emailData.especifico} onChange={event => setEmailData({ ...emailData, especifico: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />}
+              <input type="text" placeholder="Asunto del comunicado" value={emailData.asunto} onChange={event => setEmailData({ ...emailData, asunto: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
+              <textarea rows="6" placeholder="Escriba el mensaje..." value={emailData.mensaje} onChange={event => setEmailData({ ...emailData, mensaje: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-3" />
+              <button type="submit" className="py-3 px-6 bg-[#D16014] text-white font-extrabold rounded-xl flex items-center gap-2 cursor-pointer"><Send className="w-4 h-4" /> Despachar con n8n</button>
+            </form>
           </div>
         )}
 
@@ -774,6 +933,37 @@ export default function AdminDashboard() {
                   Guardar Insumo
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isSupplierModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-md bg-[#001812] border border-[#659B5E]/50 rounded-3xl p-6 space-y-5 shadow-2xl text-xs">
+            <h3 className="text-xl font-black">Registrar Nuevo Proveedor</h3>
+            <form onSubmit={handleSaveSupplier} className="space-y-3">
+              <input type="text" placeholder="Nombre de la empresa" value={supplierForm.nombre} onChange={event => setSupplierForm({ ...supplierForm, nombre: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-2.5" />
+              <input type="text" placeholder="Contacto principal" value={supplierForm.contacto} onChange={event => setSupplierForm({ ...supplierForm, contacto: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-2.5" />
+              <div className="grid grid-cols-2 gap-2"><input type="tel" placeholder="Teléfono" value={supplierForm.telefono} onChange={event => setSupplierForm({ ...supplierForm, telefono: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-2.5" /><input type="email" placeholder="Correo" value={supplierForm.email} onChange={event => setSupplierForm({ ...supplierForm, email: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-2.5" /></div>
+              <input type="text" placeholder="Insumos suministrados" value={supplierForm.insumos} onChange={event => setSupplierForm({ ...supplierForm, insumos: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-2.5" />
+              <select value={supplierForm.sede} onChange={event => setSupplierForm({ ...supplierForm, sede: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-2.5"><option value="escazu">Escazú</option><option value="santa_ana">Santa Ana</option><option value="cartago">Cartago</option><option value="heredia">Heredia</option></select>
+              <div className="flex gap-3 pt-2"><button type="button" onClick={() => setIsSupplierModalOpen(false)} className="flex-1 py-2.5 bg-[#0A090C] rounded-xl text-gray-400 font-bold cursor-pointer">Cancelar</button><button type="submit" className="flex-1 py-2.5 bg-[#D16014] rounded-xl text-white font-extrabold cursor-pointer">Guardar Proveedor</button></div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isInvoiceModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-md bg-[#001812] border border-[#659B5E]/50 rounded-3xl p-6 space-y-5 shadow-2xl text-xs">
+            <h3 className="text-xl font-black">Subir y Registrar Factura</h3>
+            <form onSubmit={handleSaveInvoice} className="space-y-3">
+              <input type="text" placeholder="Código / número de factura" value={invoiceForm.codigo} onChange={event => setInvoiceForm({ ...invoiceForm, codigo: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-2.5" />
+              <input type="text" placeholder="Proveedor" value={invoiceForm.proveedor} onChange={event => setInvoiceForm({ ...invoiceForm, proveedor: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-2.5" />
+              <div className="grid grid-cols-2 gap-2"><input type="number" placeholder="Monto total" value={invoiceForm.monto} onChange={event => setInvoiceForm({ ...invoiceForm, monto: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-2.5" /><input type="date" value={invoiceForm.fecha} onChange={event => setInvoiceForm({ ...invoiceForm, fecha: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-2.5" /></div>
+              <label className="flex items-center gap-2 border border-dashed border-[#659B5E]/40 rounded-xl p-3 text-gray-400 cursor-pointer"><Paperclip className="w-4 h-4 text-[#659B5E]" />{invoiceForm.archivoNombre || 'Adjuntar PDF/XML (simulado)'}<input type="file" accept=".pdf,.xml" className="hidden" onChange={event => setInvoiceForm({ ...invoiceForm, archivoNombre: event.target.files[0]?.name || '' })} /></label>
+              <div className="flex gap-3 pt-2"><button type="button" onClick={() => setIsInvoiceModalOpen(false)} className="flex-1 py-2.5 bg-[#0A090C] rounded-xl text-gray-400 font-bold cursor-pointer">Cancelar</button><button type="submit" className="flex-1 py-2.5 bg-[#D16014] rounded-xl text-white font-extrabold cursor-pointer">Registrar Factura</button></div>
             </form>
           </div>
         </div>
