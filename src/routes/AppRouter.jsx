@@ -13,7 +13,7 @@ import Footer from '../components/Footer';
 import Toast from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 
-export function AppRouter() {
+export default function AppRouter() {
   const { inactivityToast, setInactivityToast } = useAuth();
   const location = useLocation();
 
@@ -48,7 +48,7 @@ export function AppRouter() {
             } 
           />
 
-          {/* RUTA PANEL DE COCINA KDS */}
+          {/* RUTA COCINA KDS */}
           <Route 
             path="/kitchen" 
             element={
