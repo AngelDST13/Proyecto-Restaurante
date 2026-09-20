@@ -1,6 +1,7 @@
 import CryptoJS from 'crypto-js';
 
 const JWT_SECRET = 'CACIQUE_SECRET_2026_CR_PROTECTED_SESSION';
+const ENCRYPTION_KEY = 'GourmetSyncAESKey2026!#SecureStorage';
 const SESSION_SECRET = 'GourmetSyncSecretKey2026!';
 
 export function sanitizeInput(input = '') {
@@ -59,6 +60,38 @@ export function formatSedeName(sedeKey = 'escazu') {
   return names[cleanSedeKey] || 'Escazú';
 }
 
+export function sanitizeUserForSession(userObj) {
+  if (!userObj) return null;
+  const safeUser = { ...userObj };
+  delete safeUser.password;
+  delete safeUser.contrasena;
+  delete safeUser.secret;
+  return {
+    ...safeUser,
+    email: sanitizeInput(safeUser.email),
+    sede: sanitizeInput(safeUser.sede || 'escazu')
+  };
+}
+
+export function encryptData(data) {
+  try {
+    return CryptoJS.AES.encrypt(JSON.stringify(data), ENCRYPTION_KEY).toString();
+  } catch {
+    return null;
+  }
+}
+
+export function decryptData(cipherText) {
+  try {
+    if (!cipherText) return null;
+    const bytes = CryptoJS.AES.decrypt(cipherText, ENCRYPTION_KEY);
+    const decryptedText = bytes.toString(CryptoJS.enc.Utf8);
+    return decryptedText ? JSON.parse(decryptedText) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function generateSessionSignature(userObj) {
   if (!userObj) return '';
   const payload = `${userObj.email}|${userObj.rol}|${userObj.sede}|${SESSION_SECRET}`;
@@ -111,17 +144,17 @@ export function authenticateCredentials(email, password) {
 
   if (account) {
     if (account.password === cleanPassword) {
-      return { success: true, user: { email: cleanEmail, ...account } };
+      return { success: true, user: sanitizeUserForSession({ email: cleanEmail, ...account }) };
     }
     return { success: false, message: 'Contraseña incorrecta para el usuario ingresado.' };
   }
 
-  const storedClients = JSON.parse(localStorage.getItem('cacique_registered_clients') || '{}');
+  const storedClients = decryptData(localStorage.getItem('cacique_registered_clients')) || {};
   const client = storedClients[cleanEmail];
 
   if (client) {
     if (client.password === cleanPassword) {
-      return { success: true, user: { email: cleanEmail, ...client } };
+      return { success: true, user: sanitizeUserForSession({ email: cleanEmail, ...client }) };
     }
     return { success: false, message: 'Contraseña incorrecta.' };
   }
@@ -131,7 +164,7 @@ export function authenticateCredentials(email, password) {
 
 export function registerNewClient(email, password, nombre) {
   const cleanEmail = sanitizeInput(email);
-  const storedClients = JSON.parse(localStorage.getItem('cacique_registered_clients') || '{}');
+  const storedClients = decryptData(localStorage.getItem('cacique_registered_clients')) || {};
 
   if (storedClients[cleanEmail] || VALID_ACCOUNTS[cleanEmail]) {
     return { success: false, message: 'El correo electrónico ya está registrado.' };
@@ -151,7 +184,7 @@ export function registerNewClient(email, password, nombre) {
   };
 
   storedClients[cleanEmail] = newClient;
-  localStorage.setItem('cacique_registered_clients', JSON.stringify(storedClients));
+  localStorage.setItem('cacique_registered_clients', encryptData(storedClients));
 
-  return { success: true, user: { email: cleanEmail, ...newClient } };
+  return { success: true, user: sanitizeUserForSession({ email: cleanEmail, ...newClient }) };
 }
