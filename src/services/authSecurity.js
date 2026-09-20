@@ -1,4 +1,14 @@
+import CryptoJS from 'crypto-js';
+
 const JWT_SECRET = 'CACIQUE_SECRET_2026_CR_PROTECTED_SESSION';
+const SESSION_SECRET = 'GourmetSyncSecretKey2026!';
+
+export function sanitizeInput(input = '') {
+  return String(input)
+    .trim()
+    .toLowerCase()
+    .replace(/\.+$/, '');
+}
 
 export const VALID_ACCOUNTS = {
   'admin@elcacique.com': {
@@ -38,15 +48,26 @@ export const VALID_ACCOUNTS = {
   }
 };
 
-export function formatSedeName(sedeKey) {
-  if (!sedeKey) return 'Escazú';
+export function formatSedeName(sedeKey = 'escazu') {
+  const cleanSedeKey = sanitizeInput(sedeKey);
   const names = {
     escazu: 'Escazú',
     santa_ana: 'Santa Ana',
     cartago: 'Cartago',
     heredia: 'Heredia'
   };
-  return names[sedeKey.toLowerCase()] || sedeKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  return names[cleanSedeKey] || 'Escazú';
+}
+
+export function generateSessionSignature(userObj) {
+  if (!userObj) return '';
+  const payload = `${userObj.email}|${userObj.rol}|${userObj.sede}|${SESSION_SECRET}`;
+  return CryptoJS.HmacSHA256(payload, SESSION_SECRET).toString();
+}
+
+export function verifySessionIntegrity(userObj, signature) {
+  if (!userObj || !signature) return false;
+  return generateSessionSignature(userObj) === signature;
 }
 
 export function generateJWT(userData) {
@@ -84,7 +105,7 @@ export function verifyJWT(token) {
 }
 
 export function authenticateCredentials(email, password) {
-  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanEmail = sanitizeInput(email);
   const cleanPassword = (password || '').trim();
   const account = VALID_ACCOUNTS[cleanEmail];
 
@@ -109,7 +130,7 @@ export function authenticateCredentials(email, password) {
 }
 
 export function registerNewClient(email, password, nombre) {
-  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanEmail = sanitizeInput(email);
   const storedClients = JSON.parse(localStorage.getItem('cacique_registered_clients') || '{}');
 
   if (storedClients[cleanEmail] || VALID_ACCOUNTS[cleanEmail]) {

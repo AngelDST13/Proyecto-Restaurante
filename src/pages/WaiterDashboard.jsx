@@ -22,13 +22,6 @@ export default function WaiterDashboard() {
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [readyNotifications, setReadyNotifications] = useState([]);
 
-  const sedesNombre = {
-    escazu: 'Sede Escazú • Centro Culinario',
-    santa_ana: 'Sede Santa Ana • Plaza Real',
-    cartago: 'Sede Cartago • Paso Ancho',
-    heredia: 'Sede Heredia • Vía Central'
-  };
-
   // Mesas por Piso
   const [tables, setTables] = useState({
     piso1: [
@@ -189,9 +182,9 @@ export default function WaiterDashboard() {
       )}
 
       {readyNotifications.length > 0 && (
-        <div className="fixed top-24 left-1/2 z-40 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 space-y-3">
+        <div className="fixed top-20 right-6 z-40 w-[calc(100%-3rem)] max-w-md space-y-3 pointer-events-auto">
           {readyNotifications.map(notification => (
-            <div key={notification.id} className="rounded-2xl border-2 border-[#D16014] bg-[#D16014]/20 p-4 text-[#F8FFE5] shadow-2xl">
+            <div key={notification.id} className="rounded-2xl border-2 border-[#D16014] bg-[#001812]/95 p-4 text-[#F8FFE5] shadow-2xl backdrop-blur-md">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="rounded-xl bg-[#D16014] p-2.5 text-white">
@@ -232,11 +225,11 @@ export default function WaiterDashboard() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] bg-[#659B5E]/20 text-[#659B5E] font-extrabold uppercase px-2 py-0.5 rounded-full border border-[#659B5E]/40">
-                  Terminal POS Salón
+                  Terminal POS Salón • {user?.nombre || 'Aiden Ruiz'}
                 </span>
                 <span className="text-xs text-gray-400 font-semibold">• Mesero de Turno</span>
               </div>
-              <h1 className="text-xl font-black text-[#F8FFE5] mt-0.5">{user?.email?.split('@')[0] || 'mesero.escazu'}</h1>
+              <h1 className="text-xl font-black text-[#F8FFE5] mt-0.5">{user?.nombre || 'Aiden Ruiz'}</h1>
             </div>
           </div>
 
@@ -244,7 +237,7 @@ export default function WaiterDashboard() {
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
             <div className="flex items-center gap-2 bg-[#001812] px-3.5 py-2 rounded-xl border border-[#F8FFE5]/15 text-xs font-bold text-[#659B5E]">
               <ShieldCheck className="w-4 h-4 text-[#D16014]" />
-              <span>{sedesNombre[user?.sede || 'escazu']}</span>
+              <span>Sede {formatSedeName(user?.sede || 'cartago')}</span>
             </div>
 
             <div className="flex items-center gap-2 bg-[#0A090C] px-3.5 py-2 rounded-xl border border-[#F8FFE5]/10 text-xs font-bold text-amber-400">

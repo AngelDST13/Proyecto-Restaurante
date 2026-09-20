@@ -216,7 +216,7 @@ export default function KitchenDashboard() {
 
       <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* ENCABEZADO KDS */}
+        {/* ENCABEZADO KDS VISIBLE PARA PERSONAL AUTORIZADO */}
         <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-2xl">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-[#D16014]/20 border border-[#D16014]/50 flex items-center justify-center text-[#D16014] shrink-0">
@@ -225,15 +225,18 @@ export default function KitchenDashboard() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black text-[#D16014] uppercase tracking-widest bg-[#D16014]/20 px-2.5 py-0.5 rounded-full border border-[#D16014]/40">
-                  Pantalla KDS
+                  Cocina Operativa
                 </span>
                 <span className="text-xs text-[#659B5E] font-bold flex items-center gap-1">
                   <Flame className="w-3.5 h-3.5" /> Control de Paila &amp; Fuego
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-[#F8FFE5]">
-                Cocina • Sede {formatSedeName(filterSede)}
+                Panel de Cocina • Sede {formatSedeName(filterSede)}
               </h1>
+              <p className="text-xs text-gray-400 mt-1">
+                Operador: <span className="font-bold text-[#F8FFE5]">{user?.nombre || 'Personal autorizado'}</span>
+              </p>
             </div>
           </div>
 

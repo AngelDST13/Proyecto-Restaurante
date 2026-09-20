@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Landing from '../pages/Landing';
 import Login from '../pages/Login';
 import Menu from '../pages/Menu';
@@ -7,11 +7,34 @@ import WaiterDashboard from '../pages/WaiterDashboard';
 import KitchenDashboard from '../pages/KitchenDashboard';
 import Unauthorized from '../pages/Unauthorized';
 
-import ProtectedRoute from './ProtectedRoute';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Toast from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
+
+function ProtectedAdminRoute({ children }) {
+  const { user } = useAuth();
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.rol !== 'administrador') return <Navigate to="/unauthorized" replace />;
+  return children;
+}
+
+function ProtectedKitchenRoute({ children }) {
+  const { user } = useAuth();
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.rol !== 'cocina' && user.rol !== 'administrador') return <Navigate to="/unauthorized" replace />;
+  return children;
+}
+
+function ProtectedWaiterRoute({ children }) {
+  const { user } = useAuth();
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.rol !== 'mesero' && user.rol !== 'administrador') return <Navigate to="/unauthorized" replace />;
+  return children;
+}
 
 export function AppRouter() {
   const { inactivityToast, setInactivityToast } = useAuth();
@@ -42,9 +65,9 @@ export function AppRouter() {
           <Route 
             path="/waiter" 
             element={
-              <ProtectedRoute allowedRoles={['mesero', 'administrador']}>
+              <ProtectedWaiterRoute>
                 <WaiterDashboard />
-              </ProtectedRoute>
+              </ProtectedWaiterRoute>
             } 
           />
 
@@ -52,9 +75,9 @@ export function AppRouter() {
           <Route 
             path="/kitchen" 
             element={
-              <ProtectedRoute allowedRoles={['mesero', 'administrador']}>
+              <ProtectedKitchenRoute>
                 <KitchenDashboard />
-              </ProtectedRoute>
+              </ProtectedKitchenRoute>
             } 
           />
 
@@ -62,9 +85,9 @@ export function AppRouter() {
           <Route 
             path="/admin" 
             element={
-              <ProtectedRoute allowedRoles={['administrador']}>
+              <ProtectedAdminRoute>
                 <AdminDashboard />
-              </ProtectedRoute>
+              </ProtectedAdminRoute>
             } 
           />
         </Routes>
