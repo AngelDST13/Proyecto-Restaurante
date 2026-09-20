@@ -28,7 +28,7 @@ export default function Login() {
 
     if (isRegister) {
       if (!nombre.trim() || nombre.trim().length < 3) {
-        showToast('El nombre debe contener al menos 3 caracteres válidos.', 'error');
+        showToast('El nombre debe contener al menos 3 letras.', 'error');
         return false;
       }
       if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre.trim())) {
@@ -38,12 +38,12 @@ export default function Login() {
     }
 
     if (!emailRegex.test(email.trim())) {
-      showToast('Ingrese una dirección de correo electrónico válida.', 'error');
+      showToast('Ingrese una dirección de correo válida.', 'error');
       return false;
     }
 
     if (password.length < 6) {
-      showToast('La contraseña debe tener un mínimo de 6 caracteres.', 'error');
+      showToast('La contraseña debe tener mínimo 6 caracteres.', 'error');
       return false;
     }
 
@@ -88,7 +88,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen pt-28 pb-16 px-4 flex items-center justify-center bg-[#0A090C] relative overflow-hidden font-sans">
+    <div className="min-h-screen pt-24 pb-16 px-4 flex items-center justify-center bg-[#0A090C] relative overflow-hidden font-sans">
       
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
@@ -97,11 +97,17 @@ export default function Login() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-[#001812]/95 backdrop-blur-2xl border border-[#659B5E]/30 rounded-3xl p-8 space-y-6 shadow-2xl relative z-10"
+        className="w-full max-w-md bg-[#001812]/95 backdrop-blur-2xl border border-[#659B5E]/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative z-10"
       >
         <div className="text-center space-y-3">
-          <div className="w-20 h-20 rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 shadow-lg mx-auto flex items-center justify-center p-3">
-            <img src={logoNegro} alt="Logo El Cacique" className="w-full h-full object-contain" />
+          
+          {/* CONTENEDOR CON TAMAÑO FIJO Y CONTROLADO DEL LOGO */}
+          <div className="w-20 h-20 max-w-[80px] max-h-[80px] rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 shadow-lg mx-auto flex items-center justify-center p-2.5 overflow-hidden shrink-0">
+            <img 
+              src={logoNegro} 
+              alt="Logo El Cacique" 
+              className="max-w-[60px] max-h-[60px] w-auto h-auto object-contain block" 
+            />
           </div>
 
           <div>
@@ -118,14 +124,14 @@ export default function Login() {
             <button
               type="button"
               onClick={() => { setIsRegister(false); setEmail(''); setPassword(''); }}
-              className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${!isRegister ? 'bg-[#D16014] text-white' : 'text-gray-400 hover:text-white'}`}
+              className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${!isRegister ? 'bg-[#D16014] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
             >
               Iniciar Sesión
             </button>
             <button
               type="button"
               onClick={() => { setIsRegister(true); setEmail(''); setPassword(''); }}
-              className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${isRegister ? 'bg-[#D16014] text-white' : 'text-gray-400 hover:text-white'}`}
+              className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${isRegister ? 'bg-[#D16014] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
             >
               Crear Cuenta (+5% OFF)
             </button>
@@ -201,13 +207,11 @@ export default function Login() {
           </div>
 
           {!isRegister && (
-            <div className="p-3.5 bg-[#0A090C] border border-[#F8FFE5]/10 rounded-xl space-y-1.5 text-[10px]">
-              <span className="text-gray-400 font-extrabold block uppercase tracking-wider">Credenciales Oficiales de Prueba:</span>
+            <div className="p-3 bg-[#0A090C] border border-[#F8FFE5]/10 rounded-xl space-y-1 text-[10px]">
+              <span className="text-gray-400 font-extrabold block uppercase tracking-wider">Credenciales Oficiales:</span>
               <p className="text-amber-400 font-mono"><strong>Admin:</strong> admin@elcacique.com | AdminCacique2026!</p>
-              <p className="text-[#659B5E] font-mono"><strong>Escazú:</strong> mesero.escazu@elcacique.com | MeseroEscazu2026!</p>
-              <p className="text-cyan-400 font-mono"><strong>Santa Ana:</strong> mesero.santaana@elcacique.com | MeseroSantaAna2026!</p>
-              <p className="text-amber-300 font-mono"><strong>Cartago:</strong> mesero.cartago@elcacique.com | MeseroCartago2026!</p>
-              <p className="text-emerald-300 font-mono"><strong>Heredia:</strong> mesero.heredia@elcacique.com | MeseroHeredia2026!</p>
+              <p className="text-[#659B5E] font-mono"><strong>Mesero Escazú:</strong> mesero.escazu@elcacique.com | MeseroEscazu2026!</p>
+              <p className="text-cyan-400 font-mono"><strong>Mesero Santa Ana:</strong> mesero.santaana@elcacique.com | MeseroSantaAna2026!</p>
             </div>
           )}
 
