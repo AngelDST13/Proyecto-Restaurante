@@ -13,7 +13,7 @@ import Footer from '../components/Footer';
 import Toast from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 
-export default function AppRouter() {
+export function AppRouter() {
   const { inactivityToast, setInactivityToast } = useAuth();
   const location = useLocation();
 
@@ -74,3 +74,5 @@ export default function AppRouter() {
     </div>
   );
 }
+
+export default AppRouter;

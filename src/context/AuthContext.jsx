@@ -13,11 +13,11 @@ export function AuthProvider({ children }) {
 
   const [inactivityToast, setInactivityToast] = useState(false);
   const timerRef = useRef(null);
-  const warnedRef = useRef(false);
 
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem('cacique_jwt_token');
+    localStorage.removeItem('cacique_registered_clients');
     if (timerRef.current) clearTimeout(timerRef.current);
   }, []);
 
@@ -29,14 +29,9 @@ export function AuthProvider({ children }) {
 
     const resetTimer = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      warnedRef.current = false;
-
       timerRef.current = setTimeout(() => {
-        if (!warnedRef.current) {
-          warnedRef.current = true;
-          setInactivityToast(true);
-          logout();
-        }
+        setInactivityToast(true);
+        logout();
       }, 180000);
     };
 
@@ -81,7 +76,7 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Kept here for backwards compatibility; move shared hooks to a separate module when refactoring imports.
+// This hook is intentionally colocated to preserve the existing public API.
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
