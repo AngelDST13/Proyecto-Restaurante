@@ -30,8 +30,12 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#001812]/95 backdrop-blur-md border-b border-[#659B5E]/30 text-[#F8FFE5]">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-12 h-12 rounded-2xl bg-[#0A090C] border border-[#D16014]/60 p-2 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform group-hover:border-[#D16014]">
-            <img src={logoBlanco} alt="El Cacique Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(209,96,20,0.5)]" />
+          <div className="w-12 h-12 rounded-2xl bg-[#001812] border-2 border-[#D16014] p-1.5 flex items-center justify-center shadow-[0_0_15px_rgba(209,96,20,0.4)] group-hover:scale-105 transition-transform">
+            <img
+              src={logoBlanco}
+              alt="El Cacique Logo"
+              className="w-full h-full object-contain filter brightness-200 contrast-125 drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]"
+            />
           </div>
           <div>
             <span className="font-black text-base text-white tracking-wide block leading-none">EL CACIQUE</span>
