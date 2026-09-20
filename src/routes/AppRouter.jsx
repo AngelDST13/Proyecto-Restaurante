@@ -6,9 +6,7 @@ import AdminDashboard from '../pages/AdminDashboard';
 import WaiterDashboard from '../pages/WaiterDashboard';
 import Unauthorized from '../pages/Unauthorized';
 
-import AdminRoute from './AdminRoute';
-import WaiterRoute from './WaiterRoute';
-
+import ProtectedRoute from './ProtectedRoute';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Toast from '../components/Toast';
@@ -35,23 +33,23 @@ export function AppRouter() {
           <Route path="/menu" element={<Menu />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* RUTA PROTEGIDA DE MESEROS */}
+          {/* RUTA PROTEGIDA MESEROS */}
           <Route 
             path="/waiter" 
             element={
-              <WaiterRoute>
+              <ProtectedRoute allowedRoles={['mesero', 'administrador']}>
                 <WaiterDashboard />
-              </WaiterRoute>
+              </ProtectedRoute>
             } 
           />
 
-          {/* RUTA PROTEGIDA DE ADMINISTRADOR */}
+          {/* RUTA PROTEGIDA ADMINISTRADOR */}
           <Route 
             path="/admin" 
             element={
-              <AdminRoute>
+              <ProtectedRoute allowedRoles={['administrador']}>
                 <AdminDashboard />
-              </AdminRoute>
+              </ProtectedRoute>
             } 
           />
         </Routes>
