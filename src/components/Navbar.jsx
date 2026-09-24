@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAccessibility } from '../context/AccessibilityContext';
-import { Utensils, Calendar, User, LogOut, Menu as MenuIcon, X, Info, RotateCcw } from 'lucide-react';
-import logoNegro from '../assets/img/LogoN.svg';
+import { Home, Utensils, Calendar, User, LogOut, Menu as MenuIcon, X, Info, RotateCcw } from 'lucide-react';
+import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Navbar({ onOpenReservation }) {
   const { user, logout } = useAuth();
@@ -53,20 +53,18 @@ export default function Navbar({ onOpenReservation }) {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#001812]/95 backdrop-blur-md border-b border-[#659B5E]/30 text-[#F8FFE5]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
         
-        {/* LOGO CON FONDO BLANCO/CREMA Y ASERRÍ */}
+        {/* LOGO INSTITUCIONAL CON ISOTIPO VECTO-ORGANICO */}
         <a 
           href="/" 
           onClick={handleLogoClick} 
           className="flex items-center gap-3 group cursor-pointer py-1 select-none"
           aria-label="Ir al inicio de El Cacique"
         >
-          <div className="bg-[#F8FFE5] p-1.5 rounded-xl border border-[#D16014] shadow-md group-hover:scale-105 transition-transform">
-            <img 
-              src={logoNegro} 
-              alt="El Cacique Logo" 
-              className="h-9 w-auto object-contain" 
-            />
-          </div>
+          <img 
+            src={caciqueIcon} 
+            alt="El Cacique Logo" 
+            className="h-11 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-110 filter drop-shadow-[0_0_12px_rgba(209,96,20,0.6)]" 
+          />
           <div className="flex flex-col">
             <span className="font-black text-lg sm:text-xl text-white tracking-wider leading-none group-hover:text-[#D16014] transition-colors">
               EL CACIQUE
@@ -77,10 +75,15 @@ export default function Navbar({ onOpenReservation }) {
           </div>
         </a>
 
-        {/* MENÚ DESKTOP CON ICONOS */}
+        {/* MENÚ DESKTOP CON ICONOS NATIVOS */}
         <nav className="hidden lg:flex items-center gap-6 text-xs font-black uppercase tracking-wider">
-          <button onClick={() => handleSectionClick('inicio')} className="hover:text-[#D16014] transition-colors cursor-pointer">
-            Inicio
+          <button 
+            type="button"
+            onClick={() => handleSectionClick('inicio')} 
+            className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <Home className="w-3.5 h-3.5 text-[#D16014]" />
+            <span>Inicio</span>
           </button>
           
           <Link to="/menu" className="hover:text-[#D16014] transition-colors flex items-center gap-1.5">
@@ -88,12 +91,20 @@ export default function Navbar({ onOpenReservation }) {
             <span>Menú Digital</span>
           </Link>
 
-          <button onClick={() => handleSectionClick('nosotros')} className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer">
+          <button 
+            type="button"
+            onClick={() => handleSectionClick('nosotros')} 
+            className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
             <Info className="w-3.5 h-3.5 text-amber-400" />
             <span>Nosotros</span>
           </button>
 
-          <button onClick={() => handleSectionClick('eventos')} className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer">
+          <button 
+            type="button"
+            onClick={() => handleSectionClick('eventos')} 
+            className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
             <Calendar className="w-3.5 h-3.5 text-[#D16014]" />
             <span>Eventos</span>
           </button>
@@ -108,9 +119,8 @@ export default function Navbar({ onOpenReservation }) {
           </button>
         </nav>
 
-        {/* CONTROLES DE ACCESIBILIDAD Y PERFIL */}
+        {/* CONTROLES ACCESIBILIDAD Y USUARIO */}
         <div className="hidden md:flex items-center gap-3">
-          
           <div className="flex items-center gap-1 bg-[#0A090C] border border-[#659B5E]/30 p-1 rounded-xl">
             <button 
               type="button"
@@ -181,26 +191,46 @@ export default function Navbar({ onOpenReservation }) {
 
       </div>
 
-      {/* MENÚ MÓVIL */}
+      {/* MENÚ DESPLEGABLE MÓVIL */}
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-[#001812] border-b border-[#659B5E]/30 px-6 py-6 space-y-4 text-xs font-extrabold uppercase">
-          <button onClick={() => handleSectionClick('inicio')} className="block w-full text-left py-2 hover:text-[#D16014]">
-            Inicio
+          <button 
+            type="button"
+            onClick={() => handleSectionClick('inicio')} 
+            className="flex items-center gap-2 w-full text-left py-2 hover:text-[#D16014]"
+          >
+            <Home className="w-4 h-4 text-[#D16014]" />
+            <span>Inicio</span>
           </button>
-          <Link to="/menu" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#D16014]">
-            Menú Digital
+          <Link to="/menu" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 py-2 hover:text-[#D16014]">
+            <Utensils className="w-4 h-4 text-[#659B5E]" />
+            <span>Menú Digital</span>
           </Link>
-          <button onClick={() => handleSectionClick('nosotros')} className="block w-full text-left py-2 hover:text-[#D16014]">
-            Nosotros
+          <button 
+            type="button"
+            onClick={() => handleSectionClick('nosotros')} 
+            className="flex items-center gap-2 w-full text-left py-2 hover:text-[#D16014]"
+          >
+            <Info className="w-4 h-4 text-amber-400" />
+            <span>Nosotros</span>
           </button>
-          <button onClick={() => handleSectionClick('eventos')} className="block w-full text-left py-2 hover:text-[#D16014]">
-            Eventos
+          <button 
+            type="button"
+            onClick={() => handleSectionClick('eventos')} 
+            className="flex items-center gap-2 w-full text-left py-2 hover:text-[#D16014]"
+          >
+            <Calendar className="w-4 h-4 text-[#D16014]" />
+            <span>Eventos</span>
           </button>
-          <button onClick={handleReservationClick} className="block w-full text-left py-2 text-[#659B5E] font-bold">
-            Agendar Reserva
+          <button 
+            type="button"
+            onClick={handleReservationClick} 
+            className="flex items-center gap-2 w-full text-left py-2 text-[#659B5E] font-bold"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Agendar Reserva</span>
           </button>
 
-          {/* CONTROLES ACCESIBILIDAD MÓVIL */}
           <div className="pt-4 border-t border-[#F8FFE5]/10 flex justify-between items-center">
             <span className="text-[10px] text-gray-400">Tamaño de letra:</span>
             <div className="flex gap-2">
@@ -230,7 +260,6 @@ export default function Navbar({ onOpenReservation }) {
             </div>
           </div>
 
-          {/* ESTADO USUARIO MÓVIL */}
           <div className="pt-3 border-t border-[#F8FFE5]/10">
             {user ? (
               <button 
