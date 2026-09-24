@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Toast from '../components/Toast';
-import { Search, Flame, ShoppingBag, Plus, Minus, Trash2, MessageCircle, AlertCircle, Truck } from 'lucide-react';
+import { Search, Flame, ShoppingBag, Plus, Minus, Trash2, MessageCircle, AlertCircle, Truck, Baby } from 'lucide-react';
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState('todos');
@@ -133,7 +133,7 @@ export default function Menu() {
               { id: 'todos', label: 'Todos' },
               { id: 'paila', label: 'Chicharrones & Paila' },
               { id: 'cortes', label: 'Cortes a la Leña' },
-              { id: 'ninos', label: 'Menú Infantil 👦👧' },
+              { id: 'ninos', label: 'Menú Infantil', icon: <Baby className="w-4 h-4 text-amber-400" /> },
               { id: 'bocas', label: 'Bocas & Ceviches' },
               { id: 'bebidas', label: 'Bebidas' },
               { id: 'postres', label: 'Postres' }
@@ -141,10 +141,11 @@ export default function Menu() {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                   activeCategory === cat.id ? 'bg-[#D16014] text-white shadow-lg' : 'bg-[#0A090C] text-gray-400 border border-[#F8FFE5]/10 hover:text-white'
                 }`}
               >
+                {cat.icon && <span className="flex-shrink-0">{cat.icon}</span>}
                 {cat.label}
               </button>
             ))}
