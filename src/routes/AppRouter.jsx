@@ -57,7 +57,7 @@ export function AppRouter() {
           />
         )}
 
-        {!isAdminRoute && <Navbar />}
+        {!isAdminRoute && location.pathname !== '/' && <Navbar />}
 
         <div className="flex-grow">
           <Routes>

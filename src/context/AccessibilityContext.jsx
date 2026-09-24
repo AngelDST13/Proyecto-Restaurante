@@ -1,32 +1,40 @@
-import { createContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
-// The context and provider must remain in this module for the current API.
 // eslint-disable-next-line react-refresh/only-export-components
 export const AccessibilityContext = createContext();
 
-export const AccessibilityProvider = ({ children }) => {
-  const [fontSize, setFontSize] = useState('md');
-  const [highContrast, setHighContrast] = useState(false);
+export function AccessibilityProvider({ children }) {
+  const [fontSizeLevel, setFontSizeLevel] = useState(0); // -1: Pequeño, 0: Normal, 1: Grande, 2: Muy Grande
 
-  const toggleFontSize = () => {
-    if (fontSize === 'sm') setFontSize('md');
-    else if (fontSize === 'md') setFontSize('lg');
-    else setFontSize('sm');
-  };
+  const increaseFontSize = () => setFontSizeLevel((prev) => Math.min(prev + 1, 2));
+  const decreaseFontSize = () => setFontSizeLevel((prev) => Math.max(prev - 1, -1));
+  const resetFontSize = () => setFontSizeLevel(0);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (fontSizeLevel === -1) {
+      root.style.fontSize = '90%';
+    } else if (fontSizeLevel === 0) {
+      root.style.fontSize = '100%';
+    } else if (fontSizeLevel === 1) {
+      root.style.fontSize = '110%';
+    } else if (fontSizeLevel === 2) {
+      root.style.fontSize = '120%';
+    }
+  }, [fontSizeLevel]);
 
   return (
-    <AccessibilityContext.Provider
-      value={{
-        fontSize,
-        setFontSize,
-        toggleFontSize,
-        highContrast,
-        setHighContrast
-      }}
-    >
-      <div className={`accessibility-root size-${fontSize} ${highContrast ? 'high-contrast' : ''}`}>
-        {children}
-      </div>
+    <AccessibilityContext.Provider value={{ fontSizeLevel, increaseFontSize, decreaseFontSize, resetFontSize }}>
+      {children}
     </AccessibilityContext.Provider>
   );
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAccessibility = () => {
+  const context = useContext(AccessibilityContext);
+  if (!context) {
+    throw new Error('useAccessibility debe usarse dentro de un AccessibilityProvider');
+  }
+  return context;
 };
