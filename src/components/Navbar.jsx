@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Utensils, Calendar, User, LogOut, Menu as MenuIcon, X } from 'lucide-react';
-import logoBlanco from '../assets/img/LogoB.svg';
+import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -42,7 +42,7 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#001812]/95 backdrop-blur-md border-b border-[#659B5E]/20 text-[#F8FFE5]">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         
-        {/* LOGOTIPO FLUIDO SIN BORDES NINGUNO QUE LO LIMITE */}
+        {/* LOGO DE NAVEGACIÓN CON ISOTIPO CACIQUE.SVG */}
         <a 
           href="/" 
           onClick={handleLogoClick} 
@@ -50,15 +50,15 @@ export default function Navbar() {
           aria-label="Ir al inicio de El Cacique"
         >
           <img 
-            src={logoBlanco} 
-            alt="El Cacique Logo" 
-            className="h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 filter drop-shadow-[0_0_12px_rgba(209,96,20,0.5)]" 
+            src={caciqueIcon} 
+            alt="Ilustración El Cacique" 
+            className="h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-110 filter drop-shadow-[0_0_10px_rgba(209,96,20,0.6)]" 
           />
           <div className="flex flex-col">
-            <span className="font-black text-lg text-white tracking-wider leading-none group-hover:text-[#D16014] transition-colors">
+            <span className="font-black text-xl text-white tracking-wider leading-none group-hover:text-[#D16014] transition-colors">
               EL CACIQUE
             </span>
-            <span className="text-[9px] font-mono text-[#D16014] uppercase tracking-widest font-black mt-0.5">
+            <span className="text-[9px] font-mono text-[#D16014] uppercase tracking-widest font-black mt-1">
               CHICHARRONERA GOURMET
             </span>
           </div>
@@ -155,4 +155,3 @@ export default function Navbar() {
     </header>
   );
 }
-
