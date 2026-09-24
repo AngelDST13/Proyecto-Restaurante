@@ -2,27 +2,25 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReservationModal from '../components/ReservationModal';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import Toast from '../components/Toast';
 import { useAutoLogout } from '../hooks/useAutoLogout';
 import { 
   Utensils, Calendar, MapPin, Clock, Phone, 
   Flame, ChevronRight, ChevronLeft, Award, ShieldCheck, Sparkles,
-  AlertTriangle
+  AlertTriangle, Ghost, Snowflake, PartyPopper
 } from 'lucide-react';
-import logoNegro from '../assets/img/LogoN.svg';
+import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Landing() {
   const navigate = useNavigate();
   const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [reservationType, setReservationType] = useState('General');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
-  const [, setMapError] = useState(false);
   const [activeSedeMap, setActiveSedeMap] = useState('ESCAZÚ');
 
-  // CONTROL DE AUTO-LOGOUT SEGURO
   const { showWarning, resetTimer } = useAutoLogout();
 
-  // CARRUSEL INTERACTIVO HERO CON ANIMACIÓN
   const heroImages = [
     'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80',
     'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1600&q=80',
@@ -46,16 +44,12 @@ export default function Landing() {
     setIsReservationOpen(true);
   };
 
-  // Lógica de temporada alta
   const getTemporada = () => {
     const now = new Date();
-    const month = now.getMonth() + 1; // 1-12
+    const month = now.getMonth() + 1;
 
-    // Diciembre o Enero → Temporada Navideña/Fin de Año
     if (month === 12 || month === 1) return 'navidad';
 
-    // Semana Santa: Domingo de Ramos al Domingo de Pascua
-    // Algoritmo de Gauss para calcular el Domingo de Pascua
     const year = now.getFullYear();
     const a = year % 19;
     const b = Math.floor(year / 100);
@@ -85,17 +79,6 @@ export default function Landing() {
   const temporada = getTemporada();
 
   const sedesInfo = {
-    'SAN JOSÉ': {
-      nombre: 'SEDE SAN JOSÉ • CENTRO',
-      provincia: 'SAN JOSÉ',
-      direccion: 'Av. Central, San José Centro, Costa Rica',
-      telefono: '+506 2220-0001',
-      whatsapp: '50622200001',
-      horario: 'Lunes a Domingo: 11:00 AM - 11:00 PM',
-      lat: 9.9281,
-      lng: -84.0907,
-      zoom: 16
-    },
     'ESCAZÚ': {
       nombre: 'SEDE ESCAZÚ • CENTRO CULINARIO',
       provincia: 'SAN JOSÉ',
@@ -103,30 +86,38 @@ export default function Landing() {
       telefono: '+506 2200-8888',
       whatsapp: '50622008888',
       horario: 'Lunes a Domingo: 11:30 AM - 11:00 PM',
-      lat: 9.9159,
-      lng: -84.1423,
-      zoom: 16
+      mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3929.982361833501!2d-84.15243892419793!3d9.935402974136453!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa00344d51bb413%3A0xb3ff7f68c3ef9efd!2sMultiplaza%20Escaz%C3%BA!5e0!3m2!1ses!2scr!4v1710000000000!5m2!1ses!2scr'
     },
-    'GUADALUPE': {
-      nombre: 'SEDE GUADALUPE • COSTADO NORTE',
+    'SANTA ANA': {
+      nombre: 'SEDE SANTA ANA • PLAZA REAL',
       provincia: 'SAN JOSÉ',
-      direccion: 'Guadalupe, San José, 200m Norte del Parque',
-      telefono: '+506 2240-5566',
-      whatsapp: '50622405566',
+      direccion: 'Plaza Real Santa Ana, Contiguo a la Ruta 27',
+      telefono: '+506 2200-8889',
+      whatsapp: '50622008889',
+      horario: 'Lunes a Domingo: 11:00 AM - 10:00 PM',
+      mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3929.948212345!2d-84.18021!3d9.93123!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa004123456789%3A0x123456789!2sSanta%20Ana%20Town%20Center!5e0!3m2!1ses!2scr!4v1710000000000!5m2!1ses!2scr'
+    },
+    'CARTAGO': {
+      nombre: 'SEDE CARTAGO • PASO ANCHO',
+      provincia: 'CARTAGO',
+      direccion: 'Paso Ancho de Cartago, 200m Sur de la Basílica',
+      telefono: '+506 2500-1122',
+      whatsapp: '50625001122',
       horario: 'Lunes a Domingo: 11:30 AM - 10:30 PM',
-      lat: 9.9414,
-      lng: -84.0644,
-      zoom: 16
+      mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3930.500000000!2d-83.916667!3d9.866667!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0dfffffffffff%3A0x0!2sCartago%20Bas%C3%ADlica!5e0!3m2!1ses!2scr!4v1710000000000!5m2!1ses!2scr'
+    },
+    'HEREDIA': {
+      nombre: 'SEDE HEREDIA • VÍA CENTRAL',
+      provincia: 'HEREDIA',
+      direccion: 'Paseo de las Flores, Heredia Centro',
+      telefono: '+506 2260-3344',
+      whatsapp: '50622603344',
+      horario: 'Lunes a Domingo: 11:30 AM - 11:00 PM',
+      mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3929.100000000!2d-84.116667!3d10.000000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0faaaaaaaaaaa%3A0x0!2sPaseo%20de%20las%20Flores!5e0!3m2!1ses!2scr!4v1710000000000!5m2!1ses!2scr'
     }
   };
 
   const selectedSedeObj = sedesInfo[activeSedeMap] || sedesInfo['ESCAZÚ'];
-
-  const getOsmUrl = (sede) => {
-    const { lat, lng } = sede;
-    const bbox = 0.01;
-    return `https://www.openstreetmap.org/export/embed.html?bbox=${lng - bbox}%2C${lat - bbox}%2C${lng + bbox}%2C${lat + bbox}&layer=mapnik&marker=${lat}%2C${lng}`;
-  };
 
   const platillosPrincipales = [
     {
@@ -155,10 +146,8 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] font-sans selection:bg-[#D16014] selection:text-white overflow-x-hidden">
       
-      {/* NAVBAR CON EVENTO DE RESERVA */}
       <Navbar onOpenReservation={() => setIsReservationOpen(true)} />
 
-      {/* NOTIFICACIÓN TOAST */}
       {toast.show && (
         <Toast
           message={toast.message}
@@ -167,7 +156,6 @@ export default function Landing() {
         />
       )}
 
-      {/* ADVERTENCIA DE INACTIVIDAD SEGURO SIN NÚMEROS DE CONTEO */}
       {showWarning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div className="bg-[#001812] border-2 border-[#D16014] p-6 sm:p-8 rounded-3xl max-w-md w-full text-center space-y-4 shadow-2xl">
@@ -208,11 +196,9 @@ export default function Landing() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A090C] via-[#0A090C]/60 to-[#0A090C]/30"></div>
         </div>
 
-        {/* CONTROLES LATERALES */}
         <button 
           type="button"
           onClick={prevSlide}
-          aria-label="Slide anterior"
           className="absolute left-4 z-20 p-3 rounded-full bg-black/40 hover:bg-[#D16014] text-white backdrop-blur-md transition-all hidden sm:block cursor-pointer"
         >
           <ChevronLeft className="w-6 h-6" />
@@ -221,31 +207,12 @@ export default function Landing() {
         <button 
           type="button"
           onClick={nextSlide}
-          aria-label="Slide siguiente"
           className="absolute right-4 z-20 p-3 rounded-full bg-black/40 hover:bg-[#D16014] text-white backdrop-blur-md transition-all hidden sm:block cursor-pointer"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
 
-        {/* INDICADORES DEL SLIDER */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-          {heroImages.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setCurrentSlide(idx)}
-              aria-label={`Ir al slide ${idx + 1}`}
-              className={`h-2 rounded-full transition-all cursor-pointer ${
-                idx === currentSlide ? 'w-8 bg-[#D16014]' : 'w-2 bg-white/40 hover:bg-white/70'
-              }`}
-            ></button>
-          ))}
-        </div>
-
-        {/* CONTENIDO PRINCIPAL */}
         <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
-          
-          {/* TAGLINE MEJORADO */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#001812]/80 border border-[#659B5E]/50 text-[#659B5E] text-xs font-black uppercase tracking-widest backdrop-blur-md shadow-2xl">
             <Flame className="w-4 h-4 text-[#D16014]" />
             <span>TRADICIÓN AUTÉNTICA • 100% COSTARRICENSE</span>
@@ -318,12 +285,13 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="relative flex flex-col items-center justify-center p-8 sm:p-12 bg-[#F8FFE5] border-4 border-[#D16014] rounded-3xl shadow-[0_0_50px_rgba(209,96,20,0.4)] text-center group">
-            <div className="w-64 h-64 sm:w-80 sm:h-80 mx-auto flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+          <div className="relative flex flex-col items-center justify-center p-8 text-center">
+            <div className="relative group flex items-center justify-center">
+              <div className="absolute inset-0 bg-[#D16014]/20 rounded-full blur-3xl transform group-hover:scale-125 transition-transform duration-500"></div>
               <img 
-                src={logoNegro} 
-                alt="Logo El Cacique" 
-                className="w-full h-full object-contain filter drop-shadow-xl" 
+                src={caciqueIcon} 
+                alt="Isotipo El Cacique" 
+                className="w-72 h-72 sm:w-96 sm:h-96 object-contain relative z-10 filter drop-shadow-[0_0_35px_rgba(209,96,20,0.7)] group-hover:scale-105 transition-transform duration-500" 
               />
             </div>
           </div>
@@ -373,212 +341,174 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 6. UBICACIONES Y RESERVAS */}
-      <section id="ubicaciones" className="py-24 px-6 bg-[#001812]/80 border-t border-[#659B5E]/30 scroll-mt-24 relative overflow-hidden">
-        {/* Fondo decorativo */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#659B5E]/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#D16014]/5 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="max-w-7xl mx-auto space-y-12 relative z-10">
-
-          {/* Encabezado */}
-          <div className="text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#659B5E]/20 border border-[#659B5E]/40 text-[#659B5E] text-[10px] font-black uppercase tracking-widest">
-              <MapPin className="w-3.5 h-3.5" /> NUESTRAS SEDES
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-white uppercase">Ubicaciones &amp; Contacto</h2>
-            <p className="text-xs sm:text-sm text-gray-400 max-w-xl mx-auto">
-              Tres sedes estratégicas en la Gran Área Metropolitana. Seleccione una para ver su mapa en vivo, dirección exacta y contacto directo.
-            </p>
-          </div>
-
-          {/* Pestañas de sede */}
-          <div className="flex flex-wrap justify-center gap-3">
-            {Object.keys(sedesInfo).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => { setActiveSedeMap(key); setMapError(false); }}
-                className={`px-5 py-2.5 rounded-full border text-xs font-black tracking-widest transition-all cursor-pointer ${
-                  activeSedeMap === key
-                    ? 'bg-[#D16014] border-[#D16014] text-white shadow-[0_0_20px_rgba(209,96,20,0.4)]'
-                    : 'bg-[#0A090C] border-[#F8FFE5]/15 text-gray-400 hover:text-white hover:border-[#659B5E]'
-                }`}
-              >
-                <MapPin className="w-3 h-3 inline-block mr-1.5" />
-                {key}
-              </button>
-            ))}
-          </div>
-
-          {/* Contenido de la sede seleccionada */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-
-            {/* Mapa OpenStreetMap */}
-            <div className="bg-[#0A090C] border border-[#659B5E]/30 rounded-3xl overflow-hidden shadow-2xl relative" style={{minHeight: '400px'}}>
-              <iframe
-                key={activeSedeMap}
-                title={`Mapa ${selectedSedeObj.nombre}`}
-                src={getOsmUrl(selectedSedeObj)}
-                className="w-full h-full border-0"
-                style={{minHeight: '400px'}}
-                loading="lazy"
-                onError={() => setMapError(true)}
-                allowFullScreen
-              ></iframe>
-              {/* Badge de sede sobre el mapa */}
-              <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full bg-[#001812]/90 border border-[#659B5E]/50 backdrop-blur-md">
-                <span className="text-[10px] font-black text-[#659B5E] uppercase tracking-widest">{activeSedeMap}</span>
-              </div>
-              {/* Link externo */}
-              <a
-                href={`https://www.openstreetmap.org/?mlat=${selectedSedeObj.lat}&mlon=${selectedSedeObj.lng}#map=17/${selectedSedeObj.lat}/${selectedSedeObj.lng}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-[#001812]/90 border border-[#659B5E]/40 text-[10px] font-bold text-gray-300 hover:text-white hover:border-[#659B5E] transition-all backdrop-blur-md"
-              >
-                VER EN MAPA COMPLETO ↗
-              </a>
+      {/* 4. UBICACIONES Y GOOGLE MAPS */}
+      <section id="ubicaciones" className="py-24 px-6 bg-[#001812]/60 border-t border-[#659B5E]/20 scroll-mt-24">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <span className="text-xs font-black text-[#659B5E] uppercase tracking-widest">PRESENCIA NACIONAL</span>
+              <h2 className="text-3xl sm:text-4xl font-black text-white uppercase">Nuestras Chicharroneras</h2>
+              <p className="text-xs text-gray-400">Seleccione su sede provincial para revisar ubicación, teléfono y horarios de atención en vivo.</p>
             </div>
 
-            {/* Info de contacto */}
-            <div className="space-y-4 flex flex-col justify-between">
-
-              {/* Card info principal */}
-              <div className="p-6 bg-[#0A090C] border border-[#659B5E]/30 rounded-3xl space-y-5 shadow-xl">
-                <div>
-                  <span className="text-[10px] font-black text-[#659B5E] uppercase tracking-widest">{selectedSedeObj.provincia}</span>
-                  <h3 className="text-lg font-black text-white mt-1">{selectedSedeObj.nombre}</h3>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#001812] border border-[#659B5E]/20">
-                    <MapPin className="w-4 h-4 text-[#659B5E] shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-[10px] font-black text-[#659B5E] uppercase tracking-wider mb-0.5">Dirección</p>
-                      <p className="text-xs text-gray-300">{selectedSedeObj.direccion}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#001812] border border-[#D16014]/20">
-                    <Phone className="w-4 h-4 text-[#D16014] shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-[10px] font-black text-[#D16014] uppercase tracking-wider mb-0.5">Teléfono</p>
-                      <a href={`tel:${selectedSedeObj.telefono.replace(/\s/g,'')}`} className="text-xs text-gray-300 hover:text-white transition-colors">{selectedSedeObj.telefono}</a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#001812] border border-amber-400/20">
-                    <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-[10px] font-black text-amber-400 uppercase tracking-wider mb-0.5">Horario de Atención</p>
-                      <p className="text-xs text-gray-300">{selectedSedeObj.horario}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Botones de acción rápida */}
-              <div className="grid grid-cols-2 gap-3">
-                <a
-                  href={`https://wa.me/${selectedSedeObj.whatsapp}?text=${encodeURIComponent('Hola, deseo hacer una reserva en la sede ' + activeSedeMap)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-[#25D366] hover:bg-[#1ebe5a] text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg"
-                >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                  WhatsApp
-                </a>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.keys(sedesInfo).map((key) => (
                 <button
+                  key={key}
                   type="button"
-                  onClick={() => reserve('General')}
-                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-[#D16014] hover:bg-[#b8510f] text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer"
+                  onClick={() => setActiveSedeMap(key)}
+                  className={`p-4 rounded-2xl border text-xs font-black tracking-wider transition-all cursor-pointer text-left ${
+                    activeSedeMap === key
+                      ? 'bg-[#D16014] border-[#D16014] text-white shadow-lg'
+                      : 'bg-[#0A090C] border-[#F8FFE5]/15 text-gray-400 hover:text-white hover:border-[#659B5E]'
+                  }`}
                 >
-                  <Calendar className="w-4 h-4" />
-                  Reservar
+                  <MapPin className="w-4 h-4 inline-block mr-2 text-white" />
+                  <span>{key}</span>
                 </button>
-              </div>
+              ))}
+            </div>
 
-              {/* Info general de contacto */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#659B5E]/10 to-[#D16014]/10 border border-[#659B5E]/20 text-center">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">LÍNEA GENERAL</p>
-                <a href="tel:+50622008888" className="text-base font-black text-white hover:text-[#659B5E] transition-colors">+506 2200-8888</a>
-                <p className="text-[10px] text-gray-500 mt-1">reservas@elcacique.cr</p>
-              </div>
+            <div className="p-6 bg-[#001812] border border-[#659B5E]/30 rounded-2xl space-y-3 font-mono text-xs shadow-xl">
+              <h4 className="font-sans font-black text-base text-white">{selectedSedeObj.nombre}</h4>
+              <p className="text-gray-300 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[#659B5E] shrink-0" />
+                <span>{selectedSedeObj.direccion}</span>
+              </p>
+              <p className="text-gray-300 flex items-center gap-2">
+                <Phone className="w-4 h-4 text-[#D16014] shrink-0" />
+                <span>{selectedSedeObj.telefono}</span>
+              </p>
+              <p className="text-gray-300 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>{selectedSedeObj.horario}</span>
+              </p>
             </div>
           </div>
+
+          <div className="bg-[#0A090C] border border-[#659B5E]/30 rounded-3xl h-96 overflow-hidden relative shadow-2xl">
+            <iframe
+              title={`Google Map ${selectedSedeObj.nombre}`}
+              src={selectedSedeObj.mapUrl}
+              className="w-full h-full border-0 filter grayscale contrast-125 opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
+              loading="lazy"
+              allowFullScreen=""
+            ></iframe>
+          </div>
+
         </div>
       </section>
 
       {/* 5. EVENTOS Y CELEBRACIONES */}
-      <section id="eventos" className="py-24 px-6 bg-[#001812]/90 border-t border-[#659B5E]/30 scroll-mt-24 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#D16014]/5 rounded-full blur-3xl"></div>
-        </div>
-        <div className="max-w-7xl mx-auto space-y-12 relative z-10">
-          <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D16014]/20 border border-[#D16014]/40 text-[#D16014] text-[10px] font-black uppercase tracking-widest">
-              <Sparkles className="w-3.5 h-3.5" /> EXPERIENCIAS EXCLUSIVAS
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-white uppercase">Eventos &amp; Celebraciones</h2>
-            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-              Espacios privados adaptados para reuniones corporativas, fiestas infantiles, bodas criollas y banquetes familiares con atención personalizada.
+      <section id="eventos" className="py-24 px-6 bg-[#001812] border-t border-[#659B5E]/30 scroll-mt-24">
+        <div className="max-w-7xl mx-auto space-y-12">
+          
+          <div className="text-center space-y-3">
+            <span className="text-xs font-black text-[#D16014] uppercase tracking-widest">TEMPORADAS Y FESTIVIDADES</span>
+            <h2 className="text-3xl sm:text-5xl font-black text-white uppercase">Especialidades &amp; Eventos de Temporada</h2>
+            <p className="text-xs sm:text-sm text-gray-300 max-w-2xl mx-auto">
+              Sedes seleccionadas ofrecerán menús temáticos y experiencias culinarias únicas durante las principales celebraciones del año.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: <Award className="w-8 h-8 text-[#D16014]" />,
-                tipo: 'Eventos Corporativos',
-                desc: 'Salones privados con capacidad hasta 80 personas, menú ejecutivo y servicio de catering personalizado para su empresa.',
-                color: 'border-[#D16014]/40 hover:border-[#D16014]',
-                badge: 'EMPRESAS'
-              },
-              {
-                icon: <Sparkles className="w-8 h-8 text-amber-400" />,
-                tipo: 'Cumpleaños y Aniversarios',
-                desc: 'Decoración temática, torta artesanal incluida y menú especial de celebración para que su día sea memorable.',
-                color: 'border-amber-400/40 hover:border-amber-400',
-                badge: 'CELEBRACIONES'
-              },
-              {
-                icon: <Flame className="w-8 h-8 text-[#659B5E]" />,
-                tipo: 'Banquetes Criollos',
-                desc: 'Buffet de chicharrones y platillos típicos cocinados al momento en nuestra paila de hierro fundido para grupos grandes.',
-                color: 'border-[#659B5E]/40 hover:border-[#659B5E]',
-                badge: 'TRADICIÓN'
-              }
-            ].map((ev, i) => (
-              <div key={i} className={`p-7 rounded-3xl bg-[#0A090C] border ${ev.color} transition-all group space-y-4 flex flex-col`}>
-                <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">{ev.badge}</span>
-                <div>{ev.icon}</div>
-                <h3 className="text-lg font-black text-white group-hover:text-[#D16014] transition-colors">{ev.tipo}</h3>
-                <p className="text-xs text-gray-400 leading-relaxed flex-1">{ev.desc}</p>
-                <button
-                  type="button"
-                  onClick={() => reserve('Eventos')}
-                  className="w-full py-3 rounded-xl bg-[#001812] border border-[#659B5E]/30 hover:bg-[#D16014] hover:border-[#D16014] text-xs font-black text-gray-300 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <Calendar className="w-3.5 h-3.5" /> CONSULTAR DISPONIBILIDAD
-                </button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* HALLOWEEN */}
+            <div className="bg-[#0A090C] border border-purple-500/40 rounded-3xl p-6 space-y-4 hover:border-purple-400 transition-all flex flex-col justify-between shadow-2xl group">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="px-3 py-1 rounded-full bg-purple-900/60 text-purple-300 text-[10px] font-black uppercase tracking-wider border border-purple-500/30">
+                    OCTUBRE 31
+                  </span>
+                  <Ghost className="w-6 h-6 text-purple-400 animate-pulse" />
+                </div>
+                <h3 className="text-xl font-black text-white group-hover:text-purple-300 transition-colors">
+                  Noche Criolla de Agüizotes
+                </h3>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Chifrijos embrujados con salsa de chile picante artesanal, coctelería temática de mora salvaje y música en vivo.
+                </p>
+                <div className="pt-2 text-[11px] font-mono text-[#659B5E] font-bold">
+                  📍 SUCURSALES: ESCAZÚ &amp; SANTA ANA
+                </div>
               </div>
-            ))}
+              <button
+                type="button"
+                onClick={() => reserve('Eventos')}
+                className="w-full py-3 rounded-xl bg-purple-950/60 border border-purple-500/50 hover:bg-purple-800 text-xs font-bold text-white transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>AGENDAR AGÜIZOTES</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* DICIEMBRE */}
+            <div className="bg-[#0A090C] border border-amber-500/40 rounded-3xl p-6 space-y-4 hover:border-amber-400 transition-all flex flex-col justify-between shadow-2xl group">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="px-3 py-1 rounded-full bg-amber-900/60 text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-500/30">
+                    DICIEMBRE &amp; ENE
+                  </span>
+                  <Snowflake className="w-6 h-6 text-amber-400" />
+                </div>
+                <h3 className="text-xl font-black text-white group-hover:text-amber-300 transition-colors">
+                  Banquete Navideño de Paila
+                </h3>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Pierna de cerdo ahumada a la leña con miel de leña de café, tamales criollos tradicionales y rompope artesanal.
+                </p>
+                <div className="pt-2 text-[11px] font-mono text-[#659B5E] font-bold">
+                  📍 SUCURSALES: TODAS LAS SEDES (4)
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => reserve('Eventos')}
+                className="w-full py-3 rounded-xl bg-amber-950/60 border border-amber-500/50 hover:bg-amber-600 text-xs font-bold text-white transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>RESERVAR FIN DE AÑO</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* SEMANA SANTA */}
+            <div className="bg-[#0A090C] border border-[#659B5E]/40 rounded-3xl p-6 space-y-4 hover:border-[#659B5E] transition-all flex flex-col justify-between shadow-2xl group">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="px-3 py-1 rounded-full bg-[#001812] text-[#659B5E] text-[10px] font-black uppercase tracking-wider border border-[#659B5E]/30">
+                    MARZO / ABRIL
+                  </span>
+                  <PartyPopper className="w-6 h-6 text-[#659B5E]" />
+                </div>
+                <h3 className="text-xl font-black text-white group-hover:text-[#659B5E] transition-colors">
+                  Feria Mar y Paila
+                </h3>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Ceviches costarricenses de corvina, sopas de mariscos a la leña, empanadas de chinchirrria y postres de chiverre.
+                </p>
+                <div className="pt-2 text-[11px] font-mono text-[#659B5E] font-bold">
+                  📍 SUCURSALES: CARTAGO &amp; HEREDIA
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => reserve('Eventos')}
+                className="w-full py-3 rounded-xl bg-[#001812] border border-[#659B5E]/50 hover:bg-[#659B5E] text-xs font-bold text-[#F8FFE5] transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>RESERVAR MESA</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* 7. ESPECIALIDADES DE TEMPORADA */}
+      {/* 6. ESPECIALIDADES DE TEMPORADA (DINÁMICO POR FECHA) */}
       <section id="temporada" className="py-24 px-6 border-t border-[#659B5E]/20 scroll-mt-24 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#659B5E]/5 rounded-full blur-3xl"></div>
-          <div className="absolute top-0 right-0 w-80 h-80 bg-[#D16014]/5 rounded-full blur-3xl"></div>
-        </div>
         <div className="max-w-7xl mx-auto space-y-10 relative z-10">
 
-          {/* Encabezado */}
           <div className="text-center space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-400 text-[10px] font-black uppercase tracking-widest">
               <Flame className="w-3.5 h-3.5" /> MENÚ DE TEMPORADA
@@ -586,7 +516,6 @@ export default function Landing() {
             <h2 className="text-3xl sm:text-5xl font-black text-white uppercase">Especialidades de Temporada</h2>
           </div>
 
-          {/* Contenido dinámico por temporada */}
           {temporada === 'navidad' && (
             <div className="space-y-8">
               <p className="text-center text-xs sm:text-sm text-gray-300 max-w-2xl mx-auto">
@@ -725,7 +654,8 @@ export default function Landing() {
 
       </section>
 
-      {/* MODAL DE RESERVA */}
+      <Footer />
+
       {isReservationOpen && (
         <ReservationModal
           isOpen={isReservationOpen}

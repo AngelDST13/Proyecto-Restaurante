@@ -88,7 +88,7 @@ export default function Navbar({ onOpenReservation }) {
           
           <Link to="/menu" className="hover:text-[#D16014] transition-colors flex items-center gap-1.5">
             <Utensils className="w-3.5 h-3.5 text-[#659B5E]" />
-            <span>Menú Digital</span>
+            <span>Menú</span>
           </Link>
 
           <button 
@@ -204,7 +204,7 @@ export default function Navbar({ onOpenReservation }) {
           </button>
           <Link to="/menu" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 py-2 hover:text-[#D16014]">
             <Utensils className="w-4 h-4 text-[#659B5E]" />
-            <span>Menú Digital</span>
+            <span>Menú</span>
           </Link>
           <button 
             type="button"
