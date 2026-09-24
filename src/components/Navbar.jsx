@@ -53,7 +53,7 @@ export default function Navbar({ onOpenReservation }) {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#001812]/95 backdrop-blur-md border-b border-[#659B5E]/30 text-[#F8FFE5]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
         
-        {/* LOGO INSTITUCIONAL CON ISOTIPO VECTO-ORGANICO */}
+        {/* LOGO ORGANICO CON CACIQUE.SVG */}
         <a 
           href="/" 
           onClick={handleLogoClick} 
@@ -75,7 +75,7 @@ export default function Navbar({ onOpenReservation }) {
           </div>
         </a>
 
-        {/* MENÚ DESKTOP CON ICONOS NATIVOS */}
+        {/* MENÚ DESKTOP */}
         <nav className="hidden lg:flex items-center gap-6 text-xs font-black uppercase tracking-wider">
           <button 
             type="button"
@@ -119,7 +119,7 @@ export default function Navbar({ onOpenReservation }) {
           </button>
         </nav>
 
-        {/* CONTROLES ACCESIBILIDAD Y USUARIO */}
+        {/* CONTROLES DE ACCESIBILIDAD Y SESIÓN */}
         <div className="hidden md:flex items-center gap-3">
           <div className="flex items-center gap-1 bg-[#0A090C] border border-[#659B5E]/30 p-1 rounded-xl">
             <button 
@@ -191,7 +191,7 @@ export default function Navbar({ onOpenReservation }) {
 
       </div>
 
-      {/* MENÚ DESPLEGABLE MÓVIL */}
+      {/* MENÚ MÓVIL */}
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-[#001812] border-b border-[#659B5E]/30 px-6 py-6 space-y-4 text-xs font-extrabold uppercase">
           <button 
