@@ -93,9 +93,9 @@ export default function Footer() {
 
       </div>
 
-      {/* CINTILLO LEGAL Y COPYRIGHT */}
+      {/* CINTILLO LEGAL Y COPYRIGHT CON FIRMA BVA */}
       <div className="max-w-7xl mx-auto pt-6 border-t border-[#F8FFE5]/10 flex flex-col sm:flex-row justify-between items-center gap-3 text-[10px] text-[#F8FFE5]/40 font-medium">
-        <p>© 2026 Chicharronera El Cacique. Todos los derechos reservados.</p>
+        <p>© 2026 Chicharronera El Cacique. Todos los derechos reservados. Desarrollado por <strong className="text-[#F8FFE5]/80">BVA</strong> (Bryan, Victor &amp; Angel).</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline">Políticas de Privacidad</a>
           <span>•</span>
