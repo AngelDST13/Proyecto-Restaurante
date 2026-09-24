@@ -4,9 +4,10 @@ import ReservationModal from '../components/ReservationModal';
 import Toast from '../components/Toast';
 import { 
   Utensils, Calendar, MapPin, Clock, Phone, 
-  Flame, ChevronRight, ChevronLeft, Award, ShieldCheck, Sparkles, AlertCircle 
+  Flame, ChevronRight, Award, ShieldCheck, Sparkles, AlertCircle,
+  ChevronLeft
 } from 'lucide-react';
-import logoBlanco from '../assets/img/LogoB.svg';
+import logoNegro from '../assets/img/LogoN.svg';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function Landing() {
   const [mapError, setMapError] = useState(false);
   const [activeSedeMap, setActiveSedeMap] = useState('ESCAZÚ');
 
-  // CARRUSEL INTERACTIVO HERO CON ANIMACIÓN
+  // CARRUSEL INTERACTIVO CON ANIMACIÓN KEN BURNS & FADE
   const heroImages = [
     'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80',
     'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1600&q=80',
@@ -28,7 +29,7 @@ export default function Landing() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
+    }, 5500);
     return () => clearInterval(timer);
   }, [heroImages.length]);
 
@@ -102,7 +103,7 @@ export default function Landing() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] font-sans selection:bg-[#D16014] selection:text-white">
+    <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] font-sans selection:bg-[#D16014] selection:text-white overflow-x-hidden">
       
       {/* NOTIFICACIÓN TOAST */}
       {toast.show && (
@@ -113,34 +114,33 @@ export default function Landing() {
         />
       )}
 
-      {/* 1. HERO SECTION CON CARRUSEL ANIMADO */}
+      {/* 1. HERO SECTION CON CARRUSEL ANIMADO Y TRANSMISIONES FLUIDAS */}
       <section id="inicio" className="relative min-h-screen flex items-center justify-center pt-20 pb-16 px-6 overflow-hidden">
         
-        {/* SLIDER DE FONDO CON FADE */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 overflow-hidden">
           {heroImages.map((img, idx) => (
             <div
               key={idx}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                idx === currentSlide ? 'opacity-100' : 'opacity-0'
+              className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                idx === currentSlide ? 'opacity-100 scale-105' : 'opacity-0 scale-100'
               }`}
             >
               <img 
                 src={img} 
-                alt="Chicharrón de Paila El Cacique" 
-                className="w-full h-full object-cover object-center scale-105 filter brightness-50 contrast-125"
+                alt="Gastronomía El Cacique" 
+                className="w-full h-full object-cover object-center filter brightness-50 contrast-125 transition-transform duration-[6000ms] ease-out"
               />
             </div>
           ))}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A090C] via-[#0A090C]/60 to-[#0A090C]/30"></div>
         </div>
 
-        {/* CONTROLES DE CARRUSEL */}
+        {/* CONTROLES LATERALES */}
         <button 
           type="button"
           onClick={prevSlide}
           aria-label="Slide anterior"
-          className="absolute left-4 z-20 p-3 rounded-full bg-black/40 hover:bg-[#D16014] text-white backdrop-blur-md transition-colors hidden sm:block cursor-pointer"
+          className="absolute left-4 z-20 p-3 rounded-full bg-black/40 hover:bg-[#D16014] text-white backdrop-blur-md transition-all hidden sm:block cursor-pointer"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
@@ -149,7 +149,7 @@ export default function Landing() {
           type="button"
           onClick={nextSlide}
           aria-label="Slide siguiente"
-          className="absolute right-4 z-20 p-3 rounded-full bg-black/40 hover:bg-[#D16014] text-white backdrop-blur-md transition-colors hidden sm:block cursor-pointer"
+          className="absolute right-4 z-20 p-3 rounded-full bg-black/40 hover:bg-[#D16014] text-white backdrop-blur-md transition-all hidden sm:block cursor-pointer"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
@@ -169,7 +169,7 @@ export default function Landing() {
           ))}
         </div>
 
-        {/* CONTENIDO HERO */}
+        {/* CONTENIDO PRINCIPAL */}
         <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#001812]/80 border border-[#659B5E]/50 text-[#659B5E] text-xs font-black uppercase tracking-widest backdrop-blur-md shadow-2xl">
             <Flame className="w-4 h-4 text-[#D16014]" />
@@ -207,7 +207,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 2. SECCIÓN NOSOTROS - LOGO BLANCO LIMPIO Y ESLOGAN IMPACTANTE */}
+      {/* 2. SECCIÓN NOSOTROS - CONTRASTE PERFECTO CON TARJETA CLARA PARA LogoN.svg */}
       <section id="nosotros" className="py-24 px-6 bg-[#001812] border-y border-[#659B5E]/30 relative overflow-hidden scroll-mt-24">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
@@ -221,7 +221,6 @@ export default function Landing() {
               <span className="text-[#D16014]">Legado Gastronómico</span>
             </h2>
 
-            {/* ESLOGAN / LEMA GASTRONÓMICO DESTACADO */}
             <p className="text-base sm:text-lg font-black text-amber-400 italic leading-snug border-l-4 border-[#D16014] pl-4">
               "Donde el fuego de la paila despierta la verdadera tradición costarricense."
             </p>
@@ -245,14 +244,13 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* MUESTRA PROTAGÓNICA DEL LOGO BLANCO */}
-          <div className="relative flex flex-col items-center justify-center p-8 text-center space-y-6">
-            <div className="relative group flex items-center justify-center">
-              <div className="absolute inset-0 bg-[#D16014]/25 rounded-full blur-3xl transform group-hover:scale-125 transition-transform duration-500 pointer-events-none"></div>
+          {/* TARJETA CREMA CLARA PARA LOGO CON LETRAS NEGRAS (LogoN.svg) */}
+          <div className="relative flex flex-col items-center justify-center p-8 sm:p-12 bg-[#F8FFE5] border-4 border-[#D16014] rounded-3xl shadow-[0_0_50px_rgba(209,96,20,0.4)] text-center group">
+            <div className="w-64 h-64 sm:w-80 sm:h-80 mx-auto flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
               <img 
-                src={logoBlanco} 
+                src={logoNegro} 
                 alt="Logo El Cacique" 
-                className="w-72 h-72 sm:w-96 sm:h-96 object-contain relative z-10 filter drop-shadow-[0_0_40px_rgba(209,96,20,0.7)] group-hover:scale-105 transition-transform duration-500" 
+                className="w-full h-full object-contain filter drop-shadow-xl" 
               />
             </div>
           </div>
