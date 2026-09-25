@@ -70,7 +70,7 @@ export function AppRouter() {
         {/* Muestra el Navbar en Landing, Menú y Login, pero lo oculta en el Dashboard de Admin */}
         {!isAdminRoute && <Navbar />}
 
-        <div className="flex-grow">
+        <div className="grow">
           <Routes>
             {/* VISTAS PÚBLICAS */}
             <Route path="/" element={<Landing />} />
