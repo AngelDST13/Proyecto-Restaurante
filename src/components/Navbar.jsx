@@ -50,33 +50,36 @@ export default function Navbar({ onOpenReservation }) {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#001812]/95 backdrop-blur-md border-b border-[#659B5E]/30 text-[#F8FFE5]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A090C]/95 backdrop-blur-md border-b border-[#659B5E]/30 text-[#F8FFE5] shadow-xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-6">
         
         {/* LOGO ORGANICO CON CACIQUE.SVG */}
-        <a 
-          href="/" 
-          onClick={handleLogoClick} 
-          className="flex items-center gap-3 group cursor-pointer py-1 select-none shrink-0"
+        <Link
+          to="/"
+          onClick={handleLogoClick}
+          className="flex items-center gap-3.5 group cursor-pointer py-1 select-none shrink-0"
           aria-label="Ir al inicio de El Cacique"
         >
-          <img 
-            src={caciqueIcon} 
-            alt="El Cacique Logo" 
-            className="h-11 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-110 filter drop-shadow-[0_0_12px_rgba(209,96,20,0.6)]" 
-          />
-          <div className="flex flex-col">
-            <span className="font-black text-lg sm:text-xl text-white tracking-wider leading-none group-hover:text-[#D16014] transition-colors">
+          <div className="relative w-11 h-11 flex items-center justify-center shrink-0">
+            <div className="absolute inset-0 bg-[#D16014]/30 rounded-full blur-md group-hover:blur-lg transition-all"></div>
+            <img
+              src={caciqueIcon}
+              alt="Logo El Cacique"
+              className="w-full h-full object-contain relative z-10 filter drop-shadow-[0_0_12px_rgba(209,96,20,0.8)] group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+          <div>
+            <span className="font-extrabold text-lg text-white tracking-wide block leading-none group-hover:text-[#D16014] transition-colors">
               EL CACIQUE
             </span>
-            <span className="text-[10px] font-mono text-[#D16014] uppercase tracking-widest font-black mt-1">
-              ASERRÍ
+            <span className="text-[10px] font-bold text-[#659B5E] tracking-widest uppercase mt-0.5 block">
+              CHICHARRONERA GOURMET
             </span>
           </div>
-        </a>
+        </Link>
 
         {/* MENÚ DESKTOP */}
-        <nav className="hidden lg:flex flex-1 items-center justify-center gap-4 xl:gap-6 text-xs font-bold tracking-wide">
+        <nav className="hidden lg:flex flex-1 items-center justify-center gap-5 xl:gap-8 text-xs xl:text-sm font-extrabold tracking-wide">
           <button 
             type="button"
             onClick={() => handleSectionClick('inicio')} 
