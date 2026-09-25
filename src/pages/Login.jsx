@@ -88,6 +88,8 @@ export default function Login() {
           navigate('/admin');
         } else if (res.user.rol === 'mesero') {
           navigate('/waiter');
+        } else if (res.user.rol === 'cocina') {
+          navigate('/kitchen');
         } else {
           navigate('/menu');
         }
@@ -219,13 +221,37 @@ export default function Login() {
           </div>
 
           {!isRegister && (
-            <div className="p-3 bg-[#0A090C] border border-[#F8FFE5]/10 rounded-xl space-y-1.5 text-[10px]">
-              <span className="text-gray-400 font-extrabold block uppercase tracking-wider">Credenciales de las 4 Sucursales:</span>
-              <p className="text-amber-400 font-mono"><strong>Admin:</strong> admin@elcacique.com | AdminCacique2026!</p>
-              <p className="text-[#659B5E] font-mono"><strong>Escazú:</strong> mesero.escazu@elcacique.com | MeseroEscazu2026!</p>
-              <p className="text-cyan-400 font-mono"><strong>Santa Ana:</strong> mesero.santaana@elcacique.com | MeseroSantaAna2026!</p>
-              <p className="text-purple-400 font-mono"><strong>Cartago:</strong> mesero.cartago@elcacique.com | MeseroCartago2026!</p>
-              <p className="text-emerald-400 font-mono"><strong>Heredia:</strong> mesero.heredia@elcacique.com | MeseroHeredia2026!</p>
+            <div className="p-3 bg-[#0A090C] border border-[#F8FFE5]/10 rounded-xl space-y-2 text-[10px]">
+              <span className="text-gray-400 font-extrabold block uppercase tracking-wider">Accesos de prueba por sucursal:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-[9px]">
+                <div className="space-y-0.5">
+                  <p className="text-[#D16014] font-bold">Escazú</p>
+                  <p>Mesero: mesero.escazu@elcacique.com</p>
+                  <p>Cocina: cocina.escazu@elcacique.com</p>
+                  <p className="text-gray-500">Claves: MeseroEscazu2026! / Cocina2026!</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[#659B5E] font-bold">Santa Ana</p>
+                  <p>Mesero: mesero.santaana@elcacique.com</p>
+                  <p>Cocina: cocina.santaana@elcacique.com</p>
+                  <p className="text-gray-500">Claves: MeseroSantaAna2026! / Cocina2026!</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-amber-400 font-bold">Cartago</p>
+                  <p>Mesero: mesero.cartago@elcacique.com</p>
+                  <p>Cocina: cocina.cartago@elcacique.com</p>
+                  <p className="text-gray-500">Claves: MeseroCartago2026! / Cocina2026!</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-purple-400 font-bold">Heredia</p>
+                  <p>Mesero: mesero.heredia@elcacique.com</p>
+                  <p>Cocina: cocina.heredia@elcacique.com</p>
+                  <p className="text-gray-500">Claves: MeseroHeredia2026! / Cocina2026!</p>
+                </div>
+              </div>
+              <p className="pt-1 border-t border-[#F8FFE5]/10 text-center font-mono text-[9px]">
+                <span className="text-amber-300 font-bold">Admin:</span> admin@elcacique.com | AdminCacique2026!
+              </p>
             </div>
           )}
 

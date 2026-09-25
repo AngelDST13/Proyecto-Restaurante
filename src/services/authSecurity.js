@@ -46,6 +46,34 @@ export const VALID_ACCOUNTS = {
     alias: 'Victor',
     rol: 'mesero',
     sede: 'heredia'
+  },
+  'cocina.escazu@elcacique.com': {
+    password: 'Cocina2026!',
+    nombre: 'Cocina Escazú',
+    alias: 'Cocina Escazú',
+    rol: 'cocina',
+    sede: 'escazu'
+  },
+  'cocina.santaana@elcacique.com': {
+    password: 'Cocina2026!',
+    nombre: 'Cocina Santa Ana',
+    alias: 'Cocina Santa Ana',
+    rol: 'cocina',
+    sede: 'santa_ana'
+  },
+  'cocina.cartago@elcacique.com': {
+    password: 'Cocina2026!',
+    nombre: 'Cocina Cartago',
+    alias: 'Cocina Cartago',
+    rol: 'cocina',
+    sede: 'cartago'
+  },
+  'cocina.heredia@elcacique.com': {
+    password: 'Cocina2026!',
+    nombre: 'Cocina Heredia',
+    alias: 'Cocina Heredia',
+    rol: 'cocina',
+    sede: 'heredia'
   }
 };
 

@@ -8,6 +8,7 @@ import Menu from '../pages/Menu';
 import AdminDashboard from '../pages/AdminDashboard';
 import WaiterDashboard from '../pages/WaiterDashboard';
 import KitchenDashboard from '../pages/KitchenDashboard';
+import OrderStatusBoard from '../pages/OrderStatusBoard';
 import Unauthorized from '../pages/Unauthorized';
 
 import Navbar from '../components/Navbar';
@@ -73,6 +74,7 @@ export function AppRouter() {
             {/* VISTAS PÚBLICAS */}
             <Route path="/" element={<Landing />} />
             <Route path="/menu" element={<Menu />} />
+            <Route path="/pedidos" element={<OrderStatusBoard />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* LOGIN (Ruta Pública Protegida) */}
