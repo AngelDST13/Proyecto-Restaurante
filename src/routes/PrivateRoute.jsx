@@ -1,16 +1,15 @@
-// src/routes/ProtectedRoute.jsx
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function ProtectedRoute({ children, requiredRole }) {
+export default function PrivateRoute({ children, allowedRoles }) {
   const { user } = useAuth();
 
+  // SI NO HAY USUARIO, REDIRIGE DIRECTAMENTE AL LOGIN
   if (!user) {
-    // Redirige al Login en lugar de la Landing Page '/'
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user.rol !== requiredRole && user.rol !== 'admin') {
+  if (allowedRoles && !allowedRoles.includes(user.rol)) {
     return <Navigate to="/unauthorized" replace />;
   }
 

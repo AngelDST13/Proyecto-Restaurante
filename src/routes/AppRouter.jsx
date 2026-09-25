@@ -48,7 +48,8 @@ export function AppRouter() {
   const location = useLocation();
 
   // Control de vistas administrativas o paneles donde no se debe mostrar Navbar/Footer de cliente
-  const isAdminRoute = location.pathname.startsWith('/admin');
+  const normalizedPath = location.pathname.toLowerCase().replace(/[./]+$/, '') || '/';
+  const isAdminRoute = normalizedPath === '/admin';
   
 
   return (

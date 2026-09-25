@@ -1,6 +1,5 @@
 import { useState, } from 'react';
 import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { formatSedeName } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
@@ -215,9 +214,6 @@ export default function KitchenDashboard() {
   return (
     <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] font-sans pb-16">
       
-      {/* NAVBAR GLOBAL DE NAVEGACIÓN */}
-      <Navbar />
-
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
       )}
