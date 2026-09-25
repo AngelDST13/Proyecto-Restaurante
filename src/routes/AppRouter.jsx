@@ -14,6 +14,7 @@ import Unauthorized from '../pages/Unauthorized';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Toast from '../components/Toast';
+import AiAgentWidget from '../components/AiAgentWidget';
 import { useAuth } from '../context/AuthContext';
 
 // Normalizador de URL para URLs canónicas limpias
@@ -124,6 +125,9 @@ export function AppRouter() {
 
         {/* Footer global (oculto solo en Admin Dashboard) */}
         {!isAdminRoute && <Footer />}
+
+        {/* Asistente disponible en todas las rutas */}
+        <AiAgentWidget />
       </div>
     </URLNormalizer>
   );

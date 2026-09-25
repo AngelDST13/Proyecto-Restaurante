@@ -145,7 +145,7 @@ export default function Menu() {
                   activeCategory === cat.id ? 'bg-[#D16014] text-white shadow-lg' : 'bg-[#0A090C] text-gray-400 border border-[#F8FFE5]/10 hover:text-white'
                 }`}
               >
-                {cat.icon && <span className="flex-shrink-0">{cat.icon}</span>}
+                {cat.icon && <span className="shrink-0">{cat.icon}</span>}
                 {cat.label}
               </button>
             ))}
