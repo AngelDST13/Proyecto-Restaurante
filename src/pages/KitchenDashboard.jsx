@@ -1,13 +1,14 @@
 import { useState, } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { formatSedeName } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { 
-  Flame, Clock,  RefreshCw, 
+  Flame, Clock, RefreshCw, 
   Users, ChefHat, Filter, AlertCircle, LogOut, CheckSquare, Square,
-  MessageSquare, BellRing,Edit3, Send, Timer, 
+  MessageSquare, BellRing, Edit3, Send, Timer
 } from 'lucide-react';
 
 const READY_ORDERS_STORAGE_KEY = 'cacique_ready_order_notifications';
@@ -21,7 +22,7 @@ export default function KitchenDashboard() {
 
   // MODAL DE NOTAS Y COMENTARIOS
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
-  const [activeNoteTarget, setActiveNoteTarget] = useState(null); // { orderId, itemId, currentNote }
+  const [activeNoteTarget, setActiveNoteTarget] = useState(null); 
   const [noteText, setNoteText] = useState('');
 
   // BASE DE DATOS MUESTRA DE COMANDAS KDS
@@ -104,7 +105,6 @@ export default function KitchenDashboard() {
         const newTime = Math.max(5, o.tiempoEstimadoPersonalizado + deltaMinutes);
         showToast(`Tiempo estimado de ${o.mesa} ajustado a ${newTime} min`, 'info');
         
-        // Notificar cambio a n8n
         triggerN8nAutomation('PEDIDO_MENU', {
           orderId: o.id,
           mesa: o.mesa,
@@ -202,6 +202,13 @@ export default function KitchenDashboard() {
     setIsNoteModalOpen(false);
   };
 
+  // CIERRE DE SESIÓN SEGURO Y REDIRECCIÓN INMEDIATA
+  const handleConfirmLogout = () => {
+    setIsLogoutModalOpen(false);
+    logout();
+    navigate('/login', { replace: true });
+  };
+
   const filteredOrders = orders.filter(o => o.sede === filterSede);
   const totalPersonasAtendidas = filteredOrders.reduce((acc, curr) => acc + curr.personas, 0);
   const promedioEstimadoGeneral = Math.round(
@@ -209,14 +216,18 @@ export default function KitchenDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] pt-24 pb-16 px-6 font-sans">
+    <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] font-sans pb-16">
+      
+      {/* NAVBAR GLOBAL DE NAVEGACIÓN */}
+      <Navbar />
+
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
       )}
 
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto pt-24 px-6 space-y-8">
         
-        {/* ENCABEZADO KDS VISIBLE PARA PERSONAL AUTORIZADO */}
+        {/* ENCABEZADO KDS */}
         <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-2xl">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-[#D16014]/20 border border-[#D16014]/50 flex items-center justify-center text-[#D16014] shrink-0">
@@ -235,7 +246,7 @@ export default function KitchenDashboard() {
                 Panel de Cocina • Sede {formatSedeName(filterSede)}
               </h1>
               <p className="text-xs text-gray-400 mt-1">
-                Operador: <span className="font-bold text-[#F8FFE5]">{user?.nombre || 'Personal autorizado'}</span>
+                Operador: <span className="font-bold text-[#F8FFE5]">{user?.nombre || 'Personal Autorizado'}</span>
               </p>
             </div>
           </div>
@@ -346,7 +357,7 @@ export default function KitchenDashboard() {
                       </div>
                     </div>
 
-                    {/* CONTROLADOR DE TIEMPO ESTIMADO RESTANTE DESDE COCINA */}
+                    {/* CONTROLADOR DE TIEMPO ESTIMADO */}
                     <div className="p-3 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 space-y-2">
                       <div className="flex justify-between items-center text-[11px] font-bold text-gray-300">
                         <span className="flex items-center gap-1.5 text-[#659B5E]">
@@ -359,14 +370,12 @@ export default function KitchenDashboard() {
                         <button
                           onClick={() => handleAdjustTime(order.id, -5)}
                           className="flex-1 py-1.5 rounded-xl bg-[#001812] border border-[#F8FFE5]/15 hover:border-[#D16014] text-[10px] font-extrabold cursor-pointer transition-colors"
-                          title="Disminuir 5 minutos"
                         >
                           -5 min
                         </button>
                         <button
                           onClick={() => handleAdjustTime(order.id, 5)}
                           className="flex-1 py-1.5 rounded-xl bg-[#001812] border border-[#F8FFE5]/15 hover:border-[#D16014] text-[10px] font-extrabold cursor-pointer transition-colors"
-                          title="Aumentar 5 minutos"
                         >
                           +5 min
                         </button>
@@ -405,7 +414,6 @@ export default function KitchenDashboard() {
                             </div>
                           </div>
 
-                          {/* BOTÓN PARA AÑADIR O EDITAR COMENTARIO */}
                           <button
                             onClick={() => handleOpenNoteModal(order.id, item.id, item.notas)}
                             className="p-1.5 text-gray-400 hover:text-[#D16014] hover:bg-[#F8FFE5]/5 rounded-lg shrink-0 cursor-pointer"
@@ -421,7 +429,6 @@ export default function KitchenDashboard() {
 
                   {/* ACCIONES Y ACCESOS RÁPIDOS */}
                   <div className="space-y-3 pt-3 border-t border-[#F8FFE5]/10">
-                    
                     <button
                       onClick={() => handleNotifyWaiter(order)}
                       className="w-full py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 hover:bg-amber-500/30 text-amber-300 font-extrabold text-[11px] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
@@ -447,7 +454,6 @@ export default function KitchenDashboard() {
                         Listo Servir
                       </button>
                     </div>
-
                   </div>
 
                 </div>
@@ -462,9 +468,9 @@ export default function KitchenDashboard() {
 
       </div>
 
-      {/* MODAL PARA AGREGAR / EDITAR COMENTARIO */}
+      {/* MODAL EDITAR NOTA */}
       {isNoteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="w-full max-w-md bg-[#001812] border border-[#659B5E]/50 rounded-3xl p-6 space-y-5 shadow-2xl text-xs text-[#F8FFE5]">
             <div className="space-y-1">
               <h3 className="text-lg font-black text-white flex items-center gap-2">
@@ -483,7 +489,6 @@ export default function KitchenDashboard() {
                   className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-3 text-[#F8FFE5] focus:outline-none focus:border-[#D16014]"
                 ></textarea>
 
-                {/* ETIQUETAS RÁPIDAS DE COCINA */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {['Sin cebolla', 'Término medio', 'Bien cocido', 'Salsa aparte', 'Urgente', 'Poco salado'].map(tag => (
                     <button
@@ -520,7 +525,7 @@ export default function KitchenDashboard() {
 
       {/* MODAL CONFIRMACIÓN CIERRE SESIÓN */}
       {isLogoutModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="w-full max-w-sm bg-[#001812] border border-red-500/40 rounded-3xl p-6 space-y-5 text-center shadow-2xl text-xs text-[#F8FFE5]">
             <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center mx-auto text-red-400">
               <AlertCircle className="w-6 h-6" />
@@ -539,11 +544,7 @@ export default function KitchenDashboard() {
                 Cancelar
               </button>
               <button
-                onClick={() => {
-                  setIsLogoutModalOpen(false);
-                  logout();
-                  navigate('/login');
-                }}
+                onClick={handleConfirmLogout}
                 className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-extrabold shadow-lg cursor-pointer"
               >
                 Sí, Cerrar
