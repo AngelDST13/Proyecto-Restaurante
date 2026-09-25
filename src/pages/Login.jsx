@@ -109,11 +109,11 @@ export default function Login() {
       >
         <div className="text-center space-y-3">
           
-          <div className="w-20 h-20 max-w-[80px] max-h-[80px] rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 shadow-lg mx-auto flex items-center justify-center p-2.5 overflow-hidden shrink-0">
+          <div className="w-24 h-24 rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 shadow-lg mx-auto flex items-center justify-center p-1 overflow-hidden shrink-0">
             <img 
               src={logoNegro} 
               alt="Logo El Cacique" 
-              className="max-w-[60px] max-h-[60px] w-auto h-auto object-contain block" 
+              className="w-full h-full object-contain block" 
             />
           </div>
 

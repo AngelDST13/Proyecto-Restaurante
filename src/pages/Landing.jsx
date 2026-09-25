@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReservationModal from '../components/ReservationModal';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import Toast from '../components/Toast';
 import { useAutoLogout } from '../hooks/useAutoLogout';
 import { 
@@ -627,34 +626,45 @@ export default function Landing() {
           )}
 
           {!temporada && (
-            <div className="text-center py-16 space-y-5">
-              <div className="w-20 h-20 mx-auto rounded-full bg-[#001812] border border-[#659B5E]/30 flex items-center justify-center">
-                <Utensils className="w-8 h-8 text-[#659B5E]/50" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-black text-gray-400">Sin especialidades de temporada por el momento</h3>
-                <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
-                  Nuestras especialidades de temporada están disponibles en <strong className="text-gray-400">Diciembre &amp; Enero</strong> (temporada festiva) y durante <strong className="text-gray-400">Semana Santa</strong>. Vuelva en esas fechas para descubrir nuestros platillos exclusivos.
+            <div className="space-y-8 animate-fade-in">
+              <div className="p-8 rounded-3xl bg-gradient-to-r from-[#001812] via-[#0A090C] to-[#001812] border border-[#659B5E]/30 text-center space-y-4 max-w-3xl mx-auto shadow-2xl">
+                <div className="w-16 h-16 mx-auto rounded-full bg-[#D16014]/20 border border-[#D16014]/50 flex items-center justify-center animate-bounce">
+                  <Flame className="w-8 h-8 text-[#D16014]" />
+                </div>
+                <h3 className="text-xl font-black text-white uppercase tracking-wider">Especialidades de Temporada Próximamente</h3>
+                <p className="text-xs text-gray-300 leading-relaxed max-w-lg mx-auto">
+                  Nuestras especialidades exclusivas se activan en fechas festivas como <strong className="text-amber-400">Navidad &amp; Fin de Año</strong> y <strong className="text-[#659B5E]">Semana Santa</strong>. Mientras tanto, disfrute de nuestros platillos estrella de paila en el menú general.
                 </p>
               </div>
-              <div className="flex flex-wrap justify-center gap-3 pt-2">
-                <span className="px-4 py-2 rounded-full bg-[#001812] border border-amber-400/30 text-amber-400 text-[10px] font-black uppercase tracking-wider">🎄 Diciembre – Enero</span>
-                <span className="px-4 py-2 rounded-full bg-[#001812] border border-[#659B5E]/30 text-[#659B5E] text-[10px] font-black uppercase tracking-wider">✝️ Semana Santa</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <article className="p-6 rounded-2xl bg-[#001812] border border-amber-400/30 space-y-3 hover:border-amber-400 hover:-translate-y-1 transition-all group">
+                  <div className="flex justify-between items-center gap-3">
+                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">PRÓXIMA TEMPORADA</span>
+                    <span className="px-3 py-1 rounded-full bg-amber-400/10 text-amber-400 text-[10px] font-bold">DICIEMBRE</span>
+                  </div>
+                  <h4 className="text-base font-black text-white group-hover:text-amber-400 transition-colors">Banquete Navideño &amp; Tamales Criollos</h4>
+                  <p className="text-xs text-gray-400">Pierna de cerdo ahumada a la leña con miel de café, tamales de la abuela y rompope artesanal.</p>
+                  <button type="button" onClick={() => navigate('/menu')} className="inline-flex items-center gap-2 pt-2 text-xs font-black text-amber-400 hover:text-white transition-colors cursor-pointer">
+                    <Calendar className="w-4 h-4" /> PRE-ORDENAR CON ANTICIPACIÓN <ChevronRight className="w-4 h-4" />
+                  </button>
+                </article>
+                <article className="p-6 rounded-2xl bg-[#001812] border border-[#659B5E]/30 space-y-3 hover:border-[#659B5E] hover:-translate-y-1 transition-all group">
+                  <div className="flex justify-between items-center gap-3">
+                    <span className="text-[10px] font-black text-[#659B5E] uppercase tracking-widest">TEMPORADA SANTA</span>
+                    <span className="px-3 py-1 rounded-full bg-[#659B5E]/10 text-[#659B5E] text-[10px] font-bold">MARZO / ABRIL</span>
+                  </div>
+                  <h4 className="text-base font-black text-white group-hover:text-[#659B5E] transition-colors">Feria Mar &amp; Paila</h4>
+                  <p className="text-xs text-gray-400">Ceviches de corvina del Pacífico, sopa de mariscos a la leña y fresco artesanal de chan.</p>
+                  <button type="button" onClick={() => navigate('/menu')} className="inline-flex items-center gap-2 pt-2 text-xs font-black text-[#659B5E] hover:text-white transition-colors cursor-pointer">
+                    <Utensils className="w-4 h-4" /> EXPLORAR MENÚ PERMANENTE <ChevronRight className="w-4 h-4" />
+                  </button>
+                </article>
               </div>
-              <button
-                type="button"
-                onClick={() => navigate('/menu')}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#001812] border border-[#659B5E]/40 hover:border-[#659B5E] text-xs font-black text-gray-300 hover:text-white transition-all cursor-pointer"
-              >
-                <Utensils className="w-4 h-4 text-[#659B5E]" /> VER MENÚ COMPLETO
-              </button>
             </div>
           )}
         </div>
 
       </section>
-
-      <Footer />
 
       {isReservationOpen && (
         <ReservationModal
