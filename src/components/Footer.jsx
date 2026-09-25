@@ -1,104 +1,79 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Clock, Mail, MessageSquare, ShieldCheck, Store } from 'lucide-react';
-import logoNegro from '../assets/img/LogoN.svg';
+import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#050507] border-t border-[#F8FFE5]/10 text-[#F8FFE5]/70 text-xs pt-12 pb-8 px-6 font-sans">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-        
-        {/* COLUMNA 1: MARCA CON LOGO NEGRO Y RESEÑA */}
+    <footer className="w-full bg-[#050507] border-t border-[#F8FFE5]/10 text-[#F8FFE5]/80 text-xs pt-12 pb-8 px-6 font-sans mt-auto">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+        {/* COLUMNA 1: MARCA Y LOGO */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <img 
-              src={logoNegro} 
-              alt="Logo Chicharronera El Cacique" 
-              className="h-10 w-auto object-contain"
-            />
+            <div className="w-10 h-10 relative shrink-0">
+              <img
+                src={caciqueIcon}
+                alt="Logo El Cacique"
+                className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(209,96,20,0.8)]"
+              />
+            </div>
             <div>
               <span className="font-extrabold text-base tracking-tight text-[#F8FFE5] block leading-none">El Cacique</span>
-              <span className="text-[10px] text-[#659B5E] font-semibold tracking-wider uppercase">Chicharronera Gourmet</span>
+              <span className="text-[10px] text-[#659B5E] font-bold tracking-wider uppercase">Chicharronera Gourmet</span>
             </div>
           </div>
-          <p className="text-[11px] leading-relaxed text-[#F8FFE5]/60">
-            Sabor criollo auténtico a la leña y chicharrones de paila. Tradición gastronómica costarricense con gestión digital e innovación en tiempo real.
+          <p className="text-[11px] leading-relaxed text-gray-400">
+            Sabor criollo auténtico a la leña y paila. Tradición gastronómica costarricense con gestión digital en tiempo real.
           </p>
-          <div className="flex items-center gap-2 text-emerald-400 text-[11px] font-semibold">
-            <ShieldCheck className="w-4 h-4 text-[#659B5E]" />
+          <div className="flex items-center gap-2 text-[#659B5E] text-[11px] font-bold">
+            <ShieldCheck className="w-4 h-4 shrink-0" />
             <span>Calidad Garantizada 100% Criolla</span>
           </div>
         </div>
 
-        {/* COLUMNA 2: NAVEGACIÓN RÁPIDA */}
+        {/* COLUMNA 2: NAVEGACIÓN */}
         <div className="space-y-3">
           <h4 className="font-extrabold text-[#F8FFE5] uppercase tracking-wider text-xs border-b border-[#F8FFE5]/10 pb-2">Navegación Rápida</h4>
-          <ul className="space-y-2 text-[11px] font-semibold">
-            <li>
-              <Link to="/" className="hover:text-[#D16014] transition-colors flex items-center gap-1.5">
-                • Inicio &amp; Experiencia
-              </Link>
-            </li>
-            <li>
-              <Link to="/menu" className="hover:text-[#D16014] transition-colors text-[#659B5E] flex items-center gap-1.5">
-                • Menú Digital &amp; Comanda
-              </Link>
-            </li>
-            <li>
-              <a href="/#nosotros" className="hover:text-[#D16014] transition-colors flex items-center gap-1.5">
-                • Nuestra Historia
-              </a>
-            </li>
-            <li>
-              <a href="/#eventos" className="hover:text-[#D16014] transition-colors text-amber-500 flex items-center gap-1.5">
-                • Reservas &amp; Eventos Especiales
-              </a>
-            </li>
+          <ul className="space-y-2 text-[11px] font-semibold text-gray-300">
+            <li><Link to="/" className="hover:text-[#D16014] transition-colors block">• Inicio &amp; Experiencia</Link></li>
+            <li><Link to="/menu" className="hover:text-[#D16014] text-[#659B5E] transition-colors block">• Menú Digital &amp; Comanda</Link></li>
+            <li><a href="/#nosotros" className="hover:text-[#D16014] transition-colors block">• Nuestra Historia</a></li>
+            <li><a href="/#eventos" className="hover:text-[#D16014] text-amber-400 transition-colors block">• Reservas &amp; Eventos</a></li>
           </ul>
         </div>
 
-        {/* COLUMNA 3: CONTACTOS Y HORARIOS */}
+        {/* COLUMNA 3: CONTACTO */}
         <div className="space-y-3">
           <h4 className="font-extrabold text-[#F8FFE5] uppercase tracking-wider text-xs border-b border-[#F8FFE5]/10 pb-2">Central &amp; Horarios</h4>
-          <div className="space-y-2.5 text-[11px]">
-            <div className="flex items-center gap-2.5">
-              <Phone className="w-4 h-4 text-[#D16014] shrink-0" />
-              <span>Central Telefónica: +506 2200-8888</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <Mail className="w-4 h-4 text-[#D16014] shrink-0" />
-              <span>info@chicharroneraelcacique.com</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <Clock className="w-4 h-4 text-[#659B5E] shrink-0" />
-              <span>Lunes a Domingo: 11:30 AM - 11:00 PM</span>
-            </div>
+          <div className="space-y-2.5 text-[11px] text-gray-300">
+            <p className="flex items-center gap-2"><Phone className="w-4 h-4 text-[#D16014] shrink-0" /> Central: +506 2200-8888</p>
+            <p className="flex items-center gap-2"><Mail className="w-4 h-4 text-[#D16014] shrink-0" /> info@chicharroneraelcacique.com</p>
+            <p className="flex items-center gap-2"><Clock className="w-4 h-4 text-[#659B5E] shrink-0" /> Lunes a Domingo: 11:30 AM - 11:00 PM</p>
           </div>
         </div>
 
-        {/* COLUMNA 4: MODALIDAD DE SERVICIO Y CONTACTO */}
+        {/* COLUMNA 4: SERVICIO DE RETIRO */}
         <div className="space-y-3">
           <h4 className="font-extrabold text-[#F8FFE5] uppercase tracking-wider text-xs border-b border-[#F8FFE5]/10 pb-2">Modalidad de Servicio</h4>
-          <div className="p-3 rounded-2xl bg-[#001812] border border-[#659B5E]/30 space-y-1">
+          <div className="p-3.5 rounded-2xl bg-[#001812] border border-[#659B5E]/30 space-y-1">
             <p className="flex items-center gap-1.5 text-[#659B5E] font-bold text-[11px]">
-              <Store className="w-4 h-4 text-[#D16014]" /> Recoger en Restaurante
+              <Store className="w-4 h-4 text-[#D16014] shrink-0" /> Recoger en Restaurante
             </p>
-            <p className="flex items-start gap-1.5 text-[10px] text-gray-400">
-              <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" /> Sedes: Escazú, Santa Ana, Cartago y Heredia.
-            </p>
+            <p className="text-[10px] text-gray-400">Sedes: Escazú, Santa Ana, Cartago y Heredia.</p>
           </div>
-          <span className="block text-[10px] text-[#F8FFE5]/50 font-bold uppercase tracking-wider">Atención de Pedidos</span>
-          <div className="flex items-center gap-3 pt-1">
-            <a href="https://wa.me/50622008888" target="_blank" rel="noreferrer" className="p-2 rounded-xl bg-[#00241B] text-[#F8FFE5] hover:text-[#D16014] border border-[#F8FFE5]/10 transition-colors flex items-center gap-2 font-bold text-[11px]" aria-label="WhatsApp API">
-              <MessageSquare className="w-4 h-4 text-[#659B5E]" />
-              <span>Consultas WhatsApp</span>
-            </a>
-          </div>
+          <a
+            href="https://wa.me/50622008888"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 p-2.5 rounded-xl bg-[#00241B] border border-[#F8FFE5]/10 text-white hover:text-[#D16014] font-bold text-[11px] transition-colors w-full justify-center"
+          >
+            <MessageSquare className="w-4 h-4 text-[#659B5E]" /> Consultas WhatsApp
+          </a>
         </div>
       </div>
 
-      {/* CINTILLO LEGAL Y COPYRIGHT CON FIRMA BVA */}
-      <div className="max-w-7xl mx-auto pt-6 border-t border-[#F8FFE5]/10 flex flex-col sm:flex-row justify-between items-center gap-3 text-[10px] text-[#F8FFE5]/40 font-medium">
-        <p>© 2026 Chicharronera El Cacique. Todos los derechos reservados. Desarrollado por <strong className="text-[#F8FFE5]/80">BVA</strong>.</p>
+      {/* CINTILLO INFERIOR */}
+      <div className="max-w-7xl mx-auto pt-6 border-t border-[#F8FFE5]/10 flex flex-col sm:flex-row justify-between items-center gap-3 text-[10px] text-gray-500 font-medium">
+        <p>© 2026 Chicharronera El Cacique. Todos los derechos reservados. Desarrollado por <strong className="text-gray-300">BVA</strong> (Bryan, Victor &amp; Angel).</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline">Políticas de Privacidad</a>
           <span>•</span>

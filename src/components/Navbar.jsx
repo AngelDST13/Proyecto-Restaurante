@@ -51,13 +51,13 @@ export default function Navbar({ onOpenReservation }) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#001812]/95 backdrop-blur-md border-b border-[#659B5E]/30 text-[#F8FFE5]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
         
         {/* LOGO ORGANICO CON CACIQUE.SVG */}
         <a 
           href="/" 
           onClick={handleLogoClick} 
-          className="flex items-center gap-3 group cursor-pointer py-1 select-none"
+          className="flex items-center gap-3 group cursor-pointer py-1 select-none shrink-0"
           aria-label="Ir al inicio de El Cacique"
         >
           <img 
@@ -76,7 +76,7 @@ export default function Navbar({ onOpenReservation }) {
         </a>
 
         {/* MENÚ DESKTOP */}
-        <nav className="hidden lg:flex items-center gap-6 text-xs font-black uppercase tracking-wider">
+        <nav className="hidden lg:flex flex-1 items-center justify-center gap-4 xl:gap-6 text-xs font-bold tracking-wide">
           <button 
             type="button"
             onClick={() => handleSectionClick('inicio')} 
@@ -108,15 +108,6 @@ export default function Navbar({ onOpenReservation }) {
             <Calendar className="w-3.5 h-3.5 text-[#D16014]" />
             <span>Eventos</span>
           </button>
-
-          <button 
-            type="button"
-            onClick={handleReservationClick} 
-            className="px-4 py-2 rounded-xl bg-[#659B5E] hover:bg-[#52824c] text-white font-extrabold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>AGENDAR RESERVA</span>
-          </button>
         </nav>
 
         {/* CONTROLES DE ACCESIBILIDAD Y SESIÓN */}
@@ -125,7 +116,16 @@ export default function Navbar({ onOpenReservation }) {
           <span>Servicio en Mesa &amp; Express / Recoger en Local</span>
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={handleReservationClick}
+            className="px-4 py-2 rounded-xl bg-[#659B5E] hover:bg-emerald-600 text-white font-extrabold text-xs uppercase transition-all shadow-md cursor-pointer flex items-center gap-2 whitespace-nowrap"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>AGENDAR RESERVA</span>
+          </button>
+
           <div className="flex items-center gap-1 bg-[#0A090C] border border-[#659B5E]/30 p-1 rounded-xl">
             <button 
               type="button"
