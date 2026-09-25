@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bot, X, Send, Sparkles, } from 'lucide-react';
+import { Bot, X, Send, Sparkles } from 'lucide-react';
 import { triggerN8nAutomation } from '../services/n8nService';
 
 export default function AiAgentWidget() {
@@ -8,7 +8,7 @@ export default function AiAgentWidget() {
   const [messages, setMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! Soy el Asistente Virtual de El Cacique 🤠. ¿En qué te puedo ayudar hoy? Puedo informarte sobre nuestro menú, sedes (Escazú, Santa Ana, Cartago, Heredia) o ayudarte a agendar una reserva.'
+      text: '¡Hola! Soy el Asistente IA de El Cacique 🤠. ¿En qué puedo ayudarte? Puedo brindarte información del menú, horarios, sedes (Escazú, Santa Ana, Cartago, Heredia) o ayudarte con tu reserva.'
     }
   ]);
   const [loading, setLoading] = useState(false);
@@ -23,21 +23,16 @@ export default function AiAgentWidget() {
     setLoading(true);
 
     try {
-      // Disparar la automatización hacia n8n
-      const response = await triggerN8nAutomation('AGENTE_IA_CONSULTA', {
-        mensaje: userText,
-        fecha: new Date().toISOString()
+      const res = await triggerN8nAutomation('AGENTE_IA_CONSULTA', {
+        mensaje: userText
       });
 
-      const reply = response?.respuesta || '¡Gracias por tu consulta! Un agente se pondrá en contacto o puedes revisar nuestro menú digital.';
+      const reply = res?.respuesta || '¡Gracias por contactarnos! Puedes revisar nuestro Menú Digital o consultar sobre nuestras sedes.';
       setMessages((prev) => [...prev, { sender: 'bot', text: reply }]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        {
-          sender: 'bot',
-          text: 'En este momento estamos experimentando alta demanda. Puedes consultar nuestras sedes u ordenar directamente en el menú.'
-        }
+        { sender: 'bot', text: 'En este momento tenemos alta demanda. Consulta nuestro menú digital en la barra superior.' }
       ]);
     } finally {
       setLoading(false);
@@ -46,7 +41,6 @@ export default function AiAgentWidget() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans">
-      {/* BOTÓN FLOTANTE */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -57,10 +51,8 @@ export default function AiAgentWidget() {
         </button>
       )}
 
-      {/* VENTANA DEL CHATBOT */}
       {isOpen && (
         <div className="w-80 sm:w-96 bg-[#001812] border-2 border-[#659B5E] rounded-3xl shadow-2xl overflow-hidden flex flex-col h-120">
-          {/* ENCABEZADO */}
           <div className="p-4 bg-[#0A090C] border-b border-[#659B5E]/30 flex justify-between items-center">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-xl bg-[#D16014]/20 text-[#D16014]">
@@ -73,21 +65,14 @@ export default function AiAgentWidget() {
                 <span className="text-[10px] text-[#659B5E] font-bold">En línea • El Cacique</span>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-400 hover:text-white p-1 rounded-lg"
-            >
+            <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white p-1">
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* MENSAJES */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
             {messages.map((m, i) => (
-              <div
-                key={i}
-                className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+              <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
                   className={`max-w-[80%] p-3 rounded-2xl ${
                     m.sender === 'user'
@@ -102,26 +87,21 @@ export default function AiAgentWidget() {
             {loading && (
               <div className="flex justify-start">
                 <div className="p-3 rounded-2xl bg-[#0A090C] border border-[#659B5E]/30 text-xs text-amber-400 animate-pulse">
-                  Escribiendo respuesta...
+                  Procesando respuesta...
                 </div>
               </div>
             )}
           </div>
 
-          {/* FORMULARIO DE ENVÍO */}
           <form onSubmit={handleSend} className="p-3 bg-[#0A090C] border-t border-[#659B5E]/30 flex gap-2">
             <input
               type="text"
-              placeholder="Escribe tu consulta aquí..."
+              placeholder="Escribe tu consulta..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="flex-1 px-3 py-2.5 rounded-xl bg-[#001812] border border-[#F8FFE5]/15 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#D16014]"
             />
-            <button
-              type="submit"
-              disabled={loading}
-              className="p-2.5 rounded-xl bg-[#659B5E] hover:bg-emerald-600 text-white font-bold transition-all cursor-pointer"
-            >
+            <button type="submit" disabled={loading} className="p-2.5 rounded-xl bg-[#659B5E] text-white font-bold cursor-pointer">
               <Send className="w-4 h-4" />
             </button>
           </form>
