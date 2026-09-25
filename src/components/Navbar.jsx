@@ -51,7 +51,7 @@ export default function Navbar({ onOpenReservation }) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A090C]/95 backdrop-blur-md border-b border-[#659B5E]/30 text-[#F8FFE5] shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-3 xl:gap-6">
         
         {/* LOGO ORGANICO CON CACIQUE.SVG */}
         <Link
@@ -79,7 +79,7 @@ export default function Navbar({ onOpenReservation }) {
         </Link>
 
         {/* MENÚ DESKTOP */}
-        <nav className="hidden lg:flex flex-1 items-center justify-center gap-5 xl:gap-8 text-xs xl:text-sm font-extrabold tracking-wide">
+        <nav className="hidden xl:flex flex-1 items-center justify-center gap-5 xl:gap-8 text-xs xl:text-sm font-extrabold tracking-wide">
           <button 
             type="button"
             onClick={() => handleSectionClick('inicio')} 
@@ -114,12 +114,12 @@ export default function Navbar({ onOpenReservation }) {
         </nav>
 
         {/* CONTROLES DE ACCESIBILIDAD Y SESIÓN */}
-        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#001812] border border-[#659B5E]/40 text-[10px] text-[#659B5E] font-bold whitespace-nowrap">
+        <div className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#001812] border border-[#659B5E]/40 text-[10px] text-[#659B5E] font-bold whitespace-nowrap">
           <ShoppingBag className="w-3.5 h-3.5 text-[#D16014]" />
           <span>Servicio en Mesa &amp; Express / Recoger en Local</span>
         </div>
 
-        <div className="hidden md:flex items-center gap-3 shrink-0">
+        <div className="hidden xl:flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={handleReservationClick}
@@ -163,7 +163,7 @@ export default function Navbar({ onOpenReservation }) {
 
           {user ? (
             <div className="flex items-center gap-3 bg-[#0A090C] border border-[#659B5E]/40 px-4 py-2 rounded-2xl">
-              <span className="text-xs font-bold text-[#F8FFE5] flex items-center gap-2">
+              <span className="max-w-40 truncate text-xs font-bold text-[#F8FFE5] flex items-center gap-2">
                 <User className="w-4 h-4 text-[#D16014]" /> {user.nombre || user.email?.split('@')[0]}
               </span>
               <button 
@@ -191,8 +191,10 @@ export default function Navbar({ onOpenReservation }) {
         <button 
           type="button"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="lg:hidden p-2 text-[#F8FFE5] hover:text-[#D16014]"
+          className="xl:hidden shrink-0 p-2 rounded-xl border border-[#659B5E]/40 bg-[#001812] text-[#F8FFE5] hover:text-[#D16014] transition-colors"
           aria-label="Alternar menú de navegación"
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-navigation"
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
         </button>
@@ -201,7 +203,10 @@ export default function Navbar({ onOpenReservation }) {
 
       {/* MENÚ MÓVIL */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-[#001812] border-b border-[#659B5E]/30 px-6 py-6 space-y-4 text-xs font-extrabold uppercase">
+        <div
+          id="mobile-navigation"
+          className="xl:hidden max-h-[calc(100vh-5rem)] overflow-y-auto bg-[#001812] border-b border-[#659B5E]/30 px-6 py-6 space-y-4 text-xs font-extrabold uppercase"
+        >
           <button 
             type="button"
             onClick={() => handleSectionClick('inicio')} 
