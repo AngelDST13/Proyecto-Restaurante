@@ -17,6 +17,7 @@ const SIGNATURE_KEY = 'gourmetsync_sig';
 function clearStoredSession() {
   localStorage.removeItem(ENCRYPTED_USER_KEY);
   localStorage.removeItem(SIGNATURE_KEY);
+  localStorage.removeItem('cacique_user');
   localStorage.removeItem('gourmetsync_user');
   localStorage.removeItem('cacique_jwt_token');
   localStorage.removeItem('cacique_session_signature');
@@ -61,7 +62,9 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     setUser(null);
     clearStoredSession();
+    sessionStorage.clear();
     if (timerRef.current) clearTimeout(timerRef.current);
+    window.location.href = '/login';
   }, []);
 
   useEffect(() => {

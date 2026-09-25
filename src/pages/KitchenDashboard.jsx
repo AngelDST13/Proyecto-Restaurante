@@ -1,5 +1,4 @@
 import { useState, } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
@@ -15,7 +14,6 @@ const READY_ORDERS_STORAGE_KEY = 'cacique_ready_order_notifications';
 
 export default function KitchenDashboard() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [filterSede, setFilterSede] = useState(user?.sede || 'escazu');
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -206,7 +204,6 @@ export default function KitchenDashboard() {
   const handleConfirmLogout = () => {
     setIsLogoutModalOpen(false);
     logout();
-    navigate('/login', { replace: true });
   };
 
   const filteredOrders = orders.filter(o => o.sede === filterSede);

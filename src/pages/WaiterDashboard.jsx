@@ -22,6 +22,10 @@ export default function WaiterDashboard() {
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [readyNotifications, setReadyNotifications] = useState([]);
 
+  const handleLogout = () => {
+    logout();
+  };
+
   // Mesas por Piso
   const [tables, setTables] = useState({
     piso1: [
@@ -245,7 +249,7 @@ export default function WaiterDashboard() {
               <span>Turno Activo: 11:00 AM - 8:00 PM</span>
             </div>
 
-            <button onClick={logout} title="Cerrar Sesión" className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
+            <button onClick={handleLogout} title="Cerrar Sesión" className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
               <LogOut className="w-5 h-5" />
             </button>
           </div>
