@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Clock, Mail, MessageSquare, ShieldCheck } from 'lucide-react';
+import { MapPin, Phone, Clock, Mail, MessageSquare, ShieldCheck, Store } from 'lucide-react';
 import logoNegro from '../assets/img/LogoN.svg';
 
 export default function Footer() {
@@ -75,12 +75,16 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* COLUMNA 4: SEDES Y REDES SOCIALES */}
+        {/* COLUMNA 4: MODALIDAD DE SERVICIO Y CONTACTO */}
         <div className="space-y-3">
-          <h4 className="font-extrabold text-[#F8FFE5] uppercase tracking-wider text-xs border-b border-[#F8FFE5]/10 pb-2">Sedes &amp; Contacto Directo</h4>
-          <div className="flex items-start gap-2 text-[11px] mb-3">
-            <MapPin className="w-4 h-4 text-[#659B5E] shrink-0 mt-0.5" />
-            <span>Escazú • Santa Ana • Cartago • Heredia</span>
+          <h4 className="font-extrabold text-[#F8FFE5] uppercase tracking-wider text-xs border-b border-[#F8FFE5]/10 pb-2">Modalidad de Servicio</h4>
+          <div className="p-3 rounded-2xl bg-[#001812] border border-[#659B5E]/30 space-y-1">
+            <p className="flex items-center gap-1.5 text-[#659B5E] font-bold text-[11px]">
+              <Store className="w-4 h-4 text-[#D16014]" /> Recoger en Restaurante
+            </p>
+            <p className="flex items-start gap-1.5 text-[10px] text-gray-400">
+              <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" /> Sedes: Escazú, Santa Ana, Cartago y Heredia.
+            </p>
           </div>
           <span className="block text-[10px] text-[#F8FFE5]/50 font-bold uppercase tracking-wider">Atención de Pedidos</span>
           <div className="flex items-center gap-3 pt-1">
@@ -90,7 +94,6 @@ export default function Footer() {
             </a>
           </div>
         </div>
-
       </div>
 
       {/* CINTILLO LEGAL Y COPYRIGHT CON FIRMA BVA */}

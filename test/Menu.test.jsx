@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import MenuDigital from "../pages/Menu";
+import MenuDigital from "../src/pages/Menu";
 import { AuthProvider } from '../src/context/AuthContext';
 import { AccessibilityProvider } from '../src/context/AccessibilityContext';
 

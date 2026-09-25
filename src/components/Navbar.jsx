@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAccessibility } from '../context/AccessibilityContext';
-import { Home, Utensils, Calendar, User, LogOut, Menu as MenuIcon, X, Info, RotateCcw } from 'lucide-react';
+import { Home, Utensils, Calendar, User, LogOut, Menu as MenuIcon, X, Info, RotateCcw, ShoppingBag } from 'lucide-react';
 import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Navbar({ onOpenReservation }) {
@@ -120,6 +120,11 @@ export default function Navbar({ onOpenReservation }) {
         </nav>
 
         {/* CONTROLES DE ACCESIBILIDAD Y SESIÓN */}
+        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#001812] border border-[#659B5E]/40 text-[10px] text-[#659B5E] font-bold whitespace-nowrap">
+          <ShoppingBag className="w-3.5 h-3.5 text-[#D16014]" />
+          <span>Servicio en Mesa &amp; Express / Recoger en Local</span>
+        </div>
+
         <div className="hidden md:flex items-center gap-3">
           <div className="flex items-center gap-1 bg-[#0A090C] border border-[#659B5E]/30 p-1 rounded-xl">
             <button 

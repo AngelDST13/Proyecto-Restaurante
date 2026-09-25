@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import { triggerN8nAutomation } from '../services/n8nService';
-import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket } from 'lucide-react';
-import logoNegro from '../assets/img/LogoN.svg';
+import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket, Store } from 'lucide-react';
+import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Login() {
   const { loginWithCredentials, registerClient } = useAuth();
@@ -109,11 +109,12 @@ export default function Login() {
       >
         <div className="text-center space-y-3">
           
-          <div className="w-24 h-24 rounded-2xl bg-[#0A090C] border border-[#F8FFE5]/10 shadow-lg mx-auto flex items-center justify-center p-1 overflow-hidden shrink-0">
+          <div className="relative w-32 h-32 mx-auto flex items-center justify-center">
+            <div className="absolute inset-0 bg-[#D16014]/40 rounded-full blur-2xl animate-pulse"></div>
             <img 
-              src={logoNegro} 
-              alt="Logo El Cacique" 
-              className="w-full h-full object-contain block" 
+              src={caciqueIcon} 
+              alt="Isotipo El Cacique" 
+              className="w-full h-full object-contain relative z-10 filter drop-shadow-[0_0_25px_rgba(209,96,20,0.9)] hover:scale-105 transition-transform duration-300" 
             />
           </div>
 
@@ -125,6 +126,10 @@ export default function Login() {
               <Flame className="w-3.5 h-3.5 text-[#D16014]" />
               <span>Chicharronera El Cacique • Tradición &amp; Sabor</span>
             </p>
+            <div className="mt-4 p-3 rounded-2xl bg-[#0A090C] border border-[#659B5E]/30 flex items-center justify-center gap-2 text-xs font-bold text-[#659B5E]">
+              <Store className="w-4 h-4 text-[#D16014]" />
+              <span>Pedidos para Mesa, Express o Recoger en Local</span>
+            </div>
           </div>
 
           <div className="flex bg-[#0A090C] p-1 rounded-xl border border-[#F8FFE5]/10 text-xs font-bold">
