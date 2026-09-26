@@ -25,6 +25,7 @@ export default function AdminDashboard() {
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [emailResponse, setEmailResponse] = useState(null);
+  const [emailLoading, setEmailLoading] = useState(false);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -52,7 +53,7 @@ export default function AdminDashboard() {
 
   const [supplierForm, setSupplierForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', insumos: '', sede: 'escazu' });
   const [invoiceForm, setInvoiceForm] = useState({ proveedor: '', monto: '', codigo: '', fecha: '', categoria: 'Insumos', archivoNombre: '' });
-  const [emailData, setEmailData] = useState({ destinatarioTipo: 'todos_clientes', especifico: '', asunto: '', mensaje: '' });
+  const [emailData, setEmailData] = useState({ tipo: 'INVENTARIO_ALERTA', destinatarioTipo: 'todos_clientes', especifico: '', asunto: '', mensaje: '' });
 
   // BASE DE DATOS LOCAL DE INVENTARIOS CON LÍMITES
   const [inventory, setInventory] = useState([
@@ -196,21 +197,35 @@ export default function AdminDashboard() {
 
   const handleSendEmail = async (event) => {
     event.preventDefault();
-    if (!emailData.asunto || !emailData.mensaje) {
-      showToast('Escriba asunto y mensaje para enviar el comunicado', 'error');
+    if (!emailData.asunto || !emailData.mensaje || (emailData.destinatarioTipo === 'especifico' && !emailData.especifico)) {
+      showToast('Complete destinatario, asunto y mensaje para enviar el comunicado', 'error');
       return;
     }
     showToast('Enviando comunicado mediante n8n...', 'info');
-    const response = await triggerN8nAutomation('EMAIL_ENVIO', { ...emailData, sede: selectedSede, remitente: 'admin@elcacique.com' });
-    setEmailResponse(response);
+    setEmailLoading(true);
+    try {
+      const response = await triggerN8nAutomation(emailData.tipo, {
+        ...emailData,
+        correoCliente: emailData.destinatarioTipo === 'especifico' ? emailData.especifico : '',
+        producto: 'Comunicado Admin',
+        sede: formatSedeName(selectedSede) || 'Central',
+        remitente: 'admin@elcacique.com'
+      });
+      setEmailResponse(response);
 
-    if (!response.success) {
-      showToast(response.message || 'No se pudo procesar el comunicado', 'error');
-      return;
+      if (!response.success) {
+        showToast(response.message || response.respuesta || 'No se pudo procesar el comunicado', 'error');
+        return;
+      }
+
+      setEmailData({ tipo: 'INVENTARIO_ALERTA', destinatarioTipo: 'todos_clientes', especifico: '', asunto: '', mensaje: '' });
+      showToast(`Comunicado procesado (${response.mode === 'n8n_online' ? 'n8n conectado' : 'modo local'})`, 'success');
+    } catch {
+      setEmailResponse({ success: false, message: 'Error al procesar la solicitud de correo.' });
+      showToast('Error al procesar la solicitud de correo', 'error');
+    } finally {
+      setEmailLoading(false);
     }
-
-    setEmailData({ destinatarioTipo: 'todos_clientes', especifico: '', asunto: '', mensaje: '' });
-    showToast(`Comunicado procesado (${response.mode === 'n8n_online' ? 'n8n conectado' : 'modo local'})`, 'success');
   };
 
   const handlePeriodChange = (period) => {
@@ -586,7 +601,7 @@ export default function AdminDashboard() {
                 <div key={supplier.id} className="p-5 bg-[#0A090C] border border-[#659B5E]/30 rounded-2xl space-y-3">
                   <div className="flex justify-between gap-3"><div><span className="text-[10px] text-[#659B5E] font-black uppercase">Proveedor verificado</span><h4 className="font-extrabold text-base text-white">{supplier.nombre}</h4></div><span className="px-2 py-1 rounded-lg bg-[#659B5E]/20 text-[#659B5E] text-[10px] font-black">{supplier.estado}</span></div>
                   <p className="text-gray-300">Contacto: <strong>{supplier.contacto}</strong></p><p className="text-gray-300">Tel: {supplier.telefono} · {supplier.email}</p><p className="text-amber-300">Insumos: {supplier.insumos}</p>
-                  <button onClick={() => { setEmailData({ destinatarioTipo: 'especifico', especifico: supplier.email, asunto: 'Solicitud de reabastecimiento', mensaje: '' }); setActiveSection('correos'); }} className="w-full py-2 rounded-xl border border-[#F8FFE5]/15 text-gray-300 hover:border-[#D16014] flex items-center justify-center gap-2 cursor-pointer"><Mail className="w-4 h-4" /> Contactar proveedor</button>
+                  <button onClick={() => { setEmailData({ tipo: 'INVENTARIO_ALERTA', destinatarioTipo: 'especifico', especifico: supplier.email, asunto: 'Solicitud de reabastecimiento', mensaje: '' }); setActiveSection('correos'); }} className="w-full py-2 rounded-xl border border-[#F8FFE5]/15 text-gray-300 hover:border-[#D16014] flex items-center justify-center gap-2 cursor-pointer"><Mail className="w-4 h-4" /> Contactar proveedor</button>
                 </div>
               ))}
             </div>
@@ -604,11 +619,12 @@ export default function AdminDashboard() {
           <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 sm:p-8 space-y-6 text-xs shadow-2xl">
             <div className="border-b border-[#F8FFE5]/10 pb-4"><h3 className="font-extrabold text-lg flex items-center gap-2"><Mail className="w-5 h-5 text-[#D16014]" /> Centro de Correos y Comunicados</h3><p className="text-gray-400 text-[11px]">Envía comunicaciones a clientes, proveedores o personal mediante n8n.</p></div>
             <form onSubmit={handleSendEmail} className="space-y-4 max-w-2xl">
+              <label className="block space-y-1"><span className="text-gray-400">Tipo de notificación</span><select value={emailData.tipo} onChange={event => setEmailData({ ...emailData, tipo: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5"><option value="INVENTARIO_ALERTA">Alerta de inventario / proveedores</option><option value="RESERVA_MESA">Confirmación / modificación de reserva</option></select></label>
               <select value={emailData.destinatarioTipo} onChange={event => setEmailData({ ...emailData, destinatarioTipo: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5"><option value="todos_clientes">Todos los clientes</option><option value="todos_proveedores">Todos los proveedores</option><option value="personal_meseros">Personal y cocina</option><option value="especifico">Correo específico</option></select>
               {emailData.destinatarioTipo === 'especifico' && <input type="email" placeholder="destinatario@correo.cr" value={emailData.especifico} onChange={event => setEmailData({ ...emailData, especifico: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />}
               <input type="text" placeholder="Asunto del comunicado" value={emailData.asunto} onChange={event => setEmailData({ ...emailData, asunto: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
               <textarea rows="6" placeholder="Escriba el mensaje..." value={emailData.mensaje} onChange={event => setEmailData({ ...emailData, mensaje: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-3" />
-              <button type="submit" className="py-3 px-6 bg-[#D16014] text-white font-extrabold rounded-xl flex items-center gap-2 cursor-pointer"><Send className="w-4 h-4" /> Despachar con n8n</button>
+              <button type="submit" disabled={emailLoading} className="py-3 px-6 bg-[#D16014] text-white font-extrabold rounded-xl flex items-center gap-2 cursor-pointer disabled:opacity-50"><Send className="w-4 h-4" /> {emailLoading ? 'Enviando correo...' : 'Despachar con n8n'}</button>
             </form>
             {emailResponse && (
               <div className={`max-w-2xl rounded-2xl border p-4 text-xs ${emailResponse.success ? 'border-[#659B5E]/40 bg-[#659B5E]/10 text-[#B9E3B3]' : 'border-red-500/40 bg-red-500/10 text-red-300'}`}>

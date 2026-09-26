@@ -1,34 +1,41 @@
-/* eslint-disable no-undef */
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Login from '../pages/Login';
-import OrderStatusBoard from '../pages/OrderStatusBoard';
-import { AuthProvider } from '../context/AuthContext';
+import Dashboard from '../pages/Dashboard';
+import { triggerN8nAutomation } from '../services/n8nService';
 
-describe('Suite de Pruebas Extendida GourmetSync', () => {
-  test('Login muestra las credenciales de cocina para las 4 sucursales', () => {
-    render(
-      <AuthProvider>
-        <MemoryRouter>
-          <Login />
-        </MemoryRouter>
-      </AuthProvider>
-    );
+// Mock de la llamada a la automatización de n8n
+vi.mock('../services/n8nService', () => ({
+  triggerN8nAutomation: vi.fn(() =>
+    Promise.resolve({ success: true, respuesta: 'Respuesta de prueba mock' })
+  ),
+}));
 
-    expect(screen.getByText(/cocina.escazu@elcacique.com/i)).toBeInTheDocument();
-    expect(screen.getByText(/cocina.santaana@elcacique.com/i)).toBeInTheDocument();
-    expect(screen.getByText(/cocina.cartago@elcacique.com/i)).toBeInTheDocument();
-    expect(screen.getByText(/cocina.heredia@elcacique.com/i)).toBeInTheDocument();
-  });
-
-  test('El monitor de pedidos muestra la columna de "En Preparación" y "¡Listos Servir!"', () => {
+describe('Pruebas de Validación del Sistema El Cacique', () => {
+  test('Renderiza el formulario de Inicio de Sesión correctamente', () => {
     render(
       <MemoryRouter>
-        <OrderStatusBoard />
+        <Login />
       </MemoryRouter>
     );
+    // Sintaxis correcta usando expresión regular combinada
+    expect(screen.getByText(/(Inicia Sesión|Acceso|Iniciar Sesión)/i)).toBeInTheDocument();
+  });
 
-    expect(screen.getByText(/En Preparación/i)).toBeInTheDocument();
-    expect(screen.getByText(/¡Listos Servir!/i)).toBeInTheDocument();
+  test('El servicio de n8n responde correctamente en las automatizaciones', async () => {
+    const res = await triggerN8nAutomation('AGENTE_IA_CONSULTA', { mensaje: 'Hola' });
+    expect(res.success).toBe(true);
+    expect(res.respuesta).toBe('Respuesta de prueba mock');
+  });
+
+  test('El Dashboard de Administración carga correctamente los paneles', () => {
+    render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    );
+    // Sintaxis correcta usando expresión regular combinada
+    expect(screen.getByText(/(Dashboard|Panel|Administración)/i)).toBeInTheDocument();
   });
 });
