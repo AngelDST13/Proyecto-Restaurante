@@ -1,12 +1,12 @@
 import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import Login from '../pages/Login';
-import Dashboard from '../pages/Dashboard';
-import { triggerN8nAutomation } from '../services/n8nService';
+import Login from '../src/pages/Login';
+import Dashboard from '../src/pages/Dashboard';
+import { triggerN8nAutomation } from '../src/services/n8nService';
 
-// Mock del servicio de automatización n8n
-vi.mock('../services/n8nService', () => ({
+// Mock del servicio n8n
+vi.mock('../src/services/n8nService', () => ({
   triggerN8nAutomation: vi.fn(() =>
     Promise.resolve({ success: true, respuesta: 'Respuesta de prueba mock' })
   ),
@@ -19,10 +19,7 @@ describe('Pruebas de Validación del Sistema El Cacique', () => {
         <Login />
       </MemoryRouter>
     );
-    
-    // Búsqueda flexible de elementos de login
-    const loginText = screen.getByText(/(Inicia Sesión|Acceso|Iniciar Sesión)/i);
-    expect(loginText).toBeInTheDocument();
+    expect(screen.getByText(/(Inicia Sesión|Acceso|Iniciar Sesión)/i)).toBeInTheDocument();
   });
 
   test('El servicio de n8n responde correctamente en las automatizaciones', async () => {
@@ -37,8 +34,6 @@ describe('Pruebas de Validación del Sistema El Cacique', () => {
         <Dashboard />
       </MemoryRouter>
     );
-    
-    const dashboardText = screen.getByText(/(Dashboard|Panel|Administración)/i);
-    expect(dashboardText).toBeInTheDocument();
+    expect(screen.getByText(/(Dashboard|Panel|Administración)/i)).toBeInTheDocument();
   });
 });
