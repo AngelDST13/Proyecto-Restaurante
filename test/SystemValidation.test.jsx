@@ -6,7 +6,7 @@ import AdminDashboard from '../src/pages/AdminDashboard';
 import { AuthProvider } from '../src/context/AuthContext';
 import { triggerN8nAutomation } from '../src/services/n8nService';
 
-// Mock del servicio de automatización de n8n
+// Mock del servicio n8n
 vi.mock('../src/services/n8nService', () => ({
   triggerN8nAutomation: vi.fn(() =>
     Promise.resolve({ success: true, respuesta: 'Respuesta de prueba mock' })
@@ -16,9 +16,11 @@ vi.mock('../src/services/n8nService', () => ({
 describe('Pruebas de Validación del Sistema El Cacique', () => {
   test('Renderiza el formulario de Inicio de Sesión correctamente', () => {
     render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter>
+          <Login />
+        </MemoryRouter>
+      </AuthProvider>
     );
     expect(screen.getByText(/(Inicia Sesión|Acceso|Iniciar Sesión)/i)).toBeInTheDocument();
   });
@@ -31,11 +33,11 @@ describe('Pruebas de Validación del Sistema El Cacique', () => {
 
   test('El Dashboard de Administración carga correctamente los paneles', () => {
     render(
-      <MemoryRouter>
-        <AuthProvider>
+      <AuthProvider>
+        <MemoryRouter>
           <AdminDashboard />
-        </AuthProvider>
-      </MemoryRouter>
+        </MemoryRouter>
+      </AuthProvider>
     );
     expect(screen.getByText(/(Dashboard|Panel|Administración)/i)).toBeInTheDocument();
   });
