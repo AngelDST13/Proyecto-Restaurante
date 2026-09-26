@@ -22,7 +22,11 @@ describe('Pruebas de Validación del Sistema El Cacique', () => {
         </MemoryRouter>
       </AuthProvider>
     );
-    expect(screen.getByText(/(Inicia Sesión|Acceso|Iniciar Sesión)/i)).toBeInTheDocument();
+
+    // getAllByText maneja múltiples coincidencias en pantalla sin dar error
+    const loginElements = screen.getAllByText(/(Inicia Sesión|Acceso|Iniciar Sesión)/i);
+    expect(loginElements.length).toBeGreaterThan(0);
+    expect(loginElements[0]).toBeInTheDocument();
   });
 
   test('El servicio de n8n responde correctamente en las automatizaciones', async () => {
@@ -39,6 +43,9 @@ describe('Pruebas de Validación del Sistema El Cacique', () => {
         </MemoryRouter>
       </AuthProvider>
     );
-    expect(screen.getByText(/(Dashboard|Panel|Administración)/i)).toBeInTheDocument();
+
+    const dashboardElements = screen.getAllByText(/(Dashboard|Panel|Administración)/i);
+    expect(dashboardElements.length).toBeGreaterThan(0);
+    expect(dashboardElements[0]).toBeInTheDocument();
   });
 });
