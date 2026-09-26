@@ -5,7 +5,7 @@ import Login from '../pages/Login';
 import Dashboard from '../pages/Dashboard';
 import { triggerN8nAutomation } from '../services/n8nService';
 
-// Mock de la llamada a la automatización de n8n
+// Mock del servicio de automatización n8n
 vi.mock('../services/n8nService', () => ({
   triggerN8nAutomation: vi.fn(() =>
     Promise.resolve({ success: true, respuesta: 'Respuesta de prueba mock' })
@@ -19,8 +19,10 @@ describe('Pruebas de Validación del Sistema El Cacique', () => {
         <Login />
       </MemoryRouter>
     );
-    // Sintaxis correcta usando expresión regular combinada
-    expect(screen.getByText(/(Inicia Sesión|Acceso|Iniciar Sesión)/i)).toBeInTheDocument();
+    
+    // Búsqueda flexible de elementos de login
+    const loginText = screen.getByText(/(Inicia Sesión|Acceso|Iniciar Sesión)/i);
+    expect(loginText).toBeInTheDocument();
   });
 
   test('El servicio de n8n responde correctamente en las automatizaciones', async () => {
@@ -35,7 +37,8 @@ describe('Pruebas de Validación del Sistema El Cacique', () => {
         <Dashboard />
       </MemoryRouter>
     );
-    // Sintaxis correcta usando expresión regular combinada
-    expect(screen.getByText(/(Dashboard|Panel|Administración)/i)).toBeInTheDocument();
+    
+    const dashboardText = screen.getByText(/(Dashboard|Panel|Administración)/i);
+    expect(dashboardText).toBeInTheDocument();
   });
 });
