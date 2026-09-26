@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Bot, X, Send, Sparkles } from 'lucide-react';
 import { triggerN8nAutomation } from '../services/n8nService';
 
@@ -12,6 +12,12 @@ export default function AiAgentWidget() {
     }
   ]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const handleCartOpen = () => setIsOpen(false);
+    window.addEventListener('cart-opened', handleCartOpen);
+    return () => window.removeEventListener('cart-opened', handleCartOpen);
+  }, []);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -40,7 +46,7 @@ export default function AiAgentWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans">
+    <div className="fixed bottom-6 left-6 z-40 font-sans">
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -52,7 +58,7 @@ export default function AiAgentWidget() {
       )}
 
       {isOpen && (
-        <div className="w-80 sm:w-96 bg-[#001812] border-2 border-[#659B5E] rounded-3xl shadow-2xl overflow-hidden flex flex-col h-120">
+        <div className="fixed bottom-20 left-6 z-50 w-80 sm:w-96 bg-[#001812] border-2 border-[#659B5E] rounded-3xl shadow-2xl overflow-hidden flex flex-col h-120">
           <div className="p-4 bg-[#0A090C] border-b border-[#659B5E]/30 flex justify-between items-center">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-xl bg-[#D16014]/20 text-[#D16014]">

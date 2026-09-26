@@ -72,6 +72,7 @@ export default function Menu() {
   };
 
   const subtotal = cart.reduce((acc, curr) => acc + (curr.precio * curr.cantidad), 0);
+  const cartItemsCount = cart.reduce((count, item) => count + item.cantidad, 0);
   const iva = Math.round(subtotal * 0.13);
   const servicio = Math.round(subtotal * 0.10);
   const totalGeneral = subtotal + iva + servicio;
@@ -184,13 +185,16 @@ export default function Menu() {
         </div>
 
         {cart.length > 0 && (
-          <div className="fixed bottom-6 right-6 z-40">
+          <div className="fixed bottom-5 right-5 z-40">
             <button
-              onClick={() => setIsCartOpen(!isCartOpen)}
+              onClick={() => {
+                setIsCartOpen(true);
+                window.dispatchEvent(new Event('cart-opened'));
+              }}
               className="px-6 py-3.5 rounded-2xl bg-[#D16014] text-white font-extrabold text-xs flex items-center gap-3 shadow-2xl hover:scale-105 transition-transform cursor-pointer"
             >
               <ShoppingBag className="w-5 h-5" />
-              <span>Ver Pedido ({cart.reduce((a, b) => a + b.cantidad, 0)})</span>
+              <span>Ver Pedido ({cartItemsCount})</span>
               <span className="bg-white/20 px-2 py-1 rounded-lg">₡{totalGeneral.toLocaleString()}</span>
             </button>
           </div>
