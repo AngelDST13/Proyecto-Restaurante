@@ -2,10 +2,11 @@ import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Login from '../src/pages/Login';
-import Dashboard from '../src/pages/Dashboard';
+import AdminDashboard from '../src/pages/AdminDashboard';
+import { AuthProvider } from '../src/context/AuthContext';
 import { triggerN8nAutomation } from '../src/services/n8nService';
 
-// Mock del servicio n8n
+// Mock del servicio de automatización de n8n
 vi.mock('../src/services/n8nService', () => ({
   triggerN8nAutomation: vi.fn(() =>
     Promise.resolve({ success: true, respuesta: 'Respuesta de prueba mock' })
@@ -31,7 +32,9 @@ describe('Pruebas de Validación del Sistema El Cacique', () => {
   test('El Dashboard de Administración carga correctamente los paneles', () => {
     render(
       <MemoryRouter>
-        <Dashboard />
+        <AuthProvider>
+          <AdminDashboard />
+        </AuthProvider>
       </MemoryRouter>
     );
     expect(screen.getByText(/(Dashboard|Panel|Administración)/i)).toBeInTheDocument();
