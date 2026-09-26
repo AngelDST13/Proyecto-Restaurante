@@ -1,14 +1,35 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Toast from '../components/Toast';
 import { Search, Flame, ShoppingBag, Plus, Minus, Trash2, MessageCircle, AlertCircle, Truck, Baby } from 'lucide-react';
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const savedCart = localStorage.getItem('elcacique_cart');
+      const parsedCart = savedCart ? JSON.parse(savedCart) : [];
+      return Array.isArray(parsedCart) ? parsedCart : [];
+    } catch {
+      return [];
+    }
+  });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('elcacique_cart', JSON.stringify(cart));
+    } catch {
+      // Keep the in-memory cart usable if browser storage is unavailable.
+    }
+  }, [cart]);
+
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem('elcacique_cart');
+  };
 
   // CATÁLOGO CULINARIO EXTENDIDO
   const fullMenu = [
@@ -87,6 +108,7 @@ export default function Menu() {
     const text = `¡Hola Chicharronera El Cacique! 👋%0A%0AMe gustaría coordinar la reserva de mesa y mi pedido con el siguiente detalle:%0A%0A${itemsText}%0A%0A*Subtotal:* ₡${subtotal.toLocaleString()}%0A*IVA (13%):* ₡${iva.toLocaleString()}%0A*Servicio (10%):* ₡${servicio.toLocaleString()}%0A*Total:* ₡${totalGeneral.toLocaleString()}%0A%0A¿Me ayudan a confirmar disponibilidad de mesa y día?🏼`;
 
     window.open(`https://wa.me/50622008888?text=${text}`, '_blank');
+    clearCart();
     setIsNoticeModalOpen(false);
     setIsCartOpen(false);
   };
