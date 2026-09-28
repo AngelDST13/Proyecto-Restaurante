@@ -16,6 +16,7 @@ vi.mock('../services/n8nService', () => ({
   triggerN8nAutomation: vi.fn(() =>
     Promise.resolve({ success: true, respuesta: 'Respuesta simulada de n8n' })
   ),
+  subscribeToLiveEvents: vi.fn(() => () => {}), // Mock de suscripción que retorna función cleanup
 }));
 
 describe('1. Módulo Criptográfico & Seguridad Client-Side', () => {
