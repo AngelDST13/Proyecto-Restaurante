@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Bot, X, Send, Sparkles } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { triggerN8nAutomation } from '../services/n8nService';
 
 export default function AiAgentWidget() {
+  const location = useLocation();
+  const { user } = useAuth();
+  const isInternalPanel = ['/admin', '/kitchen', '/waiter'].includes(location.pathname);
+  const moduloIA = isInternalPanel ? 'AGENTE_IA_INTERNO' : 'AGENTE_IA_CONSULTA';
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([
@@ -29,8 +35,11 @@ export default function AiAgentWidget() {
     setLoading(true);
 
     try {
-      const res = await triggerN8nAutomation('AGENTE_IA_CONSULTA', {
-        mensaje: userText
+      const res = await triggerN8nAutomation(moduloIA, {
+        mensaje: userText,
+        usuario: user?.correo || user?.email || 'cliente_anonimo',
+        rol: user?.rol || 'cliente',
+        sede: user?.sede || 'General'
       });
 
       const reply = res?.respuesta || '¡Gracias por contactarnos! Puedes revisar nuestro Menú Digital o consultar sobre nuestras sedes.';
@@ -53,7 +62,9 @@ export default function AiAgentWidget() {
           className="p-4 rounded-full bg-[#D16014] hover:bg-[#b8510f] text-white shadow-[0_0_25px_rgba(209,96,20,0.6)] transition-all transform hover:scale-110 flex items-center gap-2 font-black text-xs cursor-pointer"
         >
           <Bot className="w-6 h-6 animate-bounce" />
-          <span className="hidden sm:inline uppercase tracking-wider">Asistente IA</span>
+          <span className="hidden sm:inline uppercase tracking-wider">
+            {isInternalPanel ? 'IA Operativa Staff' : 'Asistente IA'}
+          </span>
         </button>
       )}
 
@@ -66,7 +77,7 @@ export default function AiAgentWidget() {
               </div>
               <div>
                 <h3 className="text-sm font-black text-white flex items-center gap-1.5">
-                  Cacique Bot IA <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  {isInternalPanel ? 'Cacique Bot Staff' : 'Cacique Bot IA'} <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 </h3>
                 <span className="text-[10px] text-[#659B5E] font-bold">En línea • El Cacique</span>
               </div>

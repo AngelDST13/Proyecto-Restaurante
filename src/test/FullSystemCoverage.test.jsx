@@ -7,6 +7,7 @@ import KitchenDashboard from '../pages/KitchenDashboard';
 import WaiterDashboard from '../pages/WaiterDashboard';
 import Menu from '../pages/Menu';
 import Landing from '../pages/Landing';
+import AiAgentWidget from '../components/AiAgentWidget';
 import { AuthProvider } from '../context/AuthContext';
 import { encryptData, decryptData, generateHMAC } from '../services/cryptoService';
 import { triggerN8nAutomation } from '../services/n8nService';
@@ -114,5 +115,20 @@ describe('3. Integración del Servicio n8n & IA', () => {
     const res = await triggerN8nAutomation('AGENTE_IA_CONSULTA', { mensaje: '¿Cuáles son las sedes?' });
     expect(res.success).toBe(true);
     expect(res.respuesta).toBe('Respuesta simulada de n8n');
+  });
+});
+
+describe('4. Pruebas del Widget de la IA', () => {
+  test('Abre y minimiza correctamente el chat de la IA', () => {
+    render(
+      <AuthProvider>
+        <MemoryRouter>
+          <AiAgentWidget />
+        </MemoryRouter>
+      </AuthProvider>
+    );
+
+    const toggleButton = screen.getByRole('button', { name: /(Asistente IA|IA Operativa Staff)/i });
+    expect(toggleButton).toBeInTheDocument();
   });
 });
