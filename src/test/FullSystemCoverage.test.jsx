@@ -1,18 +1,18 @@
 import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import Login from '../src/pages/Login';
-import AdminDashboard from '../src/pages/AdminDashboard';
-import KitchenDashboard from '../src/pages/KitchenDashboard';
-import WaiterDashboard from '../src/pages/WaiterDashboard';
-import Menu from '../src/pages/Menu';
-import Landing from '../src/pages/Landing';
-import { AuthProvider } from '../src/context/AuthContext';
-import { encryptData, decryptData, generateHMAC } from '../src/services/cryptoService';
-import { triggerN8nAutomation } from '../src/services/n8nService';
+import Login from '../pages/Login';
+import AdminDashboard from '../pages/AdminDashboard';
+import KitchenDashboard from '../pages/KitchenDashboard';
+import WaiterDashboard from '../pages/WaiterDashboard';
+import Menu from '../pages/Menu';
+import Landing from '../pages/Landing';
+import { AuthProvider } from '../context/AuthContext';
+import { encryptData, decryptData, generateHMAC } from '../services/cryptoService';
+import { triggerN8nAutomation } from '../services/n8nService';
 
 // Mock del servicio de automatización n8n
-vi.mock('../src/services/n8nService', () => ({
+vi.mock('../services/n8nService', () => ({
   triggerN8nAutomation: vi.fn(() =>
     Promise.resolve({ success: true, respuesta: 'Respuesta simulada de n8n' })
   ),
@@ -33,7 +33,7 @@ describe('1. Módulo Criptográfico & Seguridad Client-Side', () => {
     const payload = { rol: 'mesero', id: 101 };
     const hmac = generateHMAC(payload);
     expect(hmac).toBeDefined();
-    expect(hmac.length).toBe(64); // SHA-256 hex string length
+    expect(hmac.length).toBe(64); // Longitud de cadena hex SHA-256
   });
 });
 
