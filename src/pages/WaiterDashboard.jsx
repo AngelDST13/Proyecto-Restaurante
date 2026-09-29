@@ -15,6 +15,7 @@ export default function WaiterDashboard() {
   const { user, logout } = useAuth();
   const [selectedFloor, setSelectedFloor] = useState('piso1');
   const [selectedTable, setSelectedTable] = useState(null);
+  const [precuentaTable, setPrecuentaTable] = useState(null);
   const [activeCategory, setActiveCategory] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [orderItems, setOrderItems] = useState([]);
@@ -162,16 +163,23 @@ export default function WaiterDashboard() {
     setSelectedTable(null);
   };
 
-  const handleRequestBill = () => {
-    if (!selectedTable) return;
+  const handleGenerarPrecuenta = (mesa) => {
+    if (!mesa) {
+      showToast('Por favor seleccione una mesa ocupada para generar la pre-cuenta.', 'error');
+      return;
+    }
+
+    setPrecuentaTable(mesa);
     setTables(prev => ({
       ...prev,
       [selectedFloor]: prev[selectedFloor].map(t => 
-        t.id === selectedTable.id ? { ...t, estado: 'Cuenta' } : t
+        t.id === mesa.id ? { ...t, estado: 'Cuenta' } : t
       )
     }));
-    showToast(`Pre-cuenta generada para ${selectedTable.numero}`, 'info');
+    showToast(`Pre-cuenta generada para ${mesa.numero}`, 'info');
   };
+
+  const formatCurrency = (amount) => `₡${amount.toLocaleString('es-CR')}`;
 
   const filteredMenu = platillosMenu.filter(p => {
     const matchesCat = activeCategory === 'todos' || p.cat === activeCategory;
@@ -184,6 +192,58 @@ export default function WaiterDashboard() {
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
       )}
+
+      {precuentaTable && (() => {
+        const subtotalPrecuenta = precuentaTable.total || 0;
+        const servicioPrecuenta = Math.round(subtotalPrecuenta * 0.1);
+        const ivaPrecuenta = Math.round(subtotalPrecuenta * 0.13);
+        const totalPrecuenta = subtotalPrecuenta + servicioPrecuenta + ivaPrecuenta;
+
+        return (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" role="presentation" onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setPrecuentaTable(null);
+          }}>
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="precuenta-title"
+              className="w-full max-w-md rounded-2xl border border-[#659B5E]/50 bg-[#0A110D] p-6 text-[#F8FFE5] shadow-2xl"
+            >
+              <div className="mb-5 flex items-start justify-between gap-4 border-b border-[#F8FFE5]/10 pb-4">
+                <div>
+                  <h2 id="precuenta-title" className="text-lg font-black text-white">Pre-cuenta</h2>
+                  <p className="mt-1 text-xs text-gray-400">Chicharronera El Cacique</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPrecuentaTable(null)}
+                  className="rounded-lg px-3 py-1 text-sm font-bold text-gray-300 hover:bg-white/10 hover:text-white"
+                  aria-label="Cerrar pre-cuenta"
+                >
+                  Cerrar
+                </button>
+              </div>
+
+              <div className="mb-5 space-y-1 text-sm">
+                <p><span className="text-gray-400">Mesa:</span> <strong>{precuentaTable.numero}</strong></p>
+                <p><span className="text-gray-400">Sede:</span> {formatSedeName(user?.sede || 'escazu')}</p>
+                <p><span className="text-gray-400">Estado:</span> Pendiente de pago</p>
+              </div>
+
+              <div className="space-y-3 border-y border-dashed border-[#F8FFE5]/20 py-4 text-sm">
+                <div className="flex justify-between"><span className="text-gray-400">Subtotal</span><span>{formatCurrency(subtotalPrecuenta)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Servicio (10%)</span><span>{formatCurrency(servicioPrecuenta)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">IVA (13%)</span><span>{formatCurrency(ivaPrecuenta)}</span></div>
+                <div className="flex justify-between border-t border-[#F8FFE5]/10 pt-3 text-base font-black">
+                  <span>Total a pagar</span><span className="text-[#D16014]">{formatCurrency(totalPrecuenta)}</span>
+                </div>
+              </div>
+
+              <p className="mt-5 text-center text-xs text-gray-400">Gracias por su visita.</p>
+            </section>
+          </div>
+        );
+      })()}
 
       {readyNotifications.length > 0 && (
         <div className="fixed top-20 right-6 z-40 w-[calc(100%-3rem)] max-w-md space-y-3 pointer-events-auto">
@@ -517,7 +577,7 @@ export default function WaiterDashboard() {
 
                 {selectedTable.estado === 'Ocupada' && (
                   <button
-                    onClick={handleRequestBill}
+                    onClick={() => handleGenerarPrecuenta(selectedTable)}
                     className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-blue-700 transition-all"
                   >
                     <FileText className="w-4 h-4" /> Generar Pre-cuenta
