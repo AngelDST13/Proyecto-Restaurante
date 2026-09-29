@@ -192,7 +192,7 @@ export default function Landing() {
               />
             </div>
           ))}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A090C] via-[#0A090C]/60 to-[#0A090C]/30"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-[#0A090C] via-[#0A090C]/60 to-[#0A090C]/30"></div>
         </div>
 
         <button 
@@ -219,7 +219,7 @@ export default function Landing() {
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight leading-none uppercase">
             SABOR CRIOLLO <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D16014] via-amber-400 to-[#659B5E]">
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-[#D16014] via-amber-400 to-[#659B5E]">
               A LA LEÑA Y PAILA
             </span>
           </h1>
@@ -314,7 +314,7 @@ export default function Landing() {
                   alt={item.nombre} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#001812] via-transparent to-transparent opacity-80"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-[#001812] via-transparent to-transparent opacity-80"></div>
                 <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#D16014] text-white text-[10px] font-black uppercase shadow-lg">
                   {item.tag}
                 </span>
@@ -547,7 +547,7 @@ export default function Landing() {
                   <div key={i} className="bg-[#001812] border border-amber-400/30 rounded-3xl overflow-hidden shadow-2xl group hover:border-amber-400 transition-all flex flex-col">
                     <div className="h-44 overflow-hidden relative">
                       <img src={item.img} alt={item.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#001812] via-transparent to-transparent"></div>
+                      <div className="absolute inset-0 bg-linear-to-t from-[#001812] via-transparent to-transparent"></div>
                       <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-amber-400 text-[#001812] text-[10px] font-black">{item.tag}</span>
                     </div>
                     <div className="p-5 space-y-3 flex-1 flex flex-col">
@@ -602,7 +602,7 @@ export default function Landing() {
                   <div key={i} className="bg-[#001812] border border-[#659B5E]/40 rounded-3xl overflow-hidden shadow-2xl group hover:border-[#659B5E] transition-all flex flex-col">
                     <div className="h-44 overflow-hidden relative">
                       <img src={item.img} alt={item.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#001812] via-transparent to-transparent"></div>
+                      <div className="absolute inset-0 bg-linear-to-t from-[#001812] via-transparent to-transparent"></div>
                       <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-[#659B5E] text-white text-[10px] font-black">{item.tag}</span>
                     </div>
                     <div className="p-5 space-y-3 flex-1 flex flex-col">
@@ -627,7 +627,7 @@ export default function Landing() {
 
           {!temporada && (
             <div className="space-y-8 animate-fade-in">
-              <div className="p-8 rounded-3xl bg-gradient-to-r from-[#001812] via-[#0A090C] to-[#001812] border border-[#659B5E]/30 text-center space-y-4 max-w-3xl mx-auto shadow-2xl">
+              <div className="p-8 rounded-3xl bg-linear-to-r from-[#001812] via-[#0A090C] to-[#001812] border border-[#659B5E]/30 text-center space-y-4 max-w-3xl mx-auto shadow-2xl">
                 <div className="w-16 h-16 mx-auto rounded-full bg-[#D16014]/20 border border-[#D16014]/50 flex items-center justify-center animate-bounce">
                   <Flame className="w-8 h-8 text-[#D16014]" />
                 </div>

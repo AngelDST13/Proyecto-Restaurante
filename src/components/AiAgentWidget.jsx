@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bot, X, Send, Sparkles } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +18,22 @@ export default function AiAgentWidget() {
     }
   ]);
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading]);
+
+  useEffect(() => {
+    setMessages([
+      {
+        sender: 'bot',
+        text: isInternalPanel
+          ? `Bienvenido ${user?.nombre || 'Colaborador'}. Asistente Operativo El Cacique activo. Por favor indique su consulta de comandas, inventario o reservas.`
+          : 'Bienvenido a Chicharronera El Cacique. ¿En qué puedo asistirle hoy?\n\n1. Menú y precios\n2. Horarios y sedes\n3. Reservaciones'
+      }
+    ]);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleCartOpen = () => setIsOpen(false);
@@ -55,7 +71,7 @@ export default function AiAgentWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-40 font-sans">
+    <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-40 font-sans">
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -69,7 +85,7 @@ export default function AiAgentWidget() {
       )}
 
       {isOpen && (
-        <div className="fixed bottom-20 left-6 z-50 w-80 sm:w-96 bg-[#001812] border-2 border-[#659B5E] rounded-3xl shadow-2xl overflow-hidden flex flex-col h-120">
+        <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-[#001812] border-2 border-[#659B5E] rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[460px] max-h-[82vh]">
           <div className="p-4 bg-[#0A090C] border-b border-[#659B5E]/30 flex justify-between items-center">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-xl bg-[#D16014]/20 text-[#D16014]">
@@ -87,11 +103,11 @@ export default function AiAgentWidget() {
             </button>
           </div>
 
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+          <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 text-xs sm:text-sm leading-relaxed">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`max-w-[80%] p-3 rounded-2xl ${
+                  className={`max-w-[88%] p-3 rounded-2xl whitespace-pre-wrap ${
                     m.sender === 'user'
                       ? 'bg-[#D16014] text-white rounded-br-none'
                       : 'bg-[#0A090C] border border-[#659B5E]/30 text-gray-200 rounded-bl-none'
@@ -108,6 +124,7 @@ export default function AiAgentWidget() {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           <form onSubmit={handleSend} className="p-3 bg-[#0A090C] border-t border-[#659B5E]/30 flex gap-2">
@@ -116,9 +133,9 @@ export default function AiAgentWidget() {
               placeholder="Escribe tu consulta..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="flex-1 px-3 py-2.5 rounded-xl bg-[#001812] border border-[#F8FFE5]/15 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#D16014]"
+              className="min-w-0 flex-1 px-3 py-2.5 rounded-xl bg-[#001812] border border-[#F8FFE5]/15 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D16014]"
             />
-            <button type="submit" disabled={loading} className="p-2.5 rounded-xl bg-[#659B5E] text-white font-bold cursor-pointer">
+            <button type="submit" disabled={loading || !input.trim()} className="p-2.5 rounded-xl bg-[#659B5E] text-white font-bold cursor-pointer disabled:opacity-40">
               <Send className="w-4 h-4" />
             </button>
           </form>
