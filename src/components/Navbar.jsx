@@ -12,14 +12,35 @@ export default function Navbar({ onOpenReservation }) {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleLogoClick = (e) => {
-    e.preventDefault();
-    setIsMobileMenuOpen(false);
-    if (location.pathname !== '/') {
-      navigate('/', { replace: false });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const getHomeRoute = () => {
+    if (!user) return '/';
+
+    switch (user.rol) {
+      case 'admin':
+        return '/admin';
+      case 'cocina':
+        return '/kitchen';
+      case 'mesero':
+        return '/waiter';
+      default:
+        return '/menu';
     }
+  };
+
+  const handleHomeClick = (e) => {
+    e?.preventDefault();
+    setIsMobileMenuOpen(false);
+    const homeRoute = getHomeRoute();
+
+    if (location.pathname === homeRoute) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate(homeRoute);
+    }
+  };
+
+  const handleLogoClick = (e) => {
+    handleHomeClick(e);
   };
 
   const handleSectionClick = (sectionId) => {
@@ -55,7 +76,7 @@ export default function Navbar({ onOpenReservation }) {
         
         {/* LOGO ORGANICO CON CACIQUE.SVG */}
         <Link
-          to="/"
+          to={getHomeRoute()}
           onClick={handleLogoClick}
           className="flex items-center gap-3.5 group cursor-pointer py-1 select-none shrink-0"
           aria-label="Ir al inicio de El Cacique"
@@ -82,7 +103,7 @@ export default function Navbar({ onOpenReservation }) {
         <nav className="hidden xl:flex flex-1 items-center justify-center gap-5 xl:gap-8 text-xs xl:text-sm font-extrabold tracking-wide">
           <button 
             type="button"
-            onClick={() => handleSectionClick('inicio')} 
+            onClick={handleHomeClick} 
             className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Home className="w-3.5 h-3.5 text-[#D16014]" />
@@ -209,7 +230,7 @@ export default function Navbar({ onOpenReservation }) {
         >
           <button 
             type="button"
-            onClick={() => handleSectionClick('inicio')} 
+            onClick={handleHomeClick} 
             className="flex items-center gap-2 w-full text-left py-2 hover:text-[#D16014]"
           >
             <Home className="w-4 h-4 text-[#D16014]" />

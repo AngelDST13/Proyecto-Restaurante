@@ -147,7 +147,7 @@ export default function Login() {
               onClick={() => { setIsRegister(true); setEmail(''); setPassword(''); }}
               className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${isRegister ? 'bg-[#D16014] text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
             >
-              Crear Cuenta (+5% OFF)
+              Crear Cuenta (5% Desc. en 1er Pedido)
             </button>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Clock, Mail, MessageSquare, ShieldCheck, Store } from 'lucide-react';
+import { Phone, Clock, Mail, MessageSquare, ShieldCheck, Store } from 'lucide-react';
 import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Footer() {
@@ -73,7 +73,7 @@ export default function Footer() {
 
       {/* CINTILLO INFERIOR */}
       <div className="max-w-7xl mx-auto pt-6 border-t border-[#F8FFE5]/10 flex flex-col sm:flex-row justify-between items-center gap-3 text-[10px] text-gray-500 font-medium">
-        <p>© 2026 Chicharronera El Cacique. Todos los derechos reservados. Desarrollado por <strong className="text-gray-300">BVA</strong>, Bryan, Victor &amp; Angel.</p>
+        <p>© 2026 Chicharronera El Cacique. Todos los derechos reservados. Desarrollado por <strong className="text-gray-300">BVA</strong>.</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline">Políticas de Privacidad</a>
           <span>•</span>

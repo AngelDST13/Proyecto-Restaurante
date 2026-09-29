@@ -31,7 +31,7 @@ export default function Landing() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-    }, 5500);
+    }, 5000);
     return () => clearInterval(timer);
   }, [heroImages.length]);
 
