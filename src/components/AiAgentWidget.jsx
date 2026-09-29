@@ -83,7 +83,7 @@ export default function AiAgentWidget() {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-40 font-sans">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 font-sans">
       <style>{`
         @keyframes caciqueFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
         @keyframes caciqueGlow { 0%, 100% { box-shadow: 0 0 18px rgba(234, 88, 12, .25); } 50% { box-shadow: 0 0 30px rgba(249, 115, 22, .55); } }
@@ -95,7 +95,7 @@ export default function AiAgentWidget() {
         @media (prefers-reduced-motion: reduce) { .cacique-bot-float, .cacique-chat-enter, .cacique-sparkle, .cacique-bot-bounce { animation: none !important; } }
       `}</style>
       {(!isOpen || isMinimized) && (
-        <div className="cacique-bot-float fixed bottom-5 left-5 z-40">
+        <div className="cacique-bot-float fixed bottom-5 right-5 z-40">
           <button
             type="button"
             onClick={() => { setIsOpen(true); setIsMinimized(false); }}
@@ -103,7 +103,7 @@ export default function AiAgentWidget() {
             aria-label="Abrir asistente virtual"
           >
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
-            <Bot className="h-5 w-5 text-white transition-transform duration-300 group-hover:rotate-12" />
+            <Bot className="cacique-bot-bounce h-5 w-5 text-white animate-bounce transition-transform duration-300 group-hover:rotate-12" />
             <span className="text-xs font-extrabold tracking-wide drop-shadow-sm sm:text-sm">
               {isStaffContext ? 'IA Operativa Staff' : 'Asistente Virtual'}
             </span>
@@ -113,7 +113,7 @@ export default function AiAgentWidget() {
       )}
 
       {isOpen && !isMinimized && (
-        <div className="cacique-chat-enter fixed bottom-5 left-5 sm:bottom-6 sm:left-6 z-50 w-[calc(100vw-2.5rem)] sm:w-96 bg-zinc-950/98 backdrop-blur-2xl border border-amber-500/40 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-[480px] max-h-[82vh]">
+        <div className="cacique-chat-enter fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2.5rem)] sm:w-96 bg-zinc-950/98 backdrop-blur-2xl border border-amber-500/40 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-[480px] max-h-[82vh]">
           <div className="p-4 bg-amber-600 border-b border-amber-500/30 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg border border-white/20 bg-black/20 text-white">
@@ -157,7 +157,7 @@ export default function AiAgentWidget() {
               <div className="flex justify-start">
                 <div className="flex items-center gap-2 rounded-2xl border border-orange-500/40 bg-zinc-900 p-3 text-xs text-orange-400 shadow-sm animate-pulse">
                   <Sparkles className="h-3.5 w-3.5 animate-spin text-amber-400" />
-                  <span>Procesando consulta...</span>
+                  <span>{isStaffContext ? 'Consultando datos del dashboard...' : 'Procesando consulta...'}</span>
                 </div>
               </div>
             )}
@@ -167,7 +167,7 @@ export default function AiAgentWidget() {
           <form onSubmit={handleSend} className="p-3 bg-[#0A090C] border-t border-[#659B5E]/30 flex gap-2">
             <input
               type="text"
-              placeholder={isStaffContext ? 'Consulta KDS, stock o comandas...' : 'Escriba su consulta...'}
+              placeholder={isStaffContext ? 'Consulte sobre KDS, inventario o comandas...' : 'Escriba su consulta...'}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="min-w-0 flex-1 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors"

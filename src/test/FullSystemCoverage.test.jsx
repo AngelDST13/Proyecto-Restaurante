@@ -94,11 +94,11 @@ describe('3. Integración del Servicio n8n & IA', () => {
 });
 
 describe('4. Pruebas del Widget de la IA', () => {
-  test('Abre y minimiza correctamente el chat de la IA', () => {
+  test('Encuentra el botón para abrir el chat de la IA', () => {
     renderWithProviders(<AiAgentWidget />);
 
     const toggleButton = screen.getByRole('button', {
-      name: /(Abrir asistente virtual|Asistente Virtual|Asistente IA|IA Operativa Staff)/i
+      name: /(Abrir asistente virtual|Asistente Virtual|IA Operativa Staff)/i
     });
     expect(toggleButton).toBeInTheDocument();
   });
