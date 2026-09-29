@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bot, X, Send, Minus, Sparkles } from 'lucide-react';
+import { Bot, X, Send, Minus, Sparkles, ShieldCheck } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { triggerN8nAutomation } from '../services/n8nService';
@@ -8,8 +8,11 @@ import { removeEmojis, validateUserPrompt } from '../services/promptValidation';
 export default function AiAgentWidget() {
   const location = useLocation();
   const { user } = useAuth();
+  const normalizedRole = String(user?.rol || '').toLowerCase().trim();
+  const isStaffRole = ['admin', 'administrador', 'mesero', 'waiter', 'pos', 'cocina', 'kitchen', 'kds'].includes(normalizedRole);
   const isInternalPanel = ['/admin', '/kitchen', '/waiter'].includes(location.pathname);
-  const moduloIA = isInternalPanel ? 'AGENTE_IA_INTERNO' : 'AGENTE_IA_CONSULTA';
+  const isStaffContext = isStaffRole || isInternalPanel;
+  const moduloIA = isStaffContext ? 'AGENTE_IA_INTERNO' : 'AGENTE_IA_CONSULTA';
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [input, setInput] = useState('');
@@ -30,12 +33,12 @@ export default function AiAgentWidget() {
     setMessages([
       {
         sender: 'bot',
-        text: isInternalPanel
-          ? `Bienvenido ${user?.nombre || 'Colaborador'}. Asistente Operativo El Cacique activo. Por favor indique su consulta de comandas, inventario o reservas.`
+        text: isStaffContext
+          ? `Bienvenido ${user?.nombre || 'Colaborador'}. Asistente Operativo Staff activo. Indique su consulta de comandas, KDS, inventario o reservaciones.`
           : 'Bienvenido a Chicharronera El Cacique. ¿En qué puedo asistirle hoy?\n\n1. Menú y precios\n2. Horarios y sedes\n3. Reservaciones'
       }
     ]);
-  }, [location.pathname, user?.nombre]);
+  }, [location.pathname, user?.nombre, isStaffContext]);
 
   useEffect(() => {
     const handleCartOpen = () => { setIsOpen(false); setIsMinimized(false); };
@@ -100,7 +103,7 @@ export default function AiAgentWidget() {
         >
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse" />
           <Bot className="cacique-bot-bounce h-5 w-5 animate-bounce transition-transform duration-300 group-hover:rotate-12" />
-          <span>{isInternalPanel ? 'IA Operativa Staff' : 'Asistente Virtual'}</span>
+          <span>{isStaffContext ? 'IA Operativa Staff' : 'Asistente Virtual'}</span>
           <Sparkles className="cacique-sparkle h-3.5 w-3.5 text-amber-200" />
         </button>
       )}
@@ -109,14 +112,17 @@ export default function AiAgentWidget() {
         <div className="cacique-chat-enter fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-zinc-950/95 backdrop-blur-2xl border-2 border-orange-500/60 rounded-3xl shadow-[0_0_50px_rgba(234,88,12,0.3)] overflow-hidden flex flex-col h-[470px] max-h-[82vh]">
           <div className="p-4 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 border-b border-orange-400/40 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-[#D16014]/20 text-[#D16014]">
-                <Bot className="w-5 h-5" />
+              <div className="p-2 rounded-xl bg-black/25 border border-white/20 text-white">
+                {isStaffContext ? <ShieldCheck className="w-5 h-5 text-amber-200" /> : <Bot className="w-5 h-5" />}
               </div>
               <div>
                 <h3 className="text-sm font-black text-white flex items-center gap-1.5">
-                  {isInternalPanel ? 'Cacique Bot Staff' : 'Cacique Bot IA'}
+                  {isStaffContext ? 'Cacique Bot Staff (Interno)' : 'Cacique Bot IA'}
                 </h3>
-                <span className="text-[10px] text-[#659B5E] font-bold">En línea • El Cacique</span>
+                <span className="text-[10px] text-amber-100 font-semibold flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  En línea • {isStaffContext ? `Staff: ${user?.nombre || 'Operativo'}` : 'Atención al Cliente'}
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -157,7 +163,7 @@ export default function AiAgentWidget() {
           <form onSubmit={handleSend} className="p-3 bg-[#0A090C] border-t border-[#659B5E]/30 flex gap-2">
             <input
               type="text"
-              placeholder="Escribe tu consulta..."
+              placeholder={isStaffContext ? 'Consulta KDS, stock o comandas...' : 'Escriba su consulta...'}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="min-w-0 flex-1 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
