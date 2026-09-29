@@ -13,18 +13,20 @@ export default function Navbar({ onOpenReservation }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const getDashboardButtonConfig = () => {
-    if (!user) return null;
+    if (!user?.rol) return null;
 
-    switch (user.rol) {
-      case 'admin':
-        return { label: 'Panel Admin', path: '/admin', icon: LayoutDashboard };
-      case 'mesero':
-        return { label: 'Panel Mesero POS', path: '/waiter', icon: UtensilsCrossed };
-      case 'cocina':
-        return { label: 'Panel Cocina KDS', path: '/kitchen', icon: ChefHat };
-      default:
-        return null;
+    const role = String(user.rol).toLowerCase().trim();
+    if (['admin', 'administrador'].includes(role)) {
+      return { label: 'Panel Admin', path: '/admin', icon: LayoutDashboard };
     }
+    if (['mesero', 'waiter', 'pos'].includes(role)) {
+      return { label: 'Panel Mesero POS', path: '/waiter', icon: UtensilsCrossed };
+    }
+    if (['cocina', 'kitchen', 'kds'].includes(role)) {
+      return { label: 'Panel Cocina KDS', path: '/kitchen', icon: ChefHat };
+    }
+
+    return null;
   };
 
   const dashboardConfig = getDashboardButtonConfig();
