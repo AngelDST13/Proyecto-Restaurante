@@ -98,7 +98,7 @@ export default function AiAgentWidget() {
         <button
           type="button"
           onClick={() => { setIsOpen(true); setIsMinimized(false); }}
-          className="cacique-bot-float group flex items-center gap-2.5 rounded-full border-2 border-orange-400 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 px-4 py-3 text-xs font-bold text-white transition-all duration-300 hover:scale-105 hover:border-orange-300 hover:shadow-[0_0_35px_rgba(249,115,22,0.8)] active:scale-95 sm:text-sm"
+          className="cacique-bot-float group flex items-center gap-2.5 rounded-full border-2 border-amber-400/70 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-500 px-4 py-3 text-xs font-bold text-white transition-all duration-300 hover:scale-105 hover:border-amber-300 hover:shadow-[0_0_35px_rgba(249,115,22,0.8)] active:scale-95 sm:text-sm"
           aria-label="Abrir asistente virtual"
         >
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse" />
@@ -109,39 +109,39 @@ export default function AiAgentWidget() {
       )}
 
       {isOpen && !isMinimized && (
-        <div className="cacique-chat-enter fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-zinc-950/95 backdrop-blur-2xl border-2 border-orange-500/60 rounded-3xl shadow-[0_0_50px_rgba(234,88,12,0.3)] overflow-hidden flex flex-col h-[470px] max-h-[82vh]">
-          <div className="p-4 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 border-b border-orange-400/40 flex justify-between items-center shadow-md">
+        <div className="cacique-chat-enter fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-zinc-950/95 backdrop-blur-2xl border border-amber-500/50 rounded-3xl shadow-[0_0_50px_rgba(234,88,12,0.3)] overflow-hidden flex flex-col h-[480px] max-h-[82vh]">
+          <div className="p-4 bg-zinc-900/95 border-b border-amber-500/30 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-black/25 border border-white/20 text-white">
+              <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
                 {isStaffContext ? <ShieldCheck className="w-5 h-5 text-amber-200" /> : <Bot className="w-5 h-5" />}
               </div>
               <div>
-                <h3 className="text-sm font-black text-white flex items-center gap-1.5">
+                <h3 className="text-sm font-black text-amber-400 flex items-center gap-1.5">
                   {isStaffContext ? 'Cacique Bot Staff (Interno)' : 'Cacique Bot IA'}
                 </h3>
-                <span className="text-[10px] text-amber-100 font-semibold flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span className="mt-0.5 text-[10px] text-zinc-400 font-semibold flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   En línea • {isStaffContext ? `Staff: ${user?.nombre || 'Operativo'}` : 'Atención al Cliente'}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => setIsMinimized(true)} title="Minimizar" aria-label="Minimizar asistente" className="rounded-lg p-1.5 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
+              <button onClick={() => setIsMinimized(true)} title="Minimizar" aria-label="Minimizar asistente" className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white">
                 <Minus className="w-4 h-4" />
               </button>
-              <button onClick={() => { setIsOpen(false); setIsMinimized(false); }} title="Cerrar" aria-label="Cerrar asistente" className="rounded-lg p-1.5 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
+              <button onClick={() => { setIsOpen(false); setIsMinimized(false); }} title="Cerrar" aria-label="Cerrar asistente" className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 text-xs sm:text-sm leading-relaxed">
+          <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 text-xs sm:text-sm leading-relaxed bg-zinc-950/90">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
                   className={`max-w-[88%] p-3 rounded-2xl whitespace-pre-wrap ${
                     m.sender === 'user'
-                      ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-br-none font-semibold shadow-md'
+                      ? 'bg-amber-600 text-white rounded-br-none font-semibold shadow-md'
                       : 'bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-bl-none shadow-sm'
                   }`}
                 >
@@ -168,7 +168,7 @@ export default function AiAgentWidget() {
               onChange={(e) => setInput(e.target.value)}
               className="min-w-0 flex-1 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
-            <button type="submit" disabled={loading || !input.trim()} className="flex items-center justify-center rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 px-3.5 py-2.5 text-white shadow-lg transition-all hover:from-orange-500 hover:to-amber-400 disabled:opacity-40">
+            <button type="submit" disabled={loading || !input.trim()} className="flex items-center justify-center rounded-xl bg-amber-600 px-3.5 py-2.5 text-white shadow-md transition-all hover:bg-amber-500 disabled:opacity-40">
               <Send className="w-4 h-4" />
             </button>
           </form>
