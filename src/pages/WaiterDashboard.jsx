@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { formatSedeName } from '../services/authSecurity';
+import { decryptData } from '../services/authSecurity';
 import { subscribeToLiveEvents } from '../services/n8nService';
 import Toast from '../components/Toast';
 import { 
@@ -18,6 +19,13 @@ export default function WaiterDashboard() {
   const [precuentaTable, setPrecuentaTable] = useState(null);
   const [splitCount, setSplitCount] = useState(2);
   const [showSplitPanel, setShowSplitPanel] = useState(false);
+  const [tableSearchTerm, setTableSearchTerm] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerId, setCustomerId] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('Tarjeta');
+  const [isElectronicInvoice, setIsElectronicInvoice] = useState(false);
+  const [applyWelcomeDiscount, setApplyWelcomeDiscount] = useState(false);
   const [activeCategory, setActiveCategory] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [orderItems, setOrderItems] = useState([]);
@@ -114,8 +122,24 @@ export default function WaiterDashboard() {
 
   const handleSelectTable = (table) => {
     setSelectedTable(table);
+    setCustomerName(table.clienteNombre || '');
     setOrderItems([]);
     setOrderNote('');
+  };
+
+  const handleAssignCustomer = () => {
+    if (!selectedTable || !customerName.trim()) {
+      showToast('Seleccione una mesa e indique el nombre del cliente.', 'error');
+      return;
+    }
+
+    const updatedTable = { ...selectedTable, clienteNombre: customerName.trim() };
+    setTables(previous => ({
+      ...previous,
+      [selectedFloor]: previous[selectedFloor].map(table => table.id === selectedTable.id ? updatedTable : table)
+    }));
+    setSelectedTable(updatedTable);
+    showToast(`${customerName.trim()} asignado a ${selectedTable.numero}`, 'success');
   };
 
   const handleAddItemToOrder = (item) => {
@@ -152,6 +176,30 @@ export default function WaiterDashboard() {
   const splitTotal = orderItems.length > 0 ? totalGeneral : (selectedTable?.total || 0);
   const baseSplitAmount = Math.floor(splitTotal / splitCount);
   const splitRemainder = splitTotal % splitCount;
+
+  const storedCustomers = decryptData(localStorage.getItem('cacique_registered_clients')) || {};
+  const normalizedCustomerEmail = customerEmail.trim().toLowerCase();
+  const registeredCustomer = normalizedCustomerEmail ? storedCustomers[normalizedCustomerEmail] : null;
+  const welcomeCoupon = registeredCustomer?.coupon || (
+    user?.rol === 'cliente' && user?.email?.toLowerCase() === normalizedCustomerEmail ? user.coupon : null
+  );
+  const welcomeCouponKey = welcomeCoupon && normalizedCustomerEmail
+    ? `cacique_coupon_used_${normalizedCustomerEmail}_${welcomeCoupon.code}`
+    : null;
+  const welcomeCouponAvailable = Boolean(welcomeCoupon && welcomeCouponKey && !localStorage.getItem(welcomeCouponKey));
+  const welcomeDiscountRate = welcomeCouponAvailable && applyWelcomeDiscount
+    ? (welcomeCoupon.discountPercentage || 5) / 100
+    : 0;
+  const discountAmount = Math.round(subtotal * welcomeDiscountRate);
+  const discountedSubtotal = subtotal - discountAmount;
+  const discountedIva = Math.round(discountedSubtotal * 0.13);
+  const discountedService = Math.round(discountedSubtotal * 0.10);
+  const discountedTotal = discountedSubtotal + discountedIva + discountedService;
+
+  const visibleTables = tables[selectedFloor].filter(table => {
+    const query = tableSearchTerm.trim().toLowerCase();
+    return !query || table.numero.toLowerCase().includes(query) || (table.clienteNombre || '').toLowerCase().includes(query);
+  });
 
   const handleSendToKitchen = () => {
     if (!selectedTable || orderItems.length === 0) return;
@@ -414,8 +462,16 @@ export default function WaiterDashboard() {
             </div>
 
             {/* REJILLA INTERACTIVA DE MESAS */}
+            <input
+              type="search"
+              value={tableSearchTerm}
+              onChange={event => setTableSearchTerm(event.target.value)}
+              placeholder="Buscar mesa o cliente asignado..."
+              aria-label="Buscar por número de mesa o nombre de cliente"
+              className="w-full rounded-xl border border-[#F8FFE5]/15 bg-[#07090E] px-3 py-2 text-xs text-[#F8FFE5] placeholder:text-gray-500 focus:border-[#D16014] focus:outline-none"
+            />
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2">
-              {tables[selectedFloor].map((table) => {
+              {visibleTables.map((table) => {
                 const isSelected = selectedTable?.id === table.id;
                 return (
                   <button
@@ -484,6 +540,20 @@ export default function WaiterDashboard() {
 
               {selectedTable ? (
                 <>
+                  <div className="space-y-2 rounded-xl border border-[#F8FFE5]/10 bg-[#07090E] p-3">
+                    <label htmlFor="table-customer-name" className="block text-[11px] font-bold text-gray-400">Cliente asignado a {selectedTable.numero}</label>
+                    <div className="flex gap-2">
+                      <input
+                        id="table-customer-name"
+                        value={customerName}
+                        onChange={event => setCustomerName(event.target.value)}
+                        placeholder="Nombre del cliente"
+                        className="min-w-0 flex-1 rounded-lg border border-[#F8FFE5]/15 bg-[#0A110D] px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:border-[#D16014] focus:outline-none"
+                      />
+                      <button type="button" onClick={handleAssignCustomer} className="rounded-lg bg-[#659B5E] px-3 py-2 text-[10px] font-bold text-white hover:bg-emerald-600">Asignar</button>
+                    </div>
+                  </div>
+
                   {/* BÚSQUEDA Y CATEGORÍAS DE MENÚ */}
                   <div className="space-y-2">
                     <div className="relative">
