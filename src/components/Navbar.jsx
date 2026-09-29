@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAccessibility } from '../context/AccessibilityContext';
-import { Home, Utensils, Calendar, User, LogOut, Menu as MenuIcon, X, Info, RotateCcw, ShoppingBag } from 'lucide-react';
+import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, RotateCcw, ShoppingBag } from 'lucide-react';
 import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Navbar({ onOpenReservation }) {
@@ -12,35 +12,36 @@ export default function Navbar({ onOpenReservation }) {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const getHomeRoute = () => {
-    if (!user) return '/';
+  const getDashboardButtonConfig = () => {
+    if (!user) return null;
 
     switch (user.rol) {
       case 'admin':
-        return '/admin';
-      case 'cocina':
-        return '/kitchen';
+        return { label: 'Panel Admin', path: '/admin', icon: LayoutDashboard };
       case 'mesero':
-        return '/waiter';
+        return { label: 'Panel Mesero POS', path: '/waiter', icon: UtensilsCrossed };
+      case 'cocina':
+        return { label: 'Panel Cocina KDS', path: '/kitchen', icon: ChefHat };
       default:
-        return '/menu';
+        return null;
     }
   };
 
-  const handleHomeClick = (e) => {
+  const dashboardConfig = getDashboardButtonConfig();
+  const DashboardIcon = dashboardConfig?.icon;
+
+  const handleLandingClick = (e) => {
     e?.preventDefault();
     setIsMobileMenuOpen(false);
-    const homeRoute = getHomeRoute();
-
-    if (location.pathname === homeRoute) {
+    if (location.pathname === '/') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      navigate(homeRoute);
+      navigate('/', { replace: false });
     }
   };
 
   const handleLogoClick = (e) => {
-    handleHomeClick(e);
+    handleLandingClick(e);
   };
 
   const handleSectionClick = (sectionId) => {
@@ -76,7 +77,7 @@ export default function Navbar({ onOpenReservation }) {
         
         {/* LOGO ORGANICO CON CACIQUE.SVG */}
         <Link
-          to={getHomeRoute()}
+          to="/"
           onClick={handleLogoClick}
           className="flex items-center gap-3.5 group cursor-pointer py-1 select-none shrink-0"
           aria-label="Ir al inicio de El Cacique"
@@ -103,7 +104,7 @@ export default function Navbar({ onOpenReservation }) {
         <nav className="hidden xl:flex flex-1 items-center justify-center gap-5 xl:gap-8 text-xs xl:text-sm font-extrabold tracking-wide">
           <button 
             type="button"
-            onClick={handleHomeClick} 
+            onClick={handleLandingClick}
             className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Home className="w-3.5 h-3.5 text-[#D16014]" />
@@ -149,6 +150,19 @@ export default function Navbar({ onOpenReservation }) {
             <Calendar className="w-3.5 h-3.5" />
             <span>AGENDAR RESERVA</span>
           </button>
+
+          {dashboardConfig && DashboardIcon && (
+            <Link
+              to={dashboardConfig.path}
+              aria-current={location.pathname === dashboardConfig.path ? 'page' : undefined}
+              aria-label={dashboardConfig.label}
+              title={dashboardConfig.label}
+              className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-400 shadow-sm transition-all hover:bg-amber-500/20 2xl:px-3.5"
+            >
+              <DashboardIcon className="h-4 w-4" />
+              <span className="hidden 2xl:inline">{dashboardConfig.label}</span>
+            </Link>
+          )}
 
           <div className="flex items-center gap-1 bg-[#0A090C] border border-[#659B5E]/30 p-1 rounded-xl">
             <button 
@@ -202,7 +216,7 @@ export default function Navbar({ onOpenReservation }) {
               to="/login"
               className="px-5 py-2.5 rounded-xl bg-[#D16014] hover:bg-[#b8510f] text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg flex items-center gap-2"
             >
-              <User className="w-4 h-4" />
+              <LogIn className="w-4 h-4" />
               <span>Iniciar Sesión</span>
             </Link>
           )}
@@ -228,18 +242,29 @@ export default function Navbar({ onOpenReservation }) {
           id="mobile-navigation"
           className="xl:hidden max-h-[calc(100vh-5rem)] overflow-y-auto bg-[#001812] border-b border-[#659B5E]/30 px-6 py-6 space-y-4 text-xs font-extrabold uppercase"
         >
-          <button 
-            type="button"
-            onClick={handleHomeClick} 
+          <Link
+            to="/"
+            onClick={handleLandingClick}
             className="flex items-center gap-2 w-full text-left py-2 hover:text-[#D16014]"
           >
             <Home className="w-4 h-4 text-[#D16014]" />
             <span>Inicio</span>
-          </button>
+          </Link>
           <Link to="/menu" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 py-2 hover:text-[#D16014]">
             <Utensils className="w-4 h-4 text-[#659B5E]" />
             <span>Menú</span>
           </Link>
+          {dashboardConfig && DashboardIcon && (
+            <Link
+              to={dashboardConfig.path}
+              onClick={() => setIsMobileMenuOpen(false)}
+              aria-current={location.pathname === dashboardConfig.path ? 'page' : undefined}
+              className="flex w-full items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-amber-400 hover:bg-amber-500/20"
+            >
+              <DashboardIcon className="h-4 w-4" />
+              <span>{dashboardConfig.label}</span>
+            </Link>
+          )}
           <button 
             type="button"
             onClick={() => handleSectionClick('nosotros')} 
@@ -307,8 +332,9 @@ export default function Navbar({ onOpenReservation }) {
               <Link 
                 to="/login" 
                 onClick={() => setIsMobileMenuOpen(false)} 
-                className="block w-full py-2.5 bg-[#D16014] text-white text-center rounded-xl font-bold"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#D16014] py-2.5 text-center font-bold text-white"
               >
+                <LogIn className="h-4 w-4" />
                 Iniciar Sesión
               </Link>
             )}

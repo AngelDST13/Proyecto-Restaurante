@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bot, X, Send, Minus } from 'lucide-react';
+import { Bot, X, Send, Minus, Sparkles } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { triggerN8nAutomation } from '../services/n8nService';
@@ -81,21 +81,33 @@ export default function AiAgentWidget() {
 
   return (
     <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-40 font-sans">
+      <style>{`
+        @keyframes caciqueFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        @keyframes caciqueGlow { 0%, 100% { box-shadow: 0 0 18px rgba(245, 158, 11, .2); } 50% { box-shadow: 0 0 30px rgba(245, 158, 11, .42); } }
+        @keyframes caciqueEnter { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes caciqueSparkle { 0%, 100% { opacity: .55; transform: rotate(0deg); } 50% { opacity: 1; transform: rotate(18deg); } }
+        .cacique-bot-float { animation: caciqueFloat 3.2s ease-in-out infinite, caciqueGlow 3.2s ease-in-out infinite; }
+        .cacique-chat-enter { animation: caciqueEnter .24s ease-out both; }
+        .cacique-sparkle { animation: caciqueSparkle 2.4s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .cacique-bot-float, .cacique-chat-enter, .cacique-sparkle { animation: none; } }
+      `}</style>
       {(!isOpen || isMinimized) && (
         <button
           type="button"
           onClick={() => { setIsOpen(true); setIsMinimized(false); }}
-          className="flex items-center gap-2 rounded-full border border-[#659B5E]/50 bg-[#0A090C] px-4 py-3 text-xs font-bold text-amber-400 shadow-xl transition-colors hover:bg-[#001812]"
+          className="cacique-bot-float group flex items-center gap-2.5 rounded-full border border-amber-500/50 bg-gradient-to-r from-zinc-950 via-[#0A090C] to-[#001812] px-4 py-3 text-xs font-bold text-amber-400 transition-all duration-300 hover:scale-105 hover:border-amber-400 hover:shadow-[0_0_32px_rgba(245,158,11,0.45)] sm:text-sm"
           aria-label="Abrir asistente virtual"
         >
-          <Bot className="h-4 w-4" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse" />
+          <Bot className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
           <span>{isInternalPanel ? 'IA Operativa Staff' : 'Asistente Virtual'}</span>
+          <Sparkles className="cacique-sparkle h-3.5 w-3.5 text-amber-300" />
         </button>
       )}
 
       {isOpen && !isMinimized && (
-        <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-[#001812] border-2 border-[#659B5E] rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[460px] max-h-[82vh]">
-          <div className="p-4 bg-[#0A090C] border-b border-[#659B5E]/30 flex justify-between items-center">
+        <div className="cacique-chat-enter fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-zinc-950/95 backdrop-blur-2xl border border-amber-500/40 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-[470px] max-h-[82vh]">
+          <div className="p-4 bg-gradient-to-r from-zinc-900 via-[#0A090C] to-[#001812] border-b border-amber-500/30 flex justify-between items-center shadow-sm">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-xl bg-[#D16014]/20 text-[#D16014]">
                 <Bot className="w-5 h-5" />
@@ -123,8 +135,8 @@ export default function AiAgentWidget() {
                 <div
                   className={`max-w-[88%] p-3 rounded-2xl whitespace-pre-wrap ${
                     m.sender === 'user'
-                      ? 'bg-[#D16014] text-white rounded-br-none'
-                      : 'bg-[#0A090C] border border-[#659B5E]/30 text-gray-200 rounded-bl-none'
+                      ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-br-none font-medium shadow-md'
+                      : 'bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-bl-none shadow-sm'
                   }`}
                 >
                   {m.text}
@@ -133,8 +145,9 @@ export default function AiAgentWidget() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="p-3 rounded-2xl bg-[#0A090C] border border-[#659B5E]/30 text-xs text-amber-400 animate-pulse">
-                  Procesando respuesta...
+                <div className="flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-zinc-900/90 p-3 text-xs text-amber-400 shadow-sm animate-pulse">
+                  <Sparkles className="h-3.5 w-3.5 animate-spin" />
+                  <span>Procesando consulta...</span>
                 </div>
               </div>
             )}
@@ -147,9 +160,9 @@ export default function AiAgentWidget() {
               placeholder="Escribe tu consulta..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="min-w-0 flex-1 px-3 py-2.5 rounded-xl bg-[#001812] border border-[#F8FFE5]/15 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D16014]"
+              className="min-w-0 flex-1 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors"
             />
-            <button type="submit" disabled={loading || !input.trim()} className="p-2.5 rounded-xl bg-[#659B5E] text-white font-bold cursor-pointer disabled:opacity-40">
+            <button type="submit" disabled={loading || !input.trim()} className="flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 px-3.5 py-2.5 text-white shadow-md transition-all hover:from-amber-500 hover:to-amber-400 disabled:opacity-40">
               <Send className="w-4 h-4" />
             </button>
           </form>
