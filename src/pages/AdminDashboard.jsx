@@ -329,14 +329,18 @@ export default function AdminDashboard() {
       <aside className="w-full lg:w-72 bg-[#001812] border-r border-[#659B5E]/30 p-6 flex flex-col justify-between shrink-0 shadow-2xl">
         <div className="space-y-8">
           
-          <div className="flex items-center gap-3 pb-6 border-b border-[#F8FFE5]/10">
-            <div className="w-12 h-12 rounded-2xl bg-[#0A090C] border border-[#D16014]/50 flex items-center justify-center p-2 shrink-0">
-              <img src={logoNegro} alt="El Cacique Admin" className="w-full h-full object-contain" />
-            </div>
+          <div className="flex items-center gap-3 p-4 border-b border-zinc-800/80 mb-4">
+            <img
+              src={logoNegro}
+              alt="El Cacique Logo"
+              className="w-10 h-10 object-contain drop-shadow-md"
+            />
             <div>
-              <span className="font-extrabold text-base text-[#F8FFE5] block leading-tight">El Cacique</span>
-              <span className="text-[10px] text-[#D16014] font-black uppercase tracking-wider bg-[#D16014]/10 px-2 py-0.5 rounded border border-[#D16014]/30 inline-block mt-0.5">
-                Panel Ejecutivo
+              <span className="text-amber-400 font-extrabold text-base tracking-wide block leading-none">
+                EL CACIQUE
+              </span>
+              <span className="text-zinc-500 text-[10px] font-semibold tracking-widest uppercase">
+                Chicharronera Gourmet
               </span>
             </div>
           </div>

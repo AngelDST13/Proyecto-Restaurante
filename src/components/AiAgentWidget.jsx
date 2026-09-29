@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bot, X, Send, Minus, Sparkles, ShieldCheck } from 'lucide-react';
+import { Bot, X, Send, Minus, Sparkles, ShieldCheck, EyeOff, MessageSquare } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { triggerN8nAutomation } from '../services/n8nService';
@@ -15,6 +15,7 @@ export default function AiAgentWidget() {
   const moduloIA = isStaffContext ? 'AGENTE_IA_INTERNO' : 'AGENTE_IA_CONSULTA';
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([
     {
@@ -94,8 +95,8 @@ export default function AiAgentWidget() {
         .cacique-sparkle { animation: caciqueSparkle 2.4s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .cacique-bot-float, .cacique-chat-enter, .cacique-sparkle, .cacique-bot-bounce { animation: none !important; } }
       `}</style>
-      {(!isOpen || isMinimized) && (
-        <div className="cacique-bot-float fixed bottom-5 right-5 z-40">
+      {!isHidden && (!isOpen || isMinimized) && (
+        <div className="cacique-bot-float cacique-bot-bounce fixed bottom-5 right-5 z-40 flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => { setIsOpen(true); setIsMinimized(false); }}
@@ -103,16 +104,37 @@ export default function AiAgentWidget() {
             aria-label="Abrir asistente virtual"
           >
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
-            <Bot className="cacique-bot-bounce h-5 w-5 text-white animate-bounce transition-transform duration-300 group-hover:rotate-12" />
+            <Bot className="h-5 w-5 text-white animate-bounce transition-transform duration-300 group-hover:rotate-12" />
             <span className="text-xs font-extrabold tracking-wide drop-shadow-sm sm:text-sm">
               {isStaffContext ? 'IA Operativa Staff' : 'Asistente Virtual'}
             </span>
             <Sparkles className="cacique-sparkle h-3.5 w-3.5 text-amber-200" />
           </button>
+          <button
+            type="button"
+            onClick={() => { setIsHidden(true); setIsOpen(false); setIsMinimized(false); }}
+            title="Ocultar asistente"
+            aria-label="Ocultar asistente"
+            className="rounded-full border border-zinc-700 bg-zinc-900/90 p-2 text-zinc-400 shadow-md transition-colors hover:bg-zinc-800 hover:text-white"
+          >
+            <EyeOff className="h-3.5 w-3.5" />
+          </button>
         </div>
       )}
 
-      {isOpen && !isMinimized && (
+      {isHidden && (
+        <button
+          type="button"
+          onClick={() => setIsHidden(false)}
+          title="Mostrar asistente virtual"
+          aria-label="Mostrar asistente virtual"
+          className="fixed bottom-5 right-5 z-40 rounded-full border border-amber-500/40 bg-zinc-900 p-2.5 text-amber-400 opacity-90 shadow-lg transition-all hover:scale-110 hover:opacity-100"
+        >
+          <MessageSquare className="h-5 w-5" />
+        </button>
+      )}
+
+      {!isHidden && isOpen && !isMinimized && (
         <div className="cacique-chat-enter fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2.5rem)] sm:w-96 bg-zinc-950/98 backdrop-blur-2xl border border-amber-500/40 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-[480px] max-h-[82vh]">
           <div className="p-4 bg-amber-600 border-b border-amber-500/30 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
