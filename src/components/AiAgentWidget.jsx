@@ -98,7 +98,7 @@ export default function AiAgentWidget() {
         <button
           type="button"
           onClick={() => { setIsOpen(true); setIsMinimized(false); }}
-          className="cacique-bot-float group flex items-center gap-2.5 rounded-full border-2 border-amber-400/70 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-500 px-4 py-3 text-xs font-bold text-white transition-all duration-300 hover:scale-105 hover:border-amber-300 hover:shadow-[0_0_35px_rgba(249,115,22,0.8)] active:scale-95 sm:text-sm"
+          className="cacique-bot-float group relative flex items-center gap-2.5 rounded-xl border border-orange-400/50 bg-amber-600 px-4 py-3 text-xs font-bold text-white shadow-xl transition-all duration-300 hover:scale-105 hover:bg-amber-500 hover:shadow-[0_0_35px_rgba(249,115,22,0.8)] active:scale-95 sm:text-sm"
           aria-label="Abrir asistente virtual"
         >
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse" />
@@ -109,27 +109,27 @@ export default function AiAgentWidget() {
       )}
 
       {isOpen && !isMinimized && (
-        <div className="cacique-chat-enter fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-zinc-950/95 backdrop-blur-2xl border border-amber-500/50 rounded-3xl shadow-[0_0_50px_rgba(234,88,12,0.3)] overflow-hidden flex flex-col h-[480px] max-h-[82vh]">
-          <div className="p-4 bg-zinc-900/95 border-b border-amber-500/30 flex justify-between items-center shadow-md">
+        <div className="cacique-chat-enter fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 w-[calc(100vw-2rem)] sm:w-96 bg-zinc-950/98 backdrop-blur-2xl border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[480px] max-h-[82vh]">
+          <div className="p-4 bg-amber-600 border-b border-orange-400/40 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
+              <div className="p-1.5 rounded-lg border border-white/20 bg-black/20 text-white">
                 {isStaffContext ? <ShieldCheck className="w-5 h-5 text-amber-200" /> : <Bot className="w-5 h-5" />}
               </div>
               <div>
-                <h3 className="text-sm font-black text-amber-400 flex items-center gap-1.5">
+                <h3 className="text-sm font-extrabold leading-tight text-white flex items-center gap-1.5">
                   {isStaffContext ? 'Cacique Bot Staff (Interno)' : 'Cacique Bot IA'}
                 </h3>
-                <span className="mt-0.5 text-[10px] text-zinc-400 font-semibold flex items-center gap-1.5">
+                <span className="mt-0.5 text-[10px] text-amber-100 font-semibold flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   En línea • {isStaffContext ? `Staff: ${user?.nombre || 'Operativo'}` : 'Atención al Cliente'}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => setIsMinimized(true)} title="Minimizar" aria-label="Minimizar asistente" className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white">
+              <button onClick={() => setIsMinimized(true)} title="Minimizar" aria-label="Minimizar asistente" className="rounded-lg p-1 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
                 <Minus className="w-4 h-4" />
               </button>
-              <button onClick={() => { setIsOpen(false); setIsMinimized(false); }} title="Cerrar" aria-label="Cerrar asistente" className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white">
+              <button onClick={() => { setIsOpen(false); setIsMinimized(false); }} title="Cerrar" aria-label="Cerrar asistente" className="rounded-lg p-1 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -141,7 +141,7 @@ export default function AiAgentWidget() {
                 <div
                   className={`max-w-[88%] p-3 rounded-2xl whitespace-pre-wrap ${
                     m.sender === 'user'
-                      ? 'bg-amber-600 text-white rounded-br-none font-semibold shadow-md'
+                      ? 'bg-amber-600 text-white rounded-br-none font-semibold'
                       : 'bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-bl-none shadow-sm'
                   }`}
                 >
