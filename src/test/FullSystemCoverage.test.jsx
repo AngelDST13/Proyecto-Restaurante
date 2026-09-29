@@ -97,7 +97,9 @@ describe('4. Pruebas del Widget de la IA', () => {
   test('Abre y minimiza correctamente el chat de la IA', () => {
     renderWithProviders(<AiAgentWidget />);
 
-    const toggleButton = screen.getByRole('button', { name: /(Asistente IA|IA Operativa Staff)/i });
+    const toggleButton = screen.getByRole('button', {
+      name: /(Abrir asistente virtual|Asistente Virtual|Asistente IA|IA Operativa Staff)/i
+    });
     expect(toggleButton).toBeInTheDocument();
   });
 });
