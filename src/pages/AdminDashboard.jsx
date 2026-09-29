@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
+import caciqueIcon from '../assets/img/Cacique.svg';
 import { formatSedeName } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { 
@@ -330,7 +331,7 @@ export default function AdminDashboard() {
           
           <div className="flex items-center gap-3 p-3 border-b border-zinc-800/80 mb-4">
             <img
-              src="/assets/img/LogoN.svg"
+              src={caciqueIcon}
               alt="El Cacique Logo"
               className="w-12 h-12 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]"
             />
