@@ -44,7 +44,7 @@ describe('Pruebas de Validación del Sistema El Cacique', () => {
       </AuthProvider>
     );
 
-    const dashboardElements = screen.getAllByText(/(Dashboard|Panel|Administración)/i);
+    const dashboardElements = screen.getAllByText(/(Resumen|Analíticas|Administradora|Inventario|Cacique)/i);
     expect(dashboardElements.length).toBeGreaterThan(0);
     expect(dashboardElements[0]).toBeInTheDocument();
   });

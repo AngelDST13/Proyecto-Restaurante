@@ -11,7 +11,6 @@ import {
   Search, Sliders, Flame, AlertCircle, Star, Ticket, MessageSquare,
   Award, ArrowUpRight, Download, Upload, Mail, FileText, Truck, Send, Paperclip
 } from 'lucide-react';
-import logoNegro from '../assets/img/LogoN.svg';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
@@ -329,11 +328,11 @@ export default function AdminDashboard() {
       <aside className="w-full lg:w-72 bg-[#001812] border-r border-[#659B5E]/30 p-6 flex flex-col justify-between shrink-0 shadow-2xl">
         <div className="space-y-8">
           
-          <div className="flex items-center gap-3 p-4 border-b border-zinc-800/80 mb-4">
+          <div className="flex items-center gap-3 p-3 border-b border-zinc-800/80 mb-4">
             <img
-              src={logoNegro}
+              src="/assets/img/LogoN.svg"
               alt="El Cacique Logo"
-              className="w-10 h-10 object-contain drop-shadow-md"
+              className="w-12 h-12 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]"
             />
             <div>
               <span className="text-amber-400 font-extrabold text-base tracking-wide block leading-none">
