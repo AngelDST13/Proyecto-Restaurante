@@ -9,6 +9,7 @@ import Menu from '../pages/Menu';
 import Landing from '../pages/Landing';
 import AiAgentWidget from '../components/AiAgentWidget';
 import { AuthProvider } from '../context/AuthContext';
+import { AccessibilityProvider } from '../context/AccessibilityContext';
 import { encryptData, decryptData, generateHMAC } from '../services/cryptoService';
 import { triggerN8nAutomation } from '../services/n8nService';
 
@@ -19,6 +20,14 @@ vi.mock('../services/n8nService', () => ({
   ),
   subscribeToLiveEvents: vi.fn(() => () => {}), // Mock de suscripción que retorna función cleanup
 }));
+
+const renderWithProviders = (ui) => render(
+  <AccessibilityProvider>
+    <AuthProvider>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </AuthProvider>
+  </AccessibilityProvider>
+);
 
 describe('1. Módulo Criptográfico & Seguridad Client-Side', () => {
   test('Encripta y desencripta correctamente los datos del usuario con AES-256', () => {
@@ -39,73 +48,38 @@ describe('1. Módulo Criptográfico & Seguridad Client-Side', () => {
 });
 
 describe('2. Cobertura de Páginas y Vistas Principales', () => {
-  test('Renderiza el Landing Page principal dentro de AuthProvider', () => {
-    render(
-      <AuthProvider>
-        <MemoryRouter>
-          <Landing />
-        </MemoryRouter>
-      </AuthProvider>
-    );
-    expect(screen.getByText(/(Tradición|Cacique|Menú|Sabor)/i)).toBeInTheDocument();
+  test('Renderiza el Landing Page principal', () => {
+    renderWithProviders(<Landing />);
+    const landingElements = screen.getAllByText(/(Tradición|Cacique|Menú|Sabor)/i);
+    expect(landingElements.length).toBeGreaterThan(0);
   });
 
   test('Renderiza la página del Menú Digital', () => {
-    render(
-      <AuthProvider>
-        <MemoryRouter>
-          <Menu />
-        </MemoryRouter>
-      </AuthProvider>
-    );
+    renderWithProviders(<Menu />);
     const menuTitle = screen.getAllByText(/(Menú|Platillos|Chifrijo)/i);
     expect(menuTitle.length).toBeGreaterThan(0);
   });
 
   test('Renderiza la pantalla de Login con autenticación', () => {
-    render(
-      <AuthProvider>
-        <MemoryRouter>
-          <Login />
-        </MemoryRouter>
-      </AuthProvider>
-    );
+    renderWithProviders(<Login />);
     const loginElements = screen.getAllByText(/(Inicia Sesión|Acceso|Iniciar Sesión)/i);
     expect(loginElements.length).toBeGreaterThan(0);
   });
 
   test('Renderiza el Dashboard de Administración', () => {
-    render(
-      <AuthProvider>
-        <MemoryRouter>
-          <AdminDashboard />
-        </MemoryRouter>
-      </AuthProvider>
-    );
+    renderWithProviders(<AdminDashboard />);
     const adminElements = screen.getAllByText(/(Dashboard|Panel|Administrador|Ventas)/i);
     expect(adminElements.length).toBeGreaterThan(0);
   });
 
   test('Renderiza el Panel KDS de Cocina', () => {
-    render(
-      <AuthProvider>
-        <MemoryRouter>
-          <KitchenDashboard />
-        </MemoryRouter>
-      </AuthProvider>
-    );
+    renderWithProviders(<KitchenDashboard />);
     const kitchenElements = screen.getAllByText(/(Cocina|KDS|Comandas|Pedidos)/i);
     expect(kitchenElements.length).toBeGreaterThan(0);
   });
 
   test('Renderiza el Panel POS para Meseros', () => {
-    render(
-      <AuthProvider>
-        <MemoryRouter>
-          <WaiterDashboard />
-        </MemoryRouter>
-      </AuthProvider>
-    );
+    renderWithProviders(<WaiterDashboard />);
     const waiterElements = screen.getAllByText(/(Mesero|Mesas|Comanda|Salón)/i);
     expect(waiterElements.length).toBeGreaterThan(0);
   });
@@ -121,13 +95,7 @@ describe('3. Integración del Servicio n8n & IA', () => {
 
 describe('4. Pruebas del Widget de la IA', () => {
   test('Abre y minimiza correctamente el chat de la IA', () => {
-    render(
-      <AuthProvider>
-        <MemoryRouter>
-          <AiAgentWidget />
-        </MemoryRouter>
-      </AuthProvider>
-    );
+    renderWithProviders(<AiAgentWidget />);
 
     const toggleButton = screen.getByRole('button', { name: /(Asistente IA|IA Operativa Staff)/i });
     expect(toggleButton).toBeInTheDocument();

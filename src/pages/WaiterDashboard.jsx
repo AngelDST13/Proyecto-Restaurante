@@ -16,6 +16,8 @@ export default function WaiterDashboard() {
   const [selectedFloor, setSelectedFloor] = useState('piso1');
   const [selectedTable, setSelectedTable] = useState(null);
   const [precuentaTable, setPrecuentaTable] = useState(null);
+  const [splitCount, setSplitCount] = useState(2);
+  const [showSplitPanel, setShowSplitPanel] = useState(false);
   const [activeCategory, setActiveCategory] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [orderItems, setOrderItems] = useState([]);
@@ -146,6 +148,10 @@ export default function WaiterDashboard() {
   const iva = Math.round(subtotal * 0.13);
   const servicio = Math.round(subtotal * 0.10);
   const totalGeneral = subtotal + iva + servicio;
+  const totalItemsCount = orderItems.reduce((total, item) => total + item.cantidad, 0);
+  const splitTotal = orderItems.length > 0 ? totalGeneral : (selectedTable?.total || 0);
+  const baseSplitAmount = Math.floor(splitTotal / splitCount);
+  const splitRemainder = splitTotal % splitCount;
 
   const handleSendToKitchen = () => {
     if (!selectedTable || orderItems.length === 0) return;
@@ -153,7 +159,18 @@ export default function WaiterDashboard() {
     setTables(prev => ({
       ...prev,
       [selectedFloor]: prev[selectedFloor].map(t => 
-        t.id === selectedTable.id ? { ...t, estado: 'Ocupada', total: totalGeneral, tiempo: 'Justo ahora' } : t
+        t.id === selectedTable.id
+          ? {
+              ...t,
+              estado: 'Ocupada',
+              total: totalGeneral,
+              subtotal,
+              iva,
+              servicio,
+              items: [...(t.items || []), ...orderItems],
+              tiempo: 'Justo ahora'
+            }
+          : t
       )
     }));
 
@@ -194,10 +211,12 @@ export default function WaiterDashboard() {
       )}
 
       {precuentaTable && (() => {
-        const subtotalPrecuenta = precuentaTable.total || 0;
-        const servicioPrecuenta = Math.round(subtotalPrecuenta * 0.1);
-        const ivaPrecuenta = Math.round(subtotalPrecuenta * 0.13);
+        const subtotalPrecuenta = precuentaTable.subtotal ?? precuentaTable.total ?? 0;
+        const servicioPrecuenta = precuentaTable.servicio ?? Math.round(subtotalPrecuenta * 0.1);
+        const ivaPrecuenta = precuentaTable.iva ?? Math.round(subtotalPrecuenta * 0.13);
         const totalPrecuenta = subtotalPrecuenta + servicioPrecuenta + ivaPrecuenta;
+        const precuentaItems = precuentaTable.items || [];
+        const precuentaItemsCount = precuentaItems.reduce((total, item) => total + item.cantidad, 0);
 
         return (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" role="presentation" onMouseDown={(event) => {
@@ -207,6 +226,7 @@ export default function WaiterDashboard() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="precuenta-title"
+              id="precuenta-print"
               className="w-full max-w-md rounded-2xl border border-[#659B5E]/50 bg-[#0A110D] p-6 text-[#F8FFE5] shadow-2xl"
             >
               <div className="mb-5 flex items-start justify-between gap-4 border-b border-[#F8FFE5]/10 pb-4">
@@ -231,6 +251,13 @@ export default function WaiterDashboard() {
               </div>
 
               <div className="space-y-3 border-y border-dashed border-[#F8FFE5]/20 py-4 text-sm">
+                <div className="flex justify-between"><span className="text-gray-400">Ítems pedidos</span><span>{precuentaItemsCount}</span></div>
+                {precuentaItems.map(item => (
+                  <div key={item.id} className="flex justify-between gap-4 text-xs text-gray-400">
+                    <span>{item.cantidad} × {item.nombre}</span>
+                    <span>{formatCurrency(item.precio * item.cantidad)}</span>
+                  </div>
+                ))}
                 <div className="flex justify-between"><span className="text-gray-400">Subtotal</span><span>{formatCurrency(subtotalPrecuenta)}</span></div>
                 <div className="flex justify-between"><span className="text-gray-400">Servicio (10%)</span><span>{formatCurrency(servicioPrecuenta)}</span></div>
                 <div className="flex justify-between"><span className="text-gray-400">IVA (13%)</span><span>{formatCurrency(ivaPrecuenta)}</span></div>
@@ -240,6 +267,14 @@ export default function WaiterDashboard() {
               </div>
 
               <p className="mt-5 text-center text-xs text-gray-400">Gracias por su visita.</p>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="mt-5 w-full rounded-xl bg-blue-600 py-3 text-xs font-bold text-white transition-colors hover:bg-blue-500 print:hidden"
+              >
+                Imprimir pre-cuenta
+              </button>
+              <style>{`@media print { body * { visibility: hidden !important; } #precuenta-print, #precuenta-print * { visibility: visible !important; } #precuenta-print { position: fixed; inset: 0; width: 100%; max-width: none; border: 0; box-shadow: none; background: white; color: black; } #precuenta-print p, #precuenta-print span, #precuenta-print h2 { color: black !important; } }`}</style>
             </section>
           </div>
         );
@@ -498,7 +533,7 @@ export default function WaiterDashboard() {
 
                   {/* ITEMS DE LA COMANDA ACTIVA */}
                   <div className="space-y-2 pt-3 border-t border-[#F8FFE5]/10">
-                    <span className="text-xs font-bold text-gray-400 block">Ítems Seleccionados ({orderItems.length}):</span>
+                    <span className="text-xs font-bold text-gray-400 block">Ítems Seleccionados ({totalItemsCount}):</span>
                     
                     {orderItems.length === 0 ? (
                       <p className="text-xs text-gray-500 italic text-center py-4">No hay ítems agregados aún.</p>
@@ -567,6 +602,36 @@ export default function WaiterDashboard() {
             {/* BOTONES DE ACCIÓN */}
             {selectedTable && (
               <div className="space-y-2 pt-2 border-t border-[#F8FFE5]/10">
+                <button
+                  type="button"
+                  onClick={() => setShowSplitPanel(open => !open)}
+                  className="w-full py-2.5 rounded-xl bg-[#07090E] border border-amber-500/30 text-amber-400 font-bold text-xs transition-all hover:bg-amber-500/10"
+                >
+                  {showSplitPanel ? 'Ocultar división' : `Dividir cuenta (${splitCount} personas)`}
+                </button>
+
+                {showSplitPanel && (
+                  <div className="space-y-3 rounded-xl border border-amber-500/30 bg-[#07090E] p-3 text-xs">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-gray-300">Personas</span>
+                      <div className="flex items-center gap-3">
+                        <button type="button" onClick={() => setSplitCount(count => Math.max(1, count - 1))} className="h-7 w-7 rounded-lg bg-[#0A110D] font-bold text-white" aria-label="Una persona menos">−</button>
+                        <span className="min-w-5 text-center font-black text-amber-400">{splitCount}</span>
+                        <button type="button" onClick={() => setSplitCount(count => count + 1)} className="h-7 w-7 rounded-lg bg-[#0A110D] font-bold text-white" aria-label="Una persona más">+</button>
+                      </div>
+                    </div>
+                    <div className="space-y-1 border-t border-[#F8FFE5]/10 pt-2">
+                      {Array.from({ length: splitCount }, (_, index) => (
+                        <div key={index} className="flex justify-between font-bold">
+                          <span className="text-gray-300">Persona {index + 1}</span>
+                          <span className="text-emerald-400">{formatCurrency(baseSplitAmount + (index < splitRemainder ? 1 : 0))}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-gray-500">Total dividido: {formatCurrency(splitTotal)}</p>
+                  </div>
+                )}
+
                 <button
                   onClick={handleSendToKitchen}
                   disabled={orderItems.length === 0}
