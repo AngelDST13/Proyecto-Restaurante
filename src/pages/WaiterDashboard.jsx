@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { formatSedeName } from '../services/authSecurity';
-import { decryptData } from '../services/authSecurity';
+import { decryptData, formatSedeName } from '../services/authSecurity';
 import { subscribeToLiveEvents } from '../services/n8nService';
 import Toast from '../components/Toast';
 import { 
-  Utensils, LogOut, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, 
+  Utensils, LogOut, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, Scissors, CreditCard, User,
   ShieldCheck, CheckCircle2, Search, AlertCircle, FileText, Send, Trash2, 
   Sparkles, Coffee, BellRing
 } from 'lucide-react';
@@ -23,6 +22,8 @@ export default function WaiterDashboard() {
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerId, setCustomerId] = useState('');
+  const [billingLegalName, setBillingLegalName] = useState('');
+  const [businessActivityCode, setBusinessActivityCode] = useState('561001');
   const [paymentMethod, setPaymentMethod] = useState('Tarjeta');
   const [isElectronicInvoice, setIsElectronicInvoice] = useState(false);
   const [applyWelcomeDiscount, setApplyWelcomeDiscount] = useState(false);
@@ -123,6 +124,7 @@ export default function WaiterDashboard() {
   const handleSelectTable = (table) => {
     setSelectedTable(table);
     setCustomerName(table.clienteNombre || '');
+    setCustomerEmail(table.clienteCorreo || '');
     setOrderItems([]);
     setOrderNote('');
   };
@@ -133,7 +135,7 @@ export default function WaiterDashboard() {
       return;
     }
 
-    const updatedTable = { ...selectedTable, clienteNombre: customerName.trim() };
+    const updatedTable = { ...selectedTable, clienteNombre: customerName.trim(), clienteCorreo: normalizedCustomerEmail || '' };
     setTables(previous => ({
       ...previous,
       [selectedFloor]: previous[selectedFloor].map(table => table.id === selectedTable.id ? updatedTable : table)
@@ -173,9 +175,6 @@ export default function WaiterDashboard() {
   const servicio = Math.round(subtotal * 0.10);
   const totalGeneral = subtotal + iva + servicio;
   const totalItemsCount = orderItems.reduce((total, item) => total + item.cantidad, 0);
-  const splitTotal = orderItems.length > 0 ? totalGeneral : (selectedTable?.total || 0);
-  const baseSplitAmount = Math.floor(splitTotal / splitCount);
-  const splitRemainder = splitTotal % splitCount;
 
   const storedCustomers = decryptData(localStorage.getItem('cacique_registered_clients')) || {};
   const normalizedCustomerEmail = customerEmail.trim().toLowerCase();
@@ -190,11 +189,17 @@ export default function WaiterDashboard() {
   const welcomeDiscountRate = welcomeCouponAvailable && applyWelcomeDiscount
     ? (welcomeCoupon.discountPercentage || 5) / 100
     : 0;
-  const discountAmount = Math.round(subtotal * welcomeDiscountRate);
-  const discountedSubtotal = subtotal - discountAmount;
-  const discountedIva = Math.round(discountedSubtotal * 0.13);
-  const discountedService = Math.round(discountedSubtotal * 0.10);
-  const discountedTotal = discountedSubtotal + discountedIva + discountedService;
+  const previousSubtotal = selectedTable?.subtotal ?? selectedTable?.total ?? 0;
+  const receiptGrossSubtotal = previousSubtotal + subtotal;
+  const discountAmount = Math.round(receiptGrossSubtotal * welcomeDiscountRate);
+  const receiptSubtotal = receiptGrossSubtotal - discountAmount;
+  const receiptIva = Math.round(receiptSubtotal * 0.13);
+  const receiptService = Math.round(receiptSubtotal * 0.10);
+  const receiptTotal = receiptSubtotal + receiptIva + receiptService;
+  const discountedTotal = receiptTotal;
+  const splitTotal = receiptTotal;
+  const baseSplitAmount = Math.floor(splitTotal / splitCount);
+  const splitRemainder = splitTotal % splitCount;
 
   const visibleTables = tables[selectedFloor].filter(table => {
     const query = tableSearchTerm.trim().toLowerCase();
@@ -234,14 +239,40 @@ export default function WaiterDashboard() {
       return;
     }
 
-    setPrecuentaTable(mesa);
+    if (isElectronicInvoice && (!(billingLegalName.trim() || customerName.trim()) || !customerId.trim() || !businessActivityCode.trim() || !normalizedCustomerEmail)) {
+      showToast('Para la factura electrónica en borrador, complete nombre o razón social, cédula, actividad económica y correo.', 'error');
+      return;
+    }
+
+    setPrecuentaTable({
+      ...mesa,
+      subtotal: receiptSubtotal,
+      subtotalBruto: receiptGrossSubtotal,
+      iva: receiptIva,
+      servicio: receiptService,
+      total: receiptTotal,
+      items: [...(mesa.items || []), ...orderItems],
+      clienteNombre: customerName.trim() || mesa.clienteNombre || '',
+      clienteCorreo: normalizedCustomerEmail,
+      cedulaCliente: customerId.trim(),
+      razonSocial: billingLegalName.trim(),
+      codigoActividad: businessActivityCode.trim(),
+      metodoPago: paymentMethod,
+      tipoComprobante: isElectronicInvoice ? 'Factura electrónica (borrador)' : 'Pre-cuenta / tiquete',
+      descuento: discountAmount,
+      division: showSplitPanel ? Array.from({ length: splitCount }, (_, index) => baseSplitAmount + (index < splitRemainder ? 1 : 0)) : null
+    });
+    if (isElectronicInvoice && welcomeDiscountRate > 0 && welcomeCouponKey) {
+      localStorage.setItem(welcomeCouponKey, 'used');
+      setApplyWelcomeDiscount(false);
+    }
     setTables(prev => ({
       ...prev,
       [selectedFloor]: prev[selectedFloor].map(t => 
         t.id === mesa.id ? { ...t, estado: 'Cuenta' } : t
       )
     }));
-    showToast(`Pre-cuenta generada para ${mesa.numero}`, 'info');
+    showToast(`${isElectronicInvoice ? 'Borrador de factura' : 'Pre-cuenta'} generado para ${mesa.numero}`, 'info');
   };
 
   const formatCurrency = (amount) => `₡${amount.toLocaleString('es-CR')}`;
@@ -279,7 +310,7 @@ export default function WaiterDashboard() {
             >
               <div className="mb-5 flex items-start justify-between gap-4 border-b border-[#F8FFE5]/10 pb-4">
                 <div>
-                  <h2 id="precuenta-title" className="text-lg font-black text-white">Pre-cuenta</h2>
+                  <h2 id="precuenta-title" className="text-lg font-black text-white">{precuentaTable.tipoComprobante || 'Pre-cuenta'}</h2>
                   <p className="mt-1 text-xs text-gray-400">Chicharronera El Cacique</p>
                 </div>
                 <button
@@ -295,6 +326,12 @@ export default function WaiterDashboard() {
               <div className="mb-5 space-y-1 text-sm">
                 <p><span className="text-gray-400">Mesa:</span> <strong>{precuentaTable.numero}</strong></p>
                 <p><span className="text-gray-400">Sede:</span> {formatSedeName(user?.sede || 'escazu')}</p>
+                {(precuentaTable.clienteNombre || precuentaTable.clienteCorreo) && <p><span className="text-gray-400">Cliente:</span> {precuentaTable.clienteNombre || precuentaTable.clienteCorreo}</p>}
+                {precuentaTable.razonSocial && <p><span className="text-gray-400">Razón social:</span> {precuentaTable.razonSocial}</p>}
+                {precuentaTable.cedulaCliente && <p><span className="text-gray-400">Cédula:</span> {precuentaTable.cedulaCliente}</p>}
+                {precuentaTable.codigoActividad && <p><span className="text-gray-400">Actividad económica:</span> {precuentaTable.codigoActividad}</p>}
+                {precuentaTable.clienteCorreo && <p><span className="text-gray-400">Correo:</span> {precuentaTable.clienteCorreo}</p>}
+                <p><span className="text-gray-400">Forma de pago:</span> {precuentaTable.metodoPago}</p>
                 <p><span className="text-gray-400">Estado:</span> Pendiente de pago</p>
               </div>
 
@@ -306,21 +343,31 @@ export default function WaiterDashboard() {
                     <span>{formatCurrency(item.precio * item.cantidad)}</span>
                   </div>
                 ))}
+                <div className="flex justify-between"><span className="text-gray-400">Subtotal bruto</span><span>{formatCurrency(precuentaTable.subtotalBruto ?? subtotalPrecuenta)}</span></div>
+                {precuentaTable.descuento > 0 && <div className="flex justify-between text-emerald-400"><span>Descuento registro (5%)</span><span>−{formatCurrency(precuentaTable.descuento)}</span></div>}
                 <div className="flex justify-between"><span className="text-gray-400">Subtotal</span><span>{formatCurrency(subtotalPrecuenta)}</span></div>
                 <div className="flex justify-between"><span className="text-gray-400">Servicio (10%)</span><span>{formatCurrency(servicioPrecuenta)}</span></div>
                 <div className="flex justify-between"><span className="text-gray-400">IVA (13%)</span><span>{formatCurrency(ivaPrecuenta)}</span></div>
+                {precuentaTable.division?.map((amount, index) => (
+                  <div key={index} className="flex justify-between text-xs text-emerald-400"><span>Parte {index + 1}</span><span>{formatCurrency(amount)}</span></div>
+                ))}
                 <div className="flex justify-between border-t border-[#F8FFE5]/10 pt-3 text-base font-black">
                   <span>Total a pagar</span><span className="text-[#D16014]">{formatCurrency(totalPrecuenta)}</span>
                 </div>
               </div>
 
+              {precuentaTable.tipoComprobante?.startsWith('Factura electrónica') && (
+                <p className="mt-3 rounded-lg bg-amber-500/10 p-2 text-[11px] text-amber-300">
+                  Borrador local: requiere integración con un proveedor autorizado para su emisión ante Hacienda.
+                </p>
+              )}
               <p className="mt-5 text-center text-xs text-gray-400">Gracias por su visita.</p>
               <button
                 type="button"
                 onClick={() => window.print()}
                 className="mt-5 w-full rounded-xl bg-blue-600 py-3 text-xs font-bold text-white transition-colors hover:bg-blue-500 print:hidden"
               >
-                Imprimir pre-cuenta
+                Imprimir comprobante
               </button>
               <style>{`@media print { body * { visibility: hidden !important; } #precuenta-print, #precuenta-print * { visibility: visible !important; } #precuenta-print { position: fixed; inset: 0; width: 100%; max-width: none; border: 0; box-shadow: none; background: white; color: black; } #precuenta-print p, #precuenta-print span, #precuenta-print h2 { color: black !important; } }`}</style>
             </section>
@@ -493,6 +540,7 @@ export default function WaiterDashboard() {
                       <div>
                         <span className="font-black text-xl text-[#F8FFE5] block">{table.numero}</span>
                         <span className="text-[10px] text-gray-400 font-semibold">{table.capacidad} Personas</span>
+                        {table.clienteNombre && <span className="mt-1 block max-w-28 truncate text-[10px] font-semibold text-[#659B5E]">{table.clienteNombre}</span>}
                       </div>
                       <span className="text-[10px] text-gray-400 font-mono">{table.tiempo}</span>
                     </div>
@@ -541,7 +589,7 @@ export default function WaiterDashboard() {
               {selectedTable ? (
                 <>
                   <div className="space-y-2 rounded-xl border border-[#F8FFE5]/10 bg-[#07090E] p-3">
-                    <label htmlFor="table-customer-name" className="block text-[11px] font-bold text-gray-400">Cliente asignado a {selectedTable.numero}</label>
+                    <label htmlFor="table-customer-name" className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400"><User className="h-3.5 w-3.5" />Cliente asignado a {selectedTable.numero}</label>
                     <div className="flex gap-2">
                       <input
                         id="table-customer-name"
@@ -660,6 +708,73 @@ export default function WaiterDashboard() {
                       </div>
                     </div>
                   )}
+
+                  <div className="space-y-3 rounded-xl border border-[#F8FFE5]/10 bg-[#07090E] p-3 text-xs">
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="col-span-2 space-y-1 text-gray-400">
+                        <span>Correo del cliente (validar cupón de registro)</span>
+                        <input
+                          type="email"
+                          value={customerEmail}
+                          onChange={event => { setCustomerEmail(event.target.value); setApplyWelcomeDiscount(false); }}
+                          placeholder="cliente@correo.com"
+                          className="w-full rounded-lg border border-[#F8FFE5]/15 bg-[#0A110D] px-2.5 py-2 text-white placeholder:text-gray-500 focus:border-[#D16014] focus:outline-none"
+                        />
+                      </label>
+                      <label className="col-span-2 space-y-1 text-gray-400">
+                        <span>Cédula física o jurídica</span>
+                        <input
+                          value={customerId}
+                          onChange={event => setCustomerId(event.target.value)}
+                          placeholder="Identificación del cliente"
+                          className="w-full rounded-lg border border-[#F8FFE5]/15 bg-[#0A110D] px-2.5 py-2 text-white placeholder:text-gray-500 focus:border-[#D16014] focus:outline-none"
+                        />
+                      </label>
+                    </div>
+
+                    <label className="flex items-center justify-between gap-3 text-gray-300">
+                      <span className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5" />Forma de pago</span>
+                      <select value={paymentMethod} onChange={event => setPaymentMethod(event.target.value)} className="rounded-lg border border-[#F8FFE5]/15 bg-[#0A110D] px-2 py-2 text-white">
+                        <option>Efectivo</option>
+                        <option>Tarjeta</option>
+                        <option>Sinpe Móvil</option>
+                      </select>
+                    </label>
+
+                    <label className="flex items-center gap-2 text-gray-300">
+                      <input type="checkbox" checked={isElectronicInvoice} onChange={event => setIsElectronicInvoice(event.target.checked)} className="accent-amber-500" />
+                      Factura electrónica (borrador imprimible)
+                    </label>
+
+                    {isElectronicInvoice && (
+                      <div className="space-y-2 border-t border-[#F8FFE5]/10 pt-2">
+                        <label className="block space-y-1 text-gray-400">
+                          <span>Nombre o razón social *</span>
+                          <input value={billingLegalName} onChange={event => setBillingLegalName(event.target.value)} placeholder="Nombre registrado del cliente" className="w-full rounded-lg border border-[#F8FFE5]/15 bg-[#0A110D] px-2.5 py-2 text-white placeholder:text-gray-500 focus:border-[#D16014] focus:outline-none" />
+                        </label>
+                        <label className="block space-y-1 text-gray-400">
+                          <span>Código de actividad económica *</span>
+                          <input value={businessActivityCode} onChange={event => setBusinessActivityCode(event.target.value)} className="w-full rounded-lg border border-[#F8FFE5]/15 bg-[#0A110D] px-2.5 py-2 text-white focus:border-[#D16014] focus:outline-none" />
+                        </label>
+                      </div>
+                    )}
+
+                    {welcomeCouponAvailable ? (
+                      <label className="flex items-center gap-2 text-emerald-300">
+                        <input type="checkbox" checked={applyWelcomeDiscount} onChange={event => setApplyWelcomeDiscount(event.target.checked)} className="accent-emerald-500" />
+                        Aplicar cupón de bienvenida ({welcomeCoupon.discountPercentage || 5}%)
+                      </label>
+                    ) : (
+                      <p className="text-[10px] text-gray-500">Sin cupón de bienvenida válido para este correo.</p>
+                    )}
+
+                    {applyWelcomeDiscount && welcomeCouponAvailable && (
+                      <div className="space-y-1 border-t border-[#F8FFE5]/10 pt-2">
+                        <div className="flex justify-between text-gray-400"><span>Descuento aplicado</span><span>−{formatCurrency(discountAmount)}</span></div>
+                        <div className="flex justify-between font-bold text-amber-400"><span>Total con descuento e impuestos</span><span>{formatCurrency(discountedTotal)}</span></div>
+                      </div>
+                    )}
+                  </div>
                 </>
               ) : (
                 <div className="text-center py-16 text-xs text-gray-500 space-y-3">
@@ -677,7 +792,7 @@ export default function WaiterDashboard() {
                   onClick={() => setShowSplitPanel(open => !open)}
                   className="w-full py-2.5 rounded-xl bg-[#07090E] border border-amber-500/30 text-amber-400 font-bold text-xs transition-all hover:bg-amber-500/10"
                 >
-                  {showSplitPanel ? 'Ocultar división' : `Dividir cuenta (${splitCount} personas)`}
+                  <span className="inline-flex items-center justify-center gap-2"><Scissors className="h-3.5 w-3.5" />{showSplitPanel ? 'Ocultar división' : `Dividir cuenta (${splitCount} personas)`}</span>
                 </button>
 
                 {showSplitPanel && (
@@ -685,7 +800,7 @@ export default function WaiterDashboard() {
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-gray-300">Personas</span>
                       <div className="flex items-center gap-3">
-                        <button type="button" onClick={() => setSplitCount(count => Math.max(1, count - 1))} className="h-7 w-7 rounded-lg bg-[#0A110D] font-bold text-white" aria-label="Una persona menos">−</button>
+                        <button type="button" onClick={() => setSplitCount(count => Math.max(2, count - 1))} disabled={splitCount <= 2} className="h-7 w-7 rounded-lg bg-[#0A110D] font-bold text-white disabled:opacity-40" aria-label="Una persona menos">−</button>
                         <span className="min-w-5 text-center font-black text-amber-400">{splitCount}</span>
                         <button type="button" onClick={() => setSplitCount(count => count + 1)} className="h-7 w-7 rounded-lg bg-[#0A110D] font-bold text-white" aria-label="Una persona más">+</button>
                       </div>
@@ -715,7 +830,7 @@ export default function WaiterDashboard() {
                     onClick={() => handleGenerarPrecuenta(selectedTable)}
                     className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-blue-700 transition-all"
                   >
-                    <FileText className="w-4 h-4" /> Generar Pre-cuenta
+                    <FileText className="w-4 h-4" /> {isElectronicInvoice ? 'Generar Factura (borrador)' : 'Generar Pre-cuenta'}
                   </button>
                 )}
               </div>
