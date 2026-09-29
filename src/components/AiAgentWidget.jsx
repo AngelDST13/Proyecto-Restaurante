@@ -12,6 +12,9 @@ export default function AiAgentWidget() {
   const isStaffRole = ['admin', 'administrador', 'mesero', 'waiter', 'pos', 'cocina', 'kitchen', 'kds'].includes(normalizedRole);
   const isInternalPanel = ['/admin', '/kitchen', '/waiter'].includes(location.pathname);
   const isStaffContext = isStaffRole || isInternalPanel;
+  const positionClasses = isInternalPanel
+    ? 'bottom-4 right-4 sm:bottom-6 sm:right-6'
+    : 'bottom-4 left-4 sm:bottom-6 sm:left-6';
   const moduloIA = isStaffContext ? 'AGENTE_IA_INTERNO' : 'AGENTE_IA_CONSULTA';
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -84,7 +87,7 @@ export default function AiAgentWidget() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 font-sans">
+    <div className="font-sans">
       <style>{`
         @keyframes caciqueFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
         @keyframes caciqueGlow { 0%, 100% { box-shadow: 0 0 18px rgba(234, 88, 12, .25); } 50% { box-shadow: 0 0 30px rgba(249, 115, 22, .55); } }
@@ -96,7 +99,7 @@ export default function AiAgentWidget() {
         @media (prefers-reduced-motion: reduce) { .cacique-bot-float, .cacique-chat-enter, .cacique-sparkle, .cacique-bot-bounce { animation: none !important; } }
       `}</style>
       {!isHidden && (!isOpen || isMinimized) && (
-        <div className="cacique-bot-float cacique-bot-bounce fixed bottom-5 right-5 z-40 flex items-center gap-1.5">
+        <div className={`cacique-bot-float cacique-bot-bounce fixed ${positionClasses} z-40 flex items-center gap-1.5`}>
           <button
             type="button"
             onClick={() => { setIsOpen(true); setIsMinimized(false); }}
@@ -128,14 +131,14 @@ export default function AiAgentWidget() {
           onClick={() => setIsHidden(false)}
           title="Mostrar asistente virtual"
           aria-label="Mostrar asistente virtual"
-          className="fixed bottom-5 right-5 z-40 rounded-full border border-amber-500/40 bg-zinc-900 p-2.5 text-amber-400 opacity-90 shadow-lg transition-all hover:scale-110 hover:opacity-100"
+          className={`fixed ${positionClasses} z-40 rounded-full border border-amber-500/40 bg-zinc-900 p-2.5 text-amber-400 opacity-90 shadow-lg transition-all hover:scale-110 hover:opacity-100`}
         >
           <MessageSquare className="h-5 w-5" />
         </button>
       )}
 
       {!isHidden && isOpen && !isMinimized && (
-        <div className="cacique-chat-enter fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2.5rem)] sm:w-96 bg-zinc-950/98 backdrop-blur-2xl border border-amber-500/40 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-[480px] max-h-[82vh]">
+        <div className={`cacique-chat-enter fixed ${positionClasses} z-50 w-[calc(100vw-2rem)] sm:w-96 bg-zinc-950/98 backdrop-blur-2xl border border-amber-500/40 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-[480px] max-h-[82vh]`}>
           <div className="p-4 bg-amber-600 border-b border-amber-500/30 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg border border-white/20 bg-black/20 text-white">
