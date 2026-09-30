@@ -34,12 +34,16 @@ export default function AdminDashboard() {
     { id: 3, nombre: 'Costilla a la Leña Ahumada', categoria: 'Cortes a la Leña', precio: 9200, descripcion: 'Costilla de cerdo bañada en salsa BBQ artesanal.' }
   ]);
   const [newCategory, setNewCategory] = useState('');
-  const [newMenuItem, setNewMenuItem] = useState({ nombre: '', categoria: 'Chicharrones & Paila', precio: '', descripcion: '' });
-  const today = new Date().toISOString().slice(0, 10);
+  const sedesDisponibles = ['Sede Escazú', 'Sede Santa Ana', 'Sede Cartago'];
+  const [newMenuItem, setNewMenuItem] = useState({ nombre: '', categoria: 'Chicharrones & Paila', precio: '', descripcion: '', sedesNoDisponibles: [] });
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 15);
+  const previousMonthDate = `${previousMonth.getFullYear()}-${String(previousMonth.getMonth() + 1).padStart(2, '0')}-15`;
   const [customerInvoices] = useState([
     { id: 'FE-001-982143', cliente: 'Corporación El Sol S.A.', cedula: '3101123456', fecha: today, monto: 32500, tipo: 'Factura Electrónica' },
     { id: 'FE-001-982144', cliente: 'Angel Daniela Salazar T.', cedula: '118230491', fecha: today, monto: 18500, tipo: 'Factura Electrónica' },
-    { id: 'FE-001-881201', cliente: 'Bryan Gómez', cedula: '117450892', fecha: `${today.slice(0, 4)}-${String(Number(today.slice(5, 7)) - 1 || 12).padStart(2, '0')}-15`, monto: 45000, tipo: 'Factura Electrónica' }
+    { id: 'FE-001-881201', cliente: 'Bryan Gómez', cedula: '117450892', fecha: previousMonthDate, monto: 45000, tipo: 'Factura Electrónica' }
   ]);
   const [invoicePeriod, setInvoicePeriod] = useState('dia');
   const [invoiceSearch, setInvoiceSearch] = useState('');
@@ -361,8 +365,16 @@ export default function AdminDashboard() {
       return;
     }
     setMenuItems(previous => [...previous, { ...newMenuItem, nombre: newMenuItem.nombre.trim(), precio: price, id: Date.now() }]);
-    setNewMenuItem({ nombre: '', categoria: menuCategories[0] || '', precio: '', descripcion: '' });
+    setNewMenuItem({ nombre: '', categoria: menuCategories[0] || '', precio: '', descripcion: '', sedesNoDisponibles: [] });
     showToast('Platillo agregado al menú', 'success');
+  };
+  const handleToggleExcludedBranch = sede => {
+    setNewMenuItem(previous => ({
+      ...previous,
+      sedesNoDisponibles: previous.sedesNoDisponibles.includes(sede)
+        ? previous.sedesNoDisponibles.filter(excluded => excluded !== sede)
+        : [...previous.sedesNoDisponibles, sede]
+    }));
   };
 
   return (
@@ -663,8 +675,26 @@ export default function AdminDashboard() {
 
         {activeSection === 'facturas' && (
           <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 text-xs shadow-2xl">
-            <div className="flex justify-between items-center border-b border-[#F8FFE5]/10 pb-4"><div><h3 className="font-extrabold text-lg">Gestión de Facturas</h3><p className="text-gray-400 text-[11px]">Registra comprobantes y descarga simulaciones de archivos.</p></div><button onClick={() => setIsInvoiceModalOpen(true)} className="px-5 py-3 rounded-2xl bg-[#D16014] text-white font-extrabold flex items-center gap-2 cursor-pointer"><Upload className="w-4 h-4" /> Subir Factura</button></div>
-            <div className="overflow-x-auto rounded-2xl border border-[#F8FFE5]/10"><table className="w-full text-left"><thead><tr className="bg-[#0A090C] uppercase text-[10px]"><th className="p-4">Código</th><th className="p-4">Proveedor</th><th className="p-4">Monto</th><th className="p-4">Fecha</th><th className="p-4">Estado</th><th className="p-4 text-right">Archivo</th></tr></thead><tbody className="divide-y divide-[#F8FFE5]/10">{invoices.map(invoice => <tr key={invoice.id}><td className="p-4 text-[#D16014] font-bold">{invoice.id}</td><td className="p-4">{invoice.proveedor}</td><td className="p-4 text-[#659B5E] font-bold">₡{invoice.monto.toLocaleString()}</td><td className="p-4 text-gray-400">{invoice.fecha}</td><td className="p-4"><span className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-400 text-[10px] font-bold">{invoice.estado}</span></td><td className="p-4 text-right"><button onClick={() => handleDownloadInvoice(invoice)} className="px-3 py-1.5 border border-[#F8FFE5]/15 rounded-xl flex items-center gap-1 ml-auto cursor-pointer"><Download className="w-3.5 h-3.5" /> Descargar</button></td></tr>)}</tbody></table></div>
+            <div className="flex flex-wrap justify-between items-center gap-3 border-b border-[#F8FFE5]/10 pb-4"><div><h3 className="font-extrabold text-lg">Facturas & Finanzas</h3><p className="text-gray-400 text-[11px]">Consulta comprobantes emitidos y facturas de proveedores.</p></div><div className="flex flex-wrap gap-2"><button onClick={() => setInvoiceKind('clientes')} className={`px-3 py-2 rounded-xl font-bold ${invoiceKind === 'clientes' ? 'bg-[#D16014] text-white' : 'border border-[#F8FFE5]/15 text-gray-300'}`}>Emitidas a clientes</button><button onClick={() => setInvoiceKind('proveedores')} className={`px-3 py-2 rounded-xl font-bold ${invoiceKind === 'proveedores' ? 'bg-[#D16014] text-white' : 'border border-[#F8FFE5]/15 text-gray-300'}`}>Proveedores</button>{invoiceKind === 'proveedores' && <button onClick={() => setIsInvoiceModalOpen(true)} className="px-4 py-2 rounded-xl bg-[#D16014] text-white font-extrabold flex items-center gap-2 cursor-pointer"><Upload className="w-4 h-4" /> Subir Factura</button>}</div></div>
+            {invoiceKind === 'clientes' ? (
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">{[['dia', 'Hoy'], ['mes', 'Este mes'], ['todos', 'Todas']].map(([period, label]) => <button key={period} onClick={() => setInvoicePeriod(period)} className={`px-3 py-2 rounded-xl font-bold ${invoicePeriod === period ? 'bg-[#D16014] text-white' : 'border border-[#F8FFE5]/15 text-gray-300'}`}>{label}</button>)}<input value={invoiceSearch} onChange={event => setInvoiceSearch(event.target.value)} placeholder="Buscar cliente, identificación o clave de Hacienda..." className="flex-1 min-w-56 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2" /></div>
+                <div className="overflow-x-auto rounded-2xl border border-[#F8FFE5]/10"><table className="w-full text-left"><thead><tr className="bg-[#0A090C] uppercase text-[10px]"><th className="p-4">Clave Hacienda</th><th className="p-4">Cliente</th><th className="p-4">Identificación</th><th className="p-4">Fecha</th><th className="p-4">Tipo</th><th className="p-4 text-right">Monto</th></tr></thead><tbody className="divide-y divide-[#F8FFE5]/10">{filteredCustomerInvoices.map(invoice => <tr key={invoice.id}><td className="p-4 text-[#D16014] font-bold">{invoice.id}</td><td className="p-4">{invoice.cliente}</td><td className="p-4">{invoice.cedula}</td><td className="p-4 text-gray-400">{invoice.fecha}</td><td className="p-4">{invoice.tipo}</td><td className="p-4 text-right text-[#659B5E] font-bold">₡{invoice.monto.toLocaleString('es-CR')}</td></tr>)}{filteredCustomerInvoices.length === 0 && <tr><td colSpan="6" className="p-6 text-center text-gray-400">No hay facturas que coincidan con los filtros.</td></tr>}</tbody></table></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-2xl border border-[#F8FFE5]/10"><table className="w-full text-left"><thead><tr className="bg-[#0A090C] uppercase text-[10px]"><th className="p-4">Código</th><th className="p-4">Proveedor</th><th className="p-4">Monto</th><th className="p-4">Fecha</th><th className="p-4">Estado</th><th className="p-4 text-right">Archivo</th></tr></thead><tbody className="divide-y divide-[#F8FFE5]/10">{invoices.map(invoice => <tr key={invoice.id}><td className="p-4 text-[#D16014] font-bold">{invoice.id}</td><td className="p-4">{invoice.proveedor}</td><td className="p-4 text-[#659B5E] font-bold">₡{invoice.monto.toLocaleString()}</td><td className="p-4 text-gray-400">{invoice.fecha}</td><td className="p-4"><span className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-400 text-[10px] font-bold">{invoice.estado}</span></td><td className="p-4 text-right"><button onClick={() => handleDownloadInvoice(invoice)} className="px-3 py-1.5 border border-[#F8FFE5]/15 rounded-xl flex items-center gap-1 ml-auto cursor-pointer"><Download className="w-3.5 h-3.5" /> Descargar</button></td></tr>)}</tbody></table></div>
+            )}
+          </div>
+        )}
+
+        {activeSection === 'menu' && (
+          <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 text-xs shadow-2xl">
+            <div><h3 className="font-extrabold text-lg">Gestión dinámica del menú</h3><p className="text-gray-400 text-[11px]">Agrega categorías y platillos con precio y descripción.</p></div>
+            <form onSubmit={addMenuCategory} className="flex gap-2"><input value={newCategory} onChange={event => setNewCategory(event.target.value)} placeholder="Nueva categoría o sección" className="flex-1 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" /><button className="px-4 py-2.5 rounded-xl bg-[#D16014] text-white font-bold">Crear categoría</button></form>
+            <form onSubmit={addMenuItem} className="grid grid-cols-1 sm:grid-cols-2 gap-3"><input required value={newMenuItem.nombre} onChange={event => setNewMenuItem({ ...newMenuItem, nombre: event.target.value })} placeholder="Nombre del platillo" className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" /><select value={newMenuItem.categoria} onChange={event => setNewMenuItem({ ...newMenuItem, categoria: event.target.value })} className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5">{menuCategories.map(category => <option key={category} value={category}>{category}</option>)}</select><input required type="number" min="1" step="1" value={newMenuItem.precio} onChange={event => setNewMenuItem({ ...newMenuItem, precio: event.target.value })} placeholder="Precio en colones" className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" /><input value={newMenuItem.descripcion} onChange={event => setNewMenuItem({ ...newMenuItem, descripcion: event.target.value })} placeholder="Descripción breve" className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
+              <div className="sm:col-span-2 bg-[#0A090C] p-3.5 rounded-xl border border-[#F8FFE5]/15 space-y-2"><label className="text-amber-400 text-xs font-bold block">Restricción de disponibilidad por sede</label><p className="text-[11px] text-gray-400">Marque las sedes donde este platillo no estará disponible:</p><div className="flex flex-wrap gap-4 pt-1">{sedesDisponibles.map(sede => <label key={sede} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer"><input type="checkbox" checked={newMenuItem.sedesNoDisponibles.includes(sede)} onChange={() => handleToggleExcludedBranch(sede)} className="accent-amber-500 rounded" />No disponible en {sede}</label>)}</div></div>
+              <button className="sm:col-span-2 justify-self-end px-5 py-2.5 rounded-xl bg-[#D16014] text-white font-extrabold">Guardar platillo</button></form>
+            <div className="divide-y divide-[#F8FFE5]/10 border-y border-[#F8FFE5]/10">{menuItems.map(item => <div key={item.id} className="flex justify-between items-center gap-4 py-4"><div><strong className="text-white">{item.nombre}</strong><span className="ml-2 text-[#659B5E]">{item.categoria}</span><p className="mt-1 text-gray-400">{item.descripcion}</p>{item.sedesNoDisponibles?.length > 0 && <p className="mt-1 text-amber-300">No disponible en: {item.sedesNoDisponibles.join(', ')}</p>}</div><div className="flex items-center gap-3"><strong className="text-amber-300">₡{item.precio.toLocaleString('es-CR')}</strong><button aria-label={`Eliminar ${item.nombre}`} onClick={() => setMenuItems(previous => previous.filter(current => current.id !== item.id))} className="text-gray-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button></div></div>)}</div>
           </div>
         )}
 

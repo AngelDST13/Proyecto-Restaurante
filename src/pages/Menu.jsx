@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import Toast from '../components/Toast';
-import { Search, Flame, ShoppingBag, Plus, Minus, Trash2, MessageCircle, AlertCircle, Truck, Baby } from 'lucide-react';
+import { Search, Flame, ShoppingBag, Plus, Minus, Trash2, MessageCircle, AlertCircle, Truck, Baby, MapPin } from 'lucide-react';
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState('todos');
+  const [sedeSeleccionada, setSedeSeleccionada] = useState('Sede Escazú');
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState(() => {
     try {
@@ -41,6 +42,7 @@ export default function Menu() {
 
     // CORTES A LA LEÑA
     { id: 5, nombre: 'Costilla Cerdo a la Leña', cat: 'cortes', precio: 9200, desc: 'Costilla jugosa ahumada con leña de café, acompañada de plátanos maduros con queso.', badge: 'Recomendado' },
+    { id: 18, nombre: 'Corte Especial de Tira', cat: 'cortes', precio: 12500, desc: 'Corte de tira preparado a la leña, exclusivo de Escazú y Santa Ana.', sedesNoDisponibles: ['Sede Cartago'] },
     { id: 6, nombre: 'Lomito de Cerdo Encebollado', cat: 'cortes', precio: 8900, desc: 'Corte magro a la parrilla con cebollitas caramelizadas y puré de yuca.' },
     { id: 7, nombre: 'Parrillada El Cacique (2 personas)', cat: 'cortes', precio: 17800, desc: 'Costilla, chicharrón, chorizo criollo, carne de res y elote frito.' },
 
@@ -118,6 +120,7 @@ export default function Menu() {
     const matchesSearch = item.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || item.desc.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCat && matchesSearch;
   });
+  const sedesDisponibles = ['Sede Escazú', 'Sede Santa Ana', 'Sede Cartago'];
 
   return (
     <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] pt-24 pb-16 px-6 font-sans">
@@ -137,6 +140,20 @@ export default function Menu() {
           <p className="text-xs sm:text-sm text-gray-400 max-w-xl mx-auto">
             Elige tus platillos y bebidas preferidas para solicitar tu mesa y atención personalizada.
           </p>
+        </div>
+
+        <div className="max-w-7xl mx-auto bg-[#D16014]/10 border border-[#D16014]/30 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+            <p className="text-xs sm:text-sm text-zinc-200"><strong className="text-amber-400">Nota de exclusividad:</strong> Algunos platillos de nuestra carta gourmet son exclusivos de restaurantes específicos y no están disponibles en todas las sedes.</p>
+          </div>
+          <label className="flex items-center gap-2 shrink-0 text-xs">
+            <MapPin className="w-4 h-4 text-amber-400" />
+            <span className="sr-only">Seleccionar sede</span>
+            <select value={sedeSeleccionada} onChange={event => setSedeSeleccionada(event.target.value)} className="bg-[#0A090C] border border-zinc-700 text-xs text-white px-3 py-2 rounded-xl focus:outline-none focus:border-[#D16014]">
+              {sedesDisponibles.map(sede => <option key={sede} value={sede}>{sede}</option>)}
+            </select>
+          </label>
         </div>
 
         <div className="space-y-4 bg-[#001812] p-6 rounded-3xl border border-[#659B5E]/30 shadow-xl">
@@ -184,12 +201,15 @@ export default function Menu() {
               <div className="space-y-2">
                 <div className="flex justify-between items-start">
                   <h3 className="font-extrabold text-lg text-[#F8FFE5] group-hover:text-[#D16014] transition-colors">{item.nombre}</h3>
-                  {item.badge && (
+                  {(item.badge || item.sedesNoDisponibles?.length > 0) && (
                     <span className="px-2.5 py-1 bg-[#D16014]/20 border border-[#D16014]/50 text-[#D16014] text-[10px] font-black uppercase rounded-lg">
-                      {item.badge}
+                      {item.sedesNoDisponibles?.length > 0
+                        ? `Exclusivo ${sedesDisponibles.filter(sede => !item.sedesNoDisponibles.includes(sede)).map(sede => sede.replace('Sede ', '')).join(' & ')}`
+                        : item.badge}
                     </span>
                   )}
                 </div>
+                {item.sedesNoDisponibles?.includes(sedeSeleccionada) && <p className="text-[11px] font-bold text-amber-300">No disponible en {sedeSeleccionada}</p>}
                 <p className="text-xs text-gray-400 leading-relaxed">{item.desc}</p>
               </div>
 
@@ -197,9 +217,10 @@ export default function Menu() {
                 <span className="text-xl font-black text-[#D16014]">₡{item.precio.toLocaleString()}</span>
                 <button
                   onClick={() => handleAddToCart(item)}
-                  className="px-4 py-2 rounded-xl bg-[#659B5E] hover:bg-[#52824c] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                  disabled={item.sedesNoDisponibles?.includes(sedeSeleccionada)}
+                  className="px-4 py-2 rounded-xl bg-[#659B5E] hover:bg-[#52824c] disabled:bg-zinc-700 disabled:text-zinc-400 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
                 >
-                  <Plus className="w-4 h-4" /> Agregar
+                  {item.sedesNoDisponibles?.includes(sedeSeleccionada) ? 'No disponible' : <><Plus className="w-4 h-4" /> Agregar</>}
                 </button>
               </div>
             </div>
