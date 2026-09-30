@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import caciqueIcon from '../assets/img/Cacique.svg';
+import officialLogo from '../assets/img/LogoN.svg';
 import { formatSedeName } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { 
@@ -26,6 +27,23 @@ export default function AdminDashboard() {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [emailResponse, setEmailResponse] = useState(null);
   const [emailLoading, setEmailLoading] = useState(false);
+  const [menuCategories, setMenuCategories] = useState(['Chicharrones & Paila', 'Cortes a la Leña', 'Bocas & Ceviches', 'Bebidas', 'Postres']);
+  const [menuItems, setMenuItems] = useState([
+    { id: 1, nombre: 'Chifrijo Especial Cacique', categoria: 'Chicharrones & Paila', precio: 6800, descripcion: 'Chicharrón crujiente, frijoles tiernos y pico de gallo.' },
+    { id: 2, nombre: 'Vigorón Criollo (1kg)', categoria: 'Chicharrones & Paila', precio: 14500, descripcion: 'Chicharrón con yuca al vapor y ensalada de repollo.' },
+    { id: 3, nombre: 'Costilla a la Leña Ahumada', categoria: 'Cortes a la Leña', precio: 9200, descripcion: 'Costilla de cerdo bañada en salsa BBQ artesanal.' }
+  ]);
+  const [newCategory, setNewCategory] = useState('');
+  const [newMenuItem, setNewMenuItem] = useState({ nombre: '', categoria: 'Chicharrones & Paila', precio: '', descripcion: '' });
+  const today = new Date().toISOString().slice(0, 10);
+  const [customerInvoices] = useState([
+    { id: 'FE-001-982143', cliente: 'Corporación El Sol S.A.', cedula: '3101123456', fecha: today, monto: 32500, tipo: 'Factura Electrónica' },
+    { id: 'FE-001-982144', cliente: 'Angel Daniela Salazar T.', cedula: '118230491', fecha: today, monto: 18500, tipo: 'Factura Electrónica' },
+    { id: 'FE-001-881201', cliente: 'Bryan Gómez', cedula: '117450892', fecha: `${today.slice(0, 4)}-${String(Number(today.slice(5, 7)) - 1 || 12).padStart(2, '0')}-15`, monto: 45000, tipo: 'Factura Electrónica' }
+  ]);
+  const [invoicePeriod, setInvoicePeriod] = useState('dia');
+  const [invoiceSearch, setInvoiceSearch] = useState('');
+  const [invoiceKind, setInvoiceKind] = useState('clientes');
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -317,6 +335,35 @@ export default function AdminDashboard() {
   });
 
   const criticalItemsCount = branchInventory.filter(i => i.stock <= i.minLimit).length;
+  const filteredCustomerInvoices = customerInvoices.filter(invoice => {
+    const query = invoiceSearch.trim().toLocaleLowerCase();
+    const matchesSearch = `${invoice.cliente} ${invoice.id} ${invoice.cedula}`.toLocaleLowerCase().includes(query);
+    const matchesPeriod = invoicePeriod === 'dia' ? invoice.fecha === today : invoicePeriod === 'mes' ? invoice.fecha.startsWith(today.slice(0, 7)) : true;
+    return matchesSearch && matchesPeriod;
+  });
+  const addMenuCategory = event => {
+    event.preventDefault();
+    const category = newCategory.trim();
+    if (!category) return;
+    if (menuCategories.some(existing => existing.toLocaleLowerCase() === category.toLocaleLowerCase())) {
+      showToast('Esta categoría ya existe', 'error');
+      return;
+    }
+    setMenuCategories(previous => [...previous, category]);
+    setNewCategory('');
+    showToast('Categoría agregada al menú', 'success');
+  };
+  const addMenuItem = event => {
+    event.preventDefault();
+    const price = Number(newMenuItem.precio);
+    if (!newMenuItem.nombre.trim() || !Number.isFinite(price) || price <= 0) {
+      showToast('Ingrese el nombre y un precio válido para el platillo', 'error');
+      return;
+    }
+    setMenuItems(previous => [...previous, { ...newMenuItem, nombre: newMenuItem.nombre.trim(), precio: price, id: Date.now() }]);
+    setNewMenuItem({ nombre: '', categoria: menuCategories[0] || '', precio: '', descripcion: '' });
+    showToast('Platillo agregado al menú', 'success');
+  };
 
   return (
     <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] font-sans flex flex-col lg:flex-row">
@@ -331,7 +378,8 @@ export default function AdminDashboard() {
           
           <div className="flex items-center gap-3 p-3 border-b border-zinc-800/80 mb-4">
             <img
-              src={caciqueIcon}
+              src={officialLogo}
+              onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = caciqueIcon; }}
               alt="El Cacique Logo"
               className="w-12 h-12 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]"
             />
@@ -360,6 +408,7 @@ export default function AdminDashboard() {
             {[
                 { id: 'resumen', label: 'Resumen & Analíticas', icon: BarChart3 },
                 { id: 'inventario', label: 'Gestión de Inventario', icon: Package, badge: criticalItemsCount > 0 ? criticalItemsCount : null },
+                { id: 'menu', label: 'Gestión de Menú', icon: ShoppingBag },
                 { id: 'proveedores', label: 'Proveedores', icon: Truck },
                 { id: 'facturas', label: 'Facturas & Finanzas', icon: FileText },
                 { id: 'correos', label: 'Centro de Correos', icon: Mail },
