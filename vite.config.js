@@ -14,6 +14,22 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./test/setup.js'] // <--- Cambiado de ./src/test/setup.js a ./test/setup.js
+    setupFiles: ['./test/setup.js'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/assets/**',
+        '**/*.{svg,png,jpg,jpeg,gif,webp,ico}',
+        'src/main.jsx'
+      ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80
+      }
+    }
   }
 })

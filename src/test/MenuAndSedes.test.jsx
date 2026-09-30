@@ -1,14 +1,23 @@
-import { describe, test, expect } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import Menu from '../pages/Menu';
 
-describe('Pruebas de Cobertura - Gestión de Menú y Sedes Exclusivas', () => {
-  test('Filtra correctamente platillos exclusivos por sede', () => {
-    const platillos = [
-      { id: 1, nombre: 'Chifrijo', sedesNoDisponibles: ['Cartago'] },
-      { id: 2, nombre: 'Corte Especial', sedesNoDisponibles: [] }
-    ];
+describe('Menú digital y sedes exclusivas', () => {
+  it('muestra el aviso de exclusividad y permite seleccionar sede', () => {
+    render(<Menu />);
+    expect(screen.getByText(/Nota de exclusividad/i)).toBeInTheDocument();
+    const selector = screen.getByRole('combobox');
+    fireEvent.change(selector, { target: { value: 'Sede Cartago' } });
+    expect(selector).toHaveValue('Sede Cartago');
+    expect(screen.getByText('No disponible en Sede Cartago')).toBeInTheDocument();
+  });
 
-    const disponiblesEnCartago = platillos.filter(p => !p.sedesNoDisponibles.includes('Cartago'));
-    expect(disponiblesEnCartago.length).toBe(1);
-    expect(disponiblesEnCartago[0].nombre).toBe('Corte Especial');
+  it('filtra por categoría y bloquea el platillo no disponible en la sede elegida', () => {
+    render(<Menu />);
+    fireEvent.click(screen.getByRole('button', { name: /Cortes a la Leña/i }));
+    expect(screen.getByText('Corte Especial de Tira')).toBeInTheDocument();
+    expect(screen.queryByText('Chifrijo Especial de Paila')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Sede Cartago' } });
+    expect(screen.getByRole('button', { name: /No disponible/i })).toBeDisabled();
   });
 });
