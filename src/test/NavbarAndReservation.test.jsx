@@ -17,7 +17,15 @@ describe('Navbar y reservas', () => {
     render(<AuthProvider><AccessibilityProvider><MemoryRouter initialEntries={['/menu']}><UserControls /><Navbar /><RouteProbe /></MemoryRouter></AccessibilityProvider></AuthProvider>);
     expect(screen.getByRole('link', { name: /Iniciar Sesión/i })).toHaveAttribute('href', '/login');
     fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
+    expect(document.documentElement.style.fontSize).toBe('120%');
+    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
+    expect(screen.getByRole('button', { name: 'Aumentar tamaño de letra' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Disminuir tamaño de letra' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Disminuir tamaño de letra' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Disminuir tamaño de letra' }));
+    expect(document.documentElement.style.fontSize).toBe('90%');
+    expect(screen.getByRole('button', { name: 'Disminuir tamaño de letra' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Restablecer tamaño de letra' }));
     fireEvent.click(screen.getByRole('button', { name: 'Alternar menú de navegación' }));
     expect(screen.getAllByRole('link', { name: 'Menú' })[0]).toHaveAttribute('href', '/menu');
@@ -47,6 +55,25 @@ describe('Navbar y reservas', () => {
     expect(screen.getByTestId('nav-path')).toHaveTextContent('/');
     fireEvent.click(screen.getByRole('button', { name: 'Inicio' }));
     expect(window.scrollTo).toHaveBeenCalled();
+  });
+
+  it('activa enlaces móviles, secciones, logo y reserva sin callback externo', () => {
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: scrollIntoView });
+    render(<AuthProvider><AccessibilityProvider><MemoryRouter initialEntries={['/']}><Navbar /><div id="nosotros" /><div id="eventos" /></MemoryRouter></AccessibilityProvider></AuthProvider>);
+    fireEvent.click(screen.getByRole('link', { name: 'Ir al inicio de El Cacique' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Alternar menú de navegación' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Nosotros' }).at(-1));
+    expect(scrollIntoView).toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alternar menú de navegación' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Eventos' }).at(-1));
+    fireEvent.click(screen.getByRole('button', { name: 'Alternar menú de navegación' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Agendar Reserva' }));
+    expect(screen.queryByRole('navigation', { name: /mobile/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Alternar menú de navegación' }));
+    fireEvent.click(screen.getAllByRole('link', { name: 'Menú' }).at(-1));
+    expect(screen.getByRole('button', { name: 'Alternar menú de navegación' })).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('valida y confirma una reserva, y cierra el modal con Escape', () => {
