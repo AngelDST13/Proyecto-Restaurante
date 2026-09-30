@@ -139,7 +139,7 @@ export default function KitchenDashboard() {
 
   // NOTIFICAR A MESERO QUE EL PEDIDO ESTÁ LISTO
   const handleNotifyWaiter = (order) => {
-    showToast(`🔔 Notificación enviada a ${order.mesero} (${order.mesa} lista)`, 'success');
+    showToast(`Notificación enviada a ${order.mesero} (${order.mesa} lista)`, 'success');
 
     const notification = {
       id: `${order.id}-${Date.now()}`,
@@ -342,10 +342,10 @@ export default function KitchenDashboard() {
 
                       <div className="text-right space-y-1">
                         <span className="px-2.5 py-1 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl font-mono text-[10px] text-[#659B5E] font-bold block">
-                          👥 {order.personas} Pers.
+                          {order.personas} Pers.
                         </span>
                         <span className={`text-[10px] font-bold block ${isDelayed ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
-                          ⏱️ Faltan: {tiempoRestante} min
+                          Faltan: {tiempoRestante} min
                         </span>
                       </div>
                     </div>
@@ -401,7 +401,7 @@ export default function KitchenDashboard() {
                               </span>
                               {item.notas && (
                                 <span className="text-[10px] text-amber-400 font-mono block mt-0.5 flex items-center gap-1">
-                                  ⚠️ {item.notas}
+                                  Nota: {item.notas}
                                 </span>
                               )}
                             </div>

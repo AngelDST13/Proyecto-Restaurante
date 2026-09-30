@@ -429,7 +429,7 @@ export default function Landing() {
                   Chifrijos embrujados con salsa de chile picante artesanal, coctelería temática de mora salvaje y música en vivo.
                 </p>
                 <div className="pt-2 text-[11px] font-mono text-[#659B5E] font-bold">
-                  📍 SUCURSALES: ESCAZÚ &amp; SANTA ANA
+                  SUCURSALES: ESCAZÚ &amp; SANTA ANA
                 </div>
               </div>
               <button
@@ -458,7 +458,7 @@ export default function Landing() {
                   Pierna de cerdo ahumada a la leña con miel de leña de café, tamales criollos tradicionales y rompope artesanal.
                 </p>
                 <div className="pt-2 text-[11px] font-mono text-[#659B5E] font-bold">
-                  📍 SUCURSALES: TODAS LAS SEDES (4)
+                  SUCURSALES: TODAS LAS SEDES (4)
                 </div>
               </div>
               <button
@@ -487,7 +487,7 @@ export default function Landing() {
                   Ceviches costarricenses de corvina, sopas de mariscos a la leña, empanadas de chinchirrria y postres de chiverre.
                 </p>
                 <div className="pt-2 text-[11px] font-mono text-[#659B5E] font-bold">
-                  📍 SUCURSALES: CARTAGO &amp; HEREDIA
+                  SUCURSALES: CARTAGO &amp; HEREDIA
                 </div>
               </div>
               <button
@@ -518,7 +518,7 @@ export default function Landing() {
           {temporada === 'navidad' && (
             <div className="space-y-8">
               <p className="text-center text-xs sm:text-sm text-gray-300 max-w-2xl mx-auto">
-                🎄 En esta temporada navideña y de fin de año, le presentamos platillos exclusivos inspirados en la tradición criolla festiva.
+                En esta temporada navideña y de fin de año, le presentamos platillos exclusivos inspirados en la tradición criolla festiva.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
@@ -526,21 +526,21 @@ export default function Landing() {
                     nombre: 'Tamales de la Abuela',
                     desc: 'Masa de maíz rellena con cerdo adobado, arroz con zanahoria, chile dulce y aceituna. Envuelto en hoja de plátano y cocido a vapor al estilo tradicional.',
                     precio: '₡1,800 c/u',
-                    tag: '🎄 NAVIDAD',
+                    tag: 'NAVIDAD',
                     img: 'https://images.unsplash.com/photo-1607532941433-304659e8198a?auto=format&fit=crop&w=600&q=80'
                   },
                   {
                     nombre: 'Chicharrón de Fin de Año',
                     desc: 'Corte festivo extra crujiente con salsa agridulce de tamarindo y guarnición de patacones con natilla y chimichurri especial.',
                     precio: '₡8,500',
-                    tag: '🥂 FIN DE AÑO',
+                    tag: 'FIN DE AÑO',
                     img: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80'
                   },
                   {
                     nombre: 'Rompope Criollo del Cacique',
                     desc: 'Bebida festiva artesanal con aguardiente de caña envejecido, huevo criollo, leche de coco, canela y nuez moscada. Preparada en casa.',
                     precio: '₡2,200',
-                    tag: '🎉 EXCLUSIVO',
+                    tag: 'EXCLUSIVO',
                     img: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=600&q=80'
                   }
                 ].map((item, i) => (
@@ -573,7 +573,7 @@ export default function Landing() {
           {temporada === 'semana-santa' && (
             <div className="space-y-8">
               <p className="text-center text-xs sm:text-sm text-gray-300 max-w-2xl mx-auto">
-                ✝️ Durante Semana Santa, honramos la tradición costarricense con platillos especiales sin carne roja y bebidas artesanales de temporada.
+                Durante Semana Santa, honramos la tradición costarricense con platillos especiales sin carne roja y bebidas artesanales de temporada.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
@@ -581,21 +581,21 @@ export default function Landing() {
                     nombre: 'Ceviche de Camarones Criollo',
                     desc: 'Camarones frescos del Pacífico en limón ácido, culantro coyote, ají criollo y tomate. Acompañado de patacones tostados y tortillas palmeadas.',
                     precio: '₡7,200',
-                    tag: '✝️ SEMANA SANTA',
+                    tag: 'SEMANA SANTA',
                     img: 'https://images.unsplash.com/photo-1519984388953-d2406bc725e1?auto=format&fit=crop&w=600&q=80'
                   },
                   {
                     nombre: 'Vigorón de Tilapia a la Plancha',
                     desc: 'Filete de tilapia fresca dorada sobre yuca suave al vapor, ensalada agria de col morada con naranja agria y miel de achiote.',
                     precio: '₡8,800',
-                    tag: '🐟 ESPECIAL',
+                    tag: 'ESPECIAL',
                     img: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80'
                   },
                   {
                     nombre: 'Fresco de Chan con Linaza',
                     desc: 'Bebida tradicional costarricense de Semana Santa: agua de chan con semillas de linaza, jugo de limón, azúcar de tapa y hojas de hierbabuena fresca.',
                     precio: '₡1,500',
-                    tag: '🌿 ARTESANAL',
+                    tag: 'ARTESANAL',
                     img: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80'
                   }
                 ].map((item, i) => (

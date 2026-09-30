@@ -5,6 +5,7 @@ import { AccessibilityProvider } from '../context/AccessibilityContext';
 import { AuthProvider } from '../context/AuthContext';
 import AdminDashboard from '../pages/AdminDashboard';
 import { triggerN8nAutomation } from '../services/n8nService';
+import { decryptData, encryptData } from '../services/authSecurity';
 
 vi.mock('../services/n8nService', () => ({
   triggerN8nAutomation: vi.fn(() => Promise.resolve({ success: true, mode: 'local', message: 'mock ok' })),
@@ -42,7 +43,7 @@ describe('AdminDashboard secondary modules', () => {
       ['Cupones & Promos', 'Cupones y Promociones'],
       ['Reseñas & Clientes', 'Reseñas y Clientes'],
       ['Arqueo de Caja & POS', 'Arqueo Financiero Diario de Caja'],
-      ['Personal & Planilla', 'Nómina de Personal Activo'],
+      ['Personal & Planilla', 'Personal y planilla'],
       ['Mesas & Reservaciones', 'Control de Mesas']
     ]) {
       openSection(nav);
@@ -109,4 +110,70 @@ describe('AdminDashboard secondary modules', () => {
     await waitFor(() => expect(screen.getByText(/Respuesta del envío/i)).toBeInTheDocument());
     expect(triggerN8nAutomation).toHaveBeenCalled();
   });
+
+  it('carga una plantilla, guarda un contacto y administra empleados de planilla', () => {
+    localStorage.removeItem('cacique_admin_email_contacts');
+    localStorage.removeItem('cacique_admin_payroll');
+    localStorage.setItem('cacique_registered_clients', encryptData({
+      'registered@example.com': { nombre: 'Cliente registrado', rol: 'cliente' }
+    }));
+    renderAdmin();
+    openSection('Centro de Correos');
+    fireEvent.click(screen.getByRole('button', { name: 'Bienvenida' }));
+    expect(screen.getByPlaceholderText('Asunto del comunicado')).toHaveValue('Bienvenido a El Cacique');
+    fireEvent.click(screen.getByRole('button', { name: 'Promoción de temporada' }));
+    expect(screen.getByPlaceholderText('Asunto del comunicado')).toHaveValue('Promoción de temporada');
+    fireEvent.click(screen.getByRole('button', { name: 'Reabastecimiento' }));
+    expect(screen.getByPlaceholderText('Asunto del comunicado')).toHaveValue('Aviso de reabastecimiento');
+    expect(screen.getByText('Cliente registrado — registered@example.com')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Nombre del cliente'), { target: { value: 'María QA' } });
+    fireEvent.change(screen.getByLabelText('Correo del cliente'), { target: { value: 'maria.qa@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar contacto' }));
+    expect(screen.getByText('María QA — maria.qa@example.com')).toBeInTheDocument();
+    expect(decryptData(localStorage.getItem('cacique_admin_email_contacts'))).toEqual(expect.arrayContaining([
+      expect.objectContaining({ nombre: 'María QA', correo: 'maria.qa@example.com' })
+    ]));
+
+    openSection('Personal & Planilla');
+    fireEvent.change(screen.getByLabelText('Nombre completo'), { target: { value: 'Colaborador QA' } });
+    fireEvent.change(screen.getByLabelText('Salario mensual'), { target: { value: '500000' } });
+    fireEvent.change(screen.getByLabelText('Frecuencia de pago'), { target: { value: 'Mensual' } });
+    fireEvent.change(screen.getByLabelText('Días de pago'), { target: { value: 'Último día del mes' } });
+    fireEvent.change(screen.getByLabelText('Cuenta IBAN'), { target: { value: 'cr123456789' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar empleado' }));
+    expect(screen.getByText('Colaborador QA')).toBeInTheDocument();
+    expect(screen.getByText('Mensual: Último día del mes')).toBeInTheDocument();
+    expect(screen.getByText('CR123456789')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Editar Colaborador QA' }));
+    fireEvent.change(screen.getByLabelText('Nombre completo'), { target: { value: 'Colaborador Editado' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+    expect(screen.getByText('Colaborador Editado')).toBeInTheDocument();
+    expect(screen.queryByText('Colaborador QA')).not.toBeInTheDocument();
+    expect(decryptData(localStorage.getItem('cacique_admin_payroll'))).toEqual(expect.arrayContaining([
+      expect.objectContaining({ nombre: 'Colaborador Editado', salario: 500000, iban: 'CR123456789' })
+    ]));
+  }, 15000);
+
+  it('despacha las audiencias dinámicas de proveedores y personal', async () => {
+    localStorage.removeItem('cacique_admin_payroll');
+    localStorage.removeItem('cacique_admin_email_contacts');
+    localStorage.removeItem('cacique_registered_clients');
+    renderAdmin();
+    openSection('Centro de Correos');
+    for (const [audience, expectedEmails] of [
+      ['todos_proveedores', ['ventas@sanmartin.cr', 'pedidos@zarcero.cr', 'contacto@coronadocruz.cr']],
+      ['personal_meseros', ['Angel Daniela Salazar T.', 'Carlos Ramírez']]
+    ]) {
+      fireEvent.change(screen.getByLabelText('Audiencia'), { target: { value: audience } });
+      fireEvent.change(screen.getByPlaceholderText('Asunto del comunicado'), { target: { value: `Prueba ${audience}` } });
+      fireEvent.change(screen.getByPlaceholderText('Escriba el mensaje...'), { target: { value: 'Comunicado de prueba' } });
+      fireEvent.click(screen.getByRole('button', { name: /Despachar con n8n/i }));
+      await waitFor(() => expect(screen.getByText(/Respuesta del envío/i)).toBeInTheDocument());
+      expect(triggerN8nAutomation).toHaveBeenLastCalledWith(
+        'INVENTARIO_ALERTA',
+        expect.objectContaining({ destinatarios: expectedEmails })
+      );
+    }
+  }, 15000);
 });

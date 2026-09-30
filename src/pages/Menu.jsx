@@ -107,7 +107,7 @@ export default function Menu() {
 
   const handleConfirmWhatsAppOrder = () => {
     const itemsText = cart.map(i => `• ${i.cantidad}x ${i.nombre} (₡${(i.precio * i.cantidad).toLocaleString()})`).join('%0A');
-    const text = `¡Hola Chicharronera El Cacique! 👋%0A%0AMe gustaría coordinar la reserva de mesa y mi pedido con el siguiente detalle:%0A%0A${itemsText}%0A%0A*Subtotal:* ₡${subtotal.toLocaleString()}%0A*IVA (13%):* ₡${iva.toLocaleString()}%0A*Servicio (10%):* ₡${servicio.toLocaleString()}%0A*Total:* ₡${totalGeneral.toLocaleString()}%0A%0A¿Me ayudan a confirmar disponibilidad de mesa y día?🏼`;
+    const text = `¡Hola Chicharronera El Cacique!%0A%0AMe gustaría coordinar la reserva de mesa y mi pedido con el siguiente detalle:%0A%0A${itemsText}%0A%0A*Subtotal:* ₡${subtotal.toLocaleString()}%0A*IVA (13%):* ₡${iva.toLocaleString()}%0A*Servicio (10%):* ₡${servicio.toLocaleString()}%0A*Total:* ₡${totalGeneral.toLocaleString()}%0A%0A¿Me ayudan a confirmar disponibilidad de mesa y día?`;
 
     window.open(`https://wa.me/50622008888?text=${text}`, '_blank');
     clearCart();

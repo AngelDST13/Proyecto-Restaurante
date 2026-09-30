@@ -4,8 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import caciqueIcon from '../assets/img/Cacique.svg';
 import officialLogo from '../assets/img/LogoN.svg';
-import { formatSedeName } from '../services/authSecurity';
+import { decryptData, encryptData, formatSedeName } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { 
   ShieldCheck, DollarSign, ShoppingBag, Users, Clock, 
   TrendingUp, AlertTriangle, Plus, Trash2, Pencil, CheckCircle2,
@@ -76,6 +77,25 @@ export default function AdminDashboard() {
   const [supplierForm, setSupplierForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', insumos: '', sede: 'escazu' });
   const [invoiceForm, setInvoiceForm] = useState({ proveedor: '', monto: '', codigo: '', fecha: '', categoria: 'Insumos', archivoNombre: '' });
   const [emailData, setEmailData] = useState({ tipo: 'INVENTARIO_ALERTA', destinatarioTipo: 'todos_clientes', especifico: '', asunto: '', mensaje: '' });
+  const [emailContact, setEmailContact] = useState({ nombre: '', correo: '' });
+  const [emailContacts, setEmailContacts] = useState(() => {
+    const storedContacts = decryptData(localStorage.getItem('cacique_admin_email_contacts'));
+    const savedContacts = Array.isArray(storedContacts) ? storedContacts : [];
+    const registeredClients = decryptData(localStorage.getItem('cacique_registered_clients')) || {};
+    const authContacts = Object.entries(registeredClients).map(([correo, client]) => ({ id: correo, nombre: client.nombre, correo }));
+    const combined = [...authContacts, ...savedContacts];
+    return combined.filter((contact, index) => combined.findIndex(candidate => candidate.correo === contact.correo) === index);
+  });
+  const [employeeForm, setEmployeeForm] = useState({ nombre: '', puesto: 'Mesero de Salón & Terraza', salario: '', frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'BAC Credomatic', iban: '' });
+  const [employees, setEmployees] = useState(() => {
+    const savedEmployees = decryptData(localStorage.getItem('cacique_admin_payroll'));
+    if (Array.isArray(savedEmployees)) return savedEmployees;
+    return [
+      { id: 'emp-admin', nombre: 'Angel Daniela Salazar T.', puesto: 'Administradora General', salario: 850000, frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'BAC Credomatic', iban: 'CR05010200009876543210' },
+      { id: 'emp-carlos', nombre: 'Carlos Ramírez', puesto: 'Mesero de Salón & Terraza', salario: 420000, frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'Banco Nacional (BNCR)', iban: 'CR11015200001234567890' }
+    ];
+  });
+  const [editingEmployeeId, setEditingEmployeeId] = useState(null);
 
   // BASE DE DATOS LOCAL DE INVENTARIOS CON LÍMITES
   const [inventory, setInventory] = useState([
@@ -157,6 +177,10 @@ export default function AdminDashboard() {
     mes: [48, 62, 74, 68, 88, 100]
   };
   const currentSalesTrend = salesTrendByPeriod[timePeriod];
+  const monthlySalesData = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'].map((mes, index) => ({
+    mes,
+    ventas: Math.round(currentMetrics.ventas * currentSalesTrend[index] / 100)
+  }));
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -228,6 +252,13 @@ export default function AdminDashboard() {
     try {
       const response = await triggerN8nAutomation(emailData.tipo, {
         ...emailData,
+        destinatarios: emailData.destinatarioTipo === 'especifico'
+          ? [emailData.especifico]
+          : emailData.destinatarioTipo === 'todos_proveedores'
+            ? suppliers.map(supplier => supplier.email)
+            : emailData.destinatarioTipo === 'personal_meseros'
+              ? employees.map(employee => employee.nombre)
+              : emailContacts.map(contact => contact.correo),
         correoCliente: emailData.destinatarioTipo === 'especifico' ? emailData.especifico : '',
         producto: 'Comunicado Admin',
         sede: formatSedeName(selectedSede) || 'Central',
@@ -356,6 +387,49 @@ export default function AdminDashboard() {
     setMenuCategories(previous => [...previous, category]);
     setNewCategory('');
     showToast('Categoría agregada al menú', 'success');
+  };
+
+  const handleSaveEmailContact = (event) => {
+    event.preventDefault();
+    const nombre = emailContact.nombre.trim();
+    const correo = emailContact.correo.trim().toLocaleLowerCase();
+    if (!nombre || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      showToast('Ingrese el nombre y un correo válido del cliente', 'error');
+      return;
+    }
+    if (emailContacts.some(contact => contact.correo.toLocaleLowerCase() === correo)) {
+      showToast('Este correo ya está registrado en la audiencia', 'error');
+      return;
+    }
+    const contact = { id: correo, nombre, correo };
+    const updatedContacts = [...emailContacts, contact];
+    setEmailContacts(updatedContacts);
+    localStorage.setItem('cacique_admin_email_contacts', encryptData(updatedContacts));
+    setEmailContact({ nombre: '', correo: '' });
+    showToast('Cliente agregado a la lista de comunicaciones', 'success');
+  };
+
+  const handleSaveEmployee = (event) => {
+    event.preventDefault();
+    const nombre = employeeForm.nombre.trim();
+    const salario = Number(employeeForm.salario);
+    if (!nombre || !Number.isFinite(salario) || salario <= 0) {
+      showToast('Ingrese el nombre y un salario mensual válido', 'error');
+      return;
+    }
+    const employee = { ...employeeForm, nombre, salario };
+    const updatedEmployees = editingEmployeeId
+      ? employees.map(current => current.id === editingEmployeeId ? { ...employee, id: editingEmployeeId } : current)
+      : [...employees, { ...employee, id: Date.now() }];
+    setEmployees(updatedEmployees);
+    if (editingEmployeeId) {
+      showToast('Datos del colaborador actualizados', 'success');
+    } else {
+      showToast('Colaborador agregado a la planilla', 'success');
+    }
+    localStorage.setItem('cacique_admin_payroll', encryptData(updatedEmployees));
+    setEmployeeForm({ nombre: '', puesto: 'Mesero de Salón & Terraza', salario: '', frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'BAC Credomatic', iban: '' });
+    setEditingEmployeeId(null);
   };
   const addMenuItem = event => {
     event.preventDefault();
@@ -607,13 +681,22 @@ export default function AdminDashboard() {
                   </div>
                   <TrendingUp className="w-5 h-5 text-[#659B5E]" />
                 </div>
-                <div className="h-48 flex items-end justify-between gap-3 pt-6 px-2 border-b border-[#F8FFE5]/10">
-                  {currentSalesTrend.map((value, index) => (
-                    <div key={`${timePeriod}-${index}`} className="flex-1 flex flex-col items-center gap-2 group">
-                      <div className="w-full bg-gradient-to-t from-[#659B5E] to-[#D16014] rounded-t-xl group-hover:brightness-125 transition-all" style={{ height: `${value}%` }} />
-                      <span className="text-[10px] font-bold text-gray-400">{['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'][index]}</span>
-                    </div>
-                  ))}
+                <div className="h-56 w-full" role="img" aria-label={`Gráfico de ventas para el periodo ${timePeriod} en Sede ${formatSedeName(selectedSede)}`}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={monthlySalesData} margin={{ top: 12, right: 12, left: 4, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="salesFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#D16014" stopOpacity={0.65} />
+                          <stop offset="95%" stopColor="#659B5E" stopOpacity={0.08} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke="#659B5E" strokeOpacity={0.18} vertical={false} />
+                      <XAxis dataKey="mes" stroke="#9ca3af" tickLine={false} />
+                      <YAxis stroke="#9ca3af" tickLine={false} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0A090C', borderColor: '#659B5E' }} />
+                      <Area type="monotone" dataKey="ventas" stroke="#D16014" strokeWidth={3} fill="url(#salesFill)" activeDot={{ r: 5 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
@@ -642,7 +725,7 @@ export default function AdminDashboard() {
                   {topSellingFoods.map(food => (
                     <div key={food.rank} className="p-3 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 flex items-center justify-between">
                       <div className="flex items-center gap-3"><span className="font-mono font-black text-[#D16014]">{food.rank}</span><div><strong className="font-bold text-white block">{food.nombre}</strong><span className="text-[10px] text-gray-400">{food.ventas} órdenes servidas</span></div></div>
-                      <div className="text-right"><span className="font-black text-[#659B5E] block">{food.monto}</span><span className="text-[10px] text-amber-400">★ {food.rating}</span></div>
+                      <div className="text-right"><span className="font-black text-[#659B5E] block">{food.monto}</span><span className="text-[10px] text-amber-400">Calificación {food.rating}/5</span></div>
                     </div>
                   ))}
                 </div>
@@ -701,14 +784,34 @@ export default function AdminDashboard() {
         {activeSection === 'correos' && (
           <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 sm:p-8 space-y-6 text-xs shadow-2xl">
             <div className="border-b border-[#F8FFE5]/10 pb-4"><h3 className="font-extrabold text-lg flex items-center gap-2"><Mail className="w-5 h-5 text-[#D16014]" /> Centro de Correos y Comunicados</h3><p className="text-gray-400 text-[11px]">Envía comunicaciones a clientes, proveedores o personal mediante n8n.</p></div>
+            <section className="space-y-3" aria-labelledby="email-templates-title">
+              <h4 id="email-templates-title" className="font-bold text-amber-400">Plantillas</h4>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => setEmailData({ ...emailData, asunto: 'Bienvenido a El Cacique', mensaje: 'Gracias por registrarse. Le esperamos para disfrutar de nuestra propuesta gastronómica.' })} className="px-3 py-2 rounded-xl border border-[#F8FFE5]/15 hover:border-[#D16014]">Bienvenida</button>
+                <button type="button" onClick={() => setEmailData({ ...emailData, asunto: 'Promoción de temporada', mensaje: 'Consulte nuestras promociones vigentes en su sede favorita.' })} className="px-3 py-2 rounded-xl border border-[#F8FFE5]/15 hover:border-[#D16014]">Promoción de temporada</button>
+                <button type="button" onClick={() => setEmailData({ ...emailData, asunto: 'Aviso de reabastecimiento', mensaje: 'Le compartimos la solicitud de reabastecimiento de insumos correspondiente.' })} className="px-3 py-2 rounded-xl border border-[#F8FFE5]/15 hover:border-[#D16014]">Reabastecimiento</button>
+              </div>
+            </section>
             <form onSubmit={handleSendEmail} className="space-y-4 max-w-2xl">
               <label className="block space-y-1"><span className="text-gray-400">Tipo de notificación</span><select value={emailData.tipo} onChange={event => setEmailData({ ...emailData, tipo: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5"><option value="INVENTARIO_ALERTA">Alerta de inventario / proveedores</option><option value="RESERVA_MESA">Confirmación / modificación de reserva</option></select></label>
-              <select value={emailData.destinatarioTipo} onChange={event => setEmailData({ ...emailData, destinatarioTipo: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5"><option value="todos_clientes">Todos los clientes</option><option value="todos_proveedores">Todos los proveedores</option><option value="personal_meseros">Personal y cocina</option><option value="especifico">Correo específico</option></select>
-              {emailData.destinatarioTipo === 'especifico' && <input type="email" placeholder="destinatario@correo.cr" value={emailData.especifico} onChange={event => setEmailData({ ...emailData, especifico: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />}
+              <label className="block space-y-1"><span className="text-gray-400">Audiencia</span><select aria-label="Audiencia" value={emailData.destinatarioTipo} onChange={event => setEmailData({ ...emailData, destinatarioTipo: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5"><option value="todos_clientes">Todos los clientes registrados ({emailContacts.length})</option><option value="todos_proveedores">Todos los proveedores ({suppliers.length})</option><option value="personal_meseros">Personal y cocina ({employees.length})</option><option value="especifico">Correo específico</option></select></label>
+              {emailData.destinatarioTipo === 'especifico' && <input aria-label="Correo del destinatario" type="email" placeholder="destinatario@correo.cr" value={emailData.especifico} onChange={event => setEmailData({ ...emailData, especifico: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />}
               <input type="text" placeholder="Asunto del comunicado" value={emailData.asunto} onChange={event => setEmailData({ ...emailData, asunto: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
               <textarea rows="6" placeholder="Escriba el mensaje..." value={emailData.mensaje} onChange={event => setEmailData({ ...emailData, mensaje: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-3" />
               <button type="submit" disabled={emailLoading} className="py-3 px-6 bg-[#D16014] text-white font-extrabold rounded-xl flex items-center gap-2 cursor-pointer disabled:opacity-50"><Send className="w-4 h-4" /> {emailLoading ? 'Enviando correo...' : 'Despachar con n8n'}</button>
             </form>
+            <section className="max-w-2xl border-t border-[#F8FFE5]/10 pt-5 space-y-3" aria-labelledby="email-contact-title">
+              <h4 id="email-contact-title" className="font-bold text-amber-400">Registrar contacto de cliente</h4>
+              <p className="text-gray-400">Las cuentas creadas desde el registro del sitio se incorporan automáticamente a la audiencia.</p>
+              <form onSubmit={handleSaveEmailContact} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input aria-label="Nombre del cliente" value={emailContact.nombre} onChange={event => setEmailContact({ ...emailContact, nombre: event.target.value })} placeholder="Nombre completo" className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
+                <input aria-label="Correo del cliente" type="email" value={emailContact.correo} onChange={event => setEmailContact({ ...emailContact, correo: event.target.value })} placeholder="cliente@correo.cr" className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
+                <button type="submit" className="px-4 py-2.5 bg-[#659B5E] text-white font-bold rounded-xl">Guardar contacto</button>
+              </form>
+              <ul className="space-y-1 text-gray-300" aria-label="Contactos registrados">
+                {emailContacts.map(contact => <li key={contact.id}>{contact.nombre} — {contact.correo}</li>)}
+              </ul>
+            </section>
             {emailResponse && (
               <div className={`max-w-2xl rounded-2xl border p-4 text-xs ${emailResponse.success ? 'border-[#659B5E]/40 bg-[#659B5E]/10 text-[#B9E3B3]' : 'border-red-500/40 bg-red-500/10 text-red-300'}`}>
                 <strong className="block font-extrabold">{emailResponse.success ? 'Respuesta del envío' : 'Error del envío'}</strong>
@@ -755,7 +858,7 @@ export default function AdminDashboard() {
                   className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5 text-[#F8FFE5] font-bold focus:outline-none focus:border-[#D16014] cursor-pointer"
                 >
                   <option value="todos">Todos los Estados</option>
-                  <option value="critico">⚠️ Stock Crítico (En o bajo Límite Mínimo)</option>
+                  <option value="critico">Stock Crítico (En o bajo Límite Mínimo)</option>
                   <option value="optimo">✓ Stock Óptimo</option>
                 </select>
               </div>
@@ -886,7 +989,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-2"><strong className="text-white">{review.cliente}</strong><span className="text-[10px] text-[#659B5E]">Sede {review.sede}</span></div>
                     <p className="text-gray-300 leading-relaxed">{review.comentario}</p>
                   </div>
-                  <div className="shrink-0 text-amber-400 tracking-wide">{'★'.repeat(review.rating)}<span className="text-gray-600">{'★'.repeat(5 - review.rating)}</span></div>
+                  <div className="shrink-0 text-amber-400 tracking-wide">Calificación {review.rating}/5</div>
                 </div>
               ))}
             </div>
@@ -933,25 +1036,19 @@ export default function AdminDashboard() {
 
         {/* PERSONAL */}
         {activeSection === 'personal' && (
-          <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-4 text-xs shadow-2xl">
-            <h3 className="font-extrabold text-base text-[#F8FFE5]">Nómina de Personal Activo - Sede {formatSedeName(selectedSede)}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 flex justify-between items-center">
-                <div>
-                  <span className="font-bold text-[#F8FFE5] block text-sm">Angel Daniela Salazar T.</span>
-                  <span className="text-[10px] text-[#D16014]">Administradora General</span>
-                </div>
-                <span className="px-3 py-1 bg-[#659B5E]/20 text-[#659B5E] text-[10px] font-extrabold rounded-lg">Turno Activo</span>
-              </div>
-
-              <div className="p-4 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 flex justify-between items-center">
-                <div>
-                  <span className="font-bold text-[#F8FFE5] block text-sm">Carlos Ramírez</span>
-                  <span className="text-[10px] text-[#659B5E]">Mesero de Salón &amp; Terraza</span>
-                </div>
-                <span className="px-3 py-1 bg-[#659B5E]/20 text-[#659B5E] text-[10px] font-extrabold rounded-lg">Turno Activo</span>
-              </div>
-            </div>
+          <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 text-xs shadow-2xl">
+            <h3 className="font-extrabold text-lg text-[#F8FFE5]">Personal y planilla — Sede {formatSedeName(selectedSede)}</h3>
+            <form onSubmit={handleSaveEmployee} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <label className="space-y-1"><span>Nombre completo</span><input required aria-label="Nombre completo" value={employeeForm.nombre} onChange={event => setEmployeeForm({ ...employeeForm, nombre: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5" /></label>
+              <label className="space-y-1"><span>Puesto / rol</span><select aria-label="Puesto / rol" value={employeeForm.puesto} onChange={event => setEmployeeForm({ ...employeeForm, puesto: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5"><option>Mesero de Salón &amp; Terraza</option><option>Cocinero / Chef de Paila</option><option>Cajero POS</option><option>Administrador de Sede</option></select></label>
+              <label className="space-y-1"><span>Salario mensual (CRC)</span><input required min="1" type="number" aria-label="Salario mensual" value={employeeForm.salario} onChange={event => setEmployeeForm({ ...employeeForm, salario: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5" /></label>
+              <label className="space-y-1"><span>Frecuencia de pago</span><select aria-label="Frecuencia de pago" value={employeeForm.frecuenciaPago} onChange={event => setEmployeeForm({ ...employeeForm, frecuenciaPago: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5"><option>Quincenal</option><option>Mensual</option></select></label>
+              <label className="space-y-1"><span>Días de pago</span><input aria-label="Días de pago" value={employeeForm.diaPago} onChange={event => setEmployeeForm({ ...employeeForm, diaPago: event.target.value })} placeholder="15 y 30 o último día del mes" className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5" /></label>
+              <label className="space-y-1"><span>Banco destino</span><select aria-label="Banco destino" value={employeeForm.banco} onChange={event => setEmployeeForm({ ...employeeForm, banco: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5"><option>BAC Credomatic</option><option>Banco Nacional (BNCR)</option><option>Banco de Costa Rica (BCR)</option><option>Banco Popular</option></select></label>
+              <label className="space-y-1 sm:col-span-2"><span>Cuenta IBAN</span><input aria-label="Cuenta IBAN" value={employeeForm.iban} onChange={event => setEmployeeForm({ ...employeeForm, iban: event.target.value.toUpperCase() })} placeholder="CR..." className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5" /></label>
+              <div className="flex items-end gap-2"><button type="submit" className="px-5 py-2.5 bg-[#D16014] text-white font-extrabold rounded-xl">{editingEmployeeId ? 'Guardar cambios' : 'Agregar empleado'}</button>{editingEmployeeId && <button type="button" onClick={() => { setEditingEmployeeId(null); setEmployeeForm({ nombre: '', puesto: 'Mesero de Salón & Terraza', salario: '', frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'BAC Credomatic', iban: '' }); }} className="px-4 py-2.5 border border-[#F8FFE5]/20 rounded-xl">Cancelar</button>}</div>
+            </form>
+            <div className="overflow-x-auto rounded-xl border border-[#F8FFE5]/10"><table className="w-full text-left"><thead className="bg-[#0A090C] text-gray-300"><tr><th className="p-3">Colaborador</th><th className="p-3">Puesto</th><th className="p-3">Salario mensual</th><th className="p-3">Pago</th><th className="p-3">Banco / IBAN</th><th className="p-3">Acciones</th></tr></thead><tbody className="divide-y divide-[#F8FFE5]/10">{employees.map(employee => <tr key={employee.id}><td className="p-3 font-bold">{employee.nombre}</td><td className="p-3">{employee.puesto}</td><td className="p-3">₡{employee.salario.toLocaleString('es-CR')}</td><td className="p-3">{employee.frecuenciaPago}: {employee.diaPago}</td><td className="p-3">{employee.banco}<br /><span className="text-gray-400">{employee.iban || 'Pendiente de registrar'}</span></td><td className="p-3"><button type="button" aria-label={`Editar ${employee.nombre}`} onClick={() => { setEditingEmployeeId(employee.id); setEmployeeForm({ ...employee, salario: String(employee.salario) }); }} className="text-amber-300 hover:underline">Editar</button></td></tr>)}</tbody></table></div>
           </div>
         )}
 
