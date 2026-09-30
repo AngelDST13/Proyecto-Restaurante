@@ -30,4 +30,22 @@ describe('KitchenDashboard KDS', () => {
     expect(screen.getByText('ORD-102')).toBeInTheDocument();
     expect(screen.queryByText('ORD-101')).not.toBeInTheDocument();
   });
+
+  it('guarda notas en ítems, notifica entregas y cancela el cierre de sesión', () => {
+    localStorage.removeItem('cacique_ready_order_notifications');
+    renderKitchen();
+    const order = screen.getByText('ORD-101').closest('div[class*="bg-[#001812]"]');
+    fireEvent.click(within(order).getAllByTitle('Añadir/Editar Nota del Platillo')[0]);
+    fireEvent.change(screen.getByPlaceholderText(/Sin cebolla picada, salsa aparte/i), { target: { value: 'Sin sal' } });
+    fireEvent.click(screen.getByRole('button', { name: '+ Salsa aparte' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar Nota' }));
+    expect(within(order).getByText(/Sin sal, Salsa aparte/i)).toBeInTheDocument();
+
+    fireEvent.click(within(order).getByRole('button', { name: /Notificar Listo a Mesero/i }));
+    expect(JSON.parse(localStorage.getItem('cacique_ready_order_notifications'))).toHaveLength(1);
+    fireEvent.click(screen.getByTitle('Cerrar Sesión'));
+    expect(screen.getByText(/¿Cerrar Sesión de Cocina/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.queryByText(/¿Cerrar Sesión de Cocina/i)).not.toBeInTheDocument();
+  });
 });

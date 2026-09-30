@@ -1,10 +1,22 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../context/AuthContext';
 import AiAgentWidget from '../components/AiAgentWidget';
 
+const { triggerMock } = vi.hoisted(() => ({ triggerMock: vi.fn() }));
+vi.mock('../services/n8nService', () => ({
+  triggerN8nAutomation: triggerMock,
+  subscribeToLiveEvents: vi.fn(() => () => {})
+}));
+
 const renderWidget = route => render(<AuthProvider><MemoryRouter initialEntries={[route]}><AiAgentWidget /></MemoryRouter></AuthProvider>);
+
+const originalScrollIntoView = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView');
+afterEach(() => {
+  if (originalScrollIntoView) Object.defineProperty(Element.prototype, 'scrollIntoView', originalScrollIntoView);
+  else delete Element.prototype.scrollIntoView;
+});
 
 describe('Widget del agente IA', () => {
   it('se posiciona a la izquierda en vistas públicas y puede ocultarse y mostrarse', () => {
@@ -21,5 +33,27 @@ describe('Widget del agente IA', () => {
     const { container } = renderWidget('/admin');
     expect(container.querySelector('.cacique-bot-float')).toHaveClass('right-4');
     expect(screen.getByText('IA Operativa Staff')).toBeInTheDocument();
+  });
+
+  it('rechaza prompts con emojis y muestra respuestas, emojis limpios y errores del servicio', async () => {
+    Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() });
+    triggerMock.mockResolvedValueOnce({ success: true, respuesta: '¡Hola 👋!' });
+    renderWidget('/menu');
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir asistente virtual' }));
+    const input = screen.getByPlaceholderText('Escriba su consulta...');
+    fireEvent.change(input, { target: { value: 'Dame el menú con emojis' } });
+    fireEvent.click(screen.getByRole('button', { name: '' }));
+    expect(await screen.findByText(/no utiliza emojis/i)).toBeInTheDocument();
+    expect(triggerMock).not.toHaveBeenCalled();
+
+    fireEvent.change(input, { target: { value: 'Precio del chifrijo' } });
+    fireEvent.click(screen.getByRole('button', { name: '' }));
+    expect(await screen.findByText('¡Hola !')).toBeInTheDocument();
+    expect(triggerMock).toHaveBeenCalledOnce();
+
+    triggerMock.mockRejectedValueOnce(new Error('offline'));
+    fireEvent.change(input, { target: { value: 'Sedes del restaurante' } });
+    fireEvent.click(screen.getByRole('button', { name: '' }));
+    expect(await screen.findByText(/alta demanda/i)).toBeInTheDocument();
   });
 });

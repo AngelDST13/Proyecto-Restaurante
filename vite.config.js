@@ -21,8 +21,11 @@ export default defineConfig({
       exclude: [
         'node_modules/',
         'src/assets/**',
-        '**/*.{svg,png,jpg,jpeg,gif,webp,ico}',
-        'src/main.jsx'
+        '**/*.svg',
+        '**/*.png',
+        '**/*.{jpg,jpeg,gif,webp,ico}',
+        'src/main.jsx',
+        'src/vite-env.d.ts'
       ],
       thresholds: {
         lines: 80,
