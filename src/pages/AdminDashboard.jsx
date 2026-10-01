@@ -6,7 +6,7 @@ import caciqueIcon from '../assets/img/Cacique.svg';
 import officialLogo from '../assets/img/LogoN.svg';
 import { decryptData, encryptData, formatSedeName } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { 
   ShieldCheck, DollarSign, ShoppingBag, Users, Clock, 
   TrendingUp, AlertTriangle, Plus, Trash2, Pencil, CheckCircle2,
@@ -35,7 +35,9 @@ export default function AdminDashboard() {
     { id: 3, nombre: 'Costilla a la Leña Ahumada', categoria: 'Cortes a la Leña', precio: 9200, descripcion: 'Costilla de cerdo bañada en salsa BBQ artesanal.' }
   ]);
   const [newCategory, setNewCategory] = useState('');
-  const sedesDisponibles = ['Sede Escazú', 'Sede Santa Ana', 'Sede Cartago'];
+  const sedesDisponibles = ['Sede Escazú', 'Sede Santa Ana', 'Sede Cartago', 'Sede Heredia'];
+  const branchKeys = ['escazu', 'santa_ana', 'cartago', 'heredia'];
+  const branchLabels = { escazu: 'Escazú', santa_ana: 'Santa Ana', cartago: 'Cartago', heredia: 'Heredia' };
   const [newMenuItem, setNewMenuItem] = useState({ nombre: '', categoria: 'Chicharrones & Paila', precio: '', descripcion: '', sedesNoDisponibles: [] });
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -86,7 +88,9 @@ export default function AdminDashboard() {
     const combined = [...authContacts, ...savedContacts];
     return combined.filter((contact, index) => combined.findIndex(candidate => candidate.correo === contact.correo) === index);
   });
-  const [employeeForm, setEmployeeForm] = useState({ nombre: '', puesto: 'Mesero de Salón & Terraza', salario: '', frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'BAC Credomatic', iban: '' });
+  const [employeeForm, setEmployeeForm] = useState({ nombre: '', puesto: 'Mesero de Salón & Terraza', salario: '', frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'BAC Credomatic', iban: '', sede: 'escazu' });
+  const [reservations, setReservations] = useState(() => { try { return JSON.parse(localStorage.getItem('cacique_admin_reservations') || '[]'); } catch { return []; } });
+  const [reservationForm, setReservationForm] = useState({ cliente: '', personas: 2, fecha: '', hora: '', sede: 'escazu', mesa: '1' });
   const [employees, setEmployees] = useState(() => {
     const savedEmployees = decryptData(localStorage.getItem('cacique_admin_payroll'));
     if (Array.isArray(savedEmployees)) return savedEmployees;
@@ -170,7 +174,11 @@ export default function AdminDashboard() {
     cartago: { personal: 10, mesasLibres: 6, mesasTotal: 20 },
     heredia: { personal: 9, mesasLibres: 3, mesasTotal: 16 }
   };
-  const currentMetrics = { ...metricsByPeriod[timePeriod][selectedSede], ...branchDetails[selectedSede] };
+  const currentMetrics = selectedSede === 'todas'
+    ? { ...branchKeys.reduce((sum, key) => { const metric = metricsByPeriod[timePeriod][key]; return { ventas: sum.ventas + metric.ventas, comandas: sum.comandas + metric.comandas, clientes: sum.clientes + metric.clientes, completados: sum.completados + metric.completados, pendientes: sum.pendientes + metric.pendientes, cancelados: sum.cancelados + metric.cancelados }; }, { ventas: 0, comandas: 0, clientes: 0, completados: 0, pendientes: 0, cancelados: 0 }), coccion: '16 min', mesasTotal: branchKeys.reduce((n, key) => n + branchDetails[key].mesasTotal, 0), mesasLibres: branchKeys.reduce((n, key) => n + branchDetails[key].mesasLibres, 0) }
+    : { ...metricsByPeriod[timePeriod][selectedSede], ...branchDetails[selectedSede] };
+  const salesByBranch = branchKeys.map(key => ({ sede: branchLabels[key], ventas: metricsByPeriod[timePeriod][key].ventas, clientes: metricsByPeriod[timePeriod][key].clientes }));
+  const averageTicket = currentMetrics.comandas ? Math.round(currentMetrics.ventas / currentMetrics.comandas) : 0;
   const salesTrendByPeriod = {
     dia: [58, 66, 52, 78, 70, 92],
     semana: [64, 72, 68, 86, 80, 100],
@@ -193,7 +201,7 @@ export default function AdminDashboard() {
       periodo: timePeriod,
       fechaGeneracion: new Date().toISOString(),
       metricas: currentMetrics,
-      inventarioCritico: inventory.filter(item => item.sede === selectedSede && item.stock <= item.minLimit)
+      inventarioCritico: inventory.filter(item => (selectedSede === 'todas' || item.sede === selectedSede) && item.stock <= item.minLimit)
     };
     const csv = `Métrica,Valor\nVentas,${currentMetrics.ventas}\nComandas,${currentMetrics.comandas}\nClientes,${currentMetrics.clientes}\nTiempo cocción,${currentMetrics.coccion}`;
     const blob = new Blob([format === 'csv' ? csv : JSON.stringify(report, null, 2)], { type: format === 'csv' ? 'text/csv' : 'application/json' });
@@ -358,7 +366,7 @@ export default function AdminDashboard() {
   };
 
   // FILTRADO DE INVENTARIO
-  const branchInventory = inventory.filter(i => i.sede === selectedSede);
+  const branchInventory = inventory.filter(i => selectedSede === 'todas' || i.sede === selectedSede);
   const filteredInventory = branchInventory.filter(item => {
     const matchesSearch = item.nombre.toLowerCase().includes(searchInsumo.toLowerCase());
     const isCritical = item.stock <= item.minLimit;
@@ -413,7 +421,7 @@ export default function AdminDashboard() {
     event.preventDefault();
     const nombre = employeeForm.nombre.trim();
     const salario = Number(employeeForm.salario);
-    if (!nombre || !Number.isFinite(salario) || salario <= 0) {
+    if (!nombre || !Number.isFinite(salario) || salario <= 0 || (employeeForm.iban && !/^CR\d{20}$/i.test(employeeForm.iban.replace(/\s/g, '')))) {
       showToast('Ingrese el nombre y un salario mensual válido', 'error');
       return;
     }
@@ -428,7 +436,7 @@ export default function AdminDashboard() {
       showToast('Colaborador agregado a la planilla', 'success');
     }
     localStorage.setItem('cacique_admin_payroll', encryptData(updatedEmployees));
-    setEmployeeForm({ nombre: '', puesto: 'Mesero de Salón & Terraza', salario: '', frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'BAC Credomatic', iban: '' });
+    setEmployeeForm({ nombre: '', puesto: 'Mesero de Salón & Terraza', salario: '', frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'BAC Credomatic', iban: '', sede: selectedSede === 'todas' ? 'escazu' : selectedSede });
     setEditingEmployeeId(null);
   };
   const addMenuItem = event => {
@@ -467,7 +475,7 @@ export default function AdminDashboard() {
               src={officialLogo}
               onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = caciqueIcon; }}
               alt="El Cacique Logo"
-              className="w-12 h-12 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]"
+              className="w-14 h-14 object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.55)]"
             />
             <div>
               <span className="text-amber-400 font-extrabold text-base tracking-wide block leading-none">
@@ -550,8 +558,8 @@ export default function AdminDashboard() {
       {/* ÁREA PRINCIPAL */}
       <main className="flex-grow p-6 sm:p-10 space-y-8 overflow-y-auto">
         
-        <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl">
-          <div>
+        <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 sm:p-8 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6 shadow-2xl">
+          <div className="min-w-0 space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black text-[#D16014] uppercase tracking-widest bg-[#D16014]/20 px-2.5 py-1 rounded-full border border-[#D16014]/40">
                 Dirección General de Operaciones
@@ -560,15 +568,13 @@ export default function AdminDashboard() {
                 <Flame className="w-3.5 h-3.5" /> El Cacique 2026
               </span>
             </div>
-            <h1 className="text-2xl sm:text-4xl font-black text-[#F8FFE5] mt-2">
-              {getGreeting()}, {user?.alias || 'Angel'}!
-            </h1>
+            <div className="flex items-center gap-3 mt-2"><img src={officialLogo} alt="Logo oficial de El Cacique" className="w-12 h-12 object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]"/><h1 className="text-2xl sm:text-4xl font-black text-[#F8FFE5] leading-tight">{getGreeting()}, {user?.alias || 'Angel'}!</h1></div>
             <p className="text-xs text-gray-400">
               Aquí está el resumen ejecutivo del rendimiento operacional de hoy.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
             <div className="flex bg-[#0A090C] p-1 rounded-2xl border border-[#659B5E]/40 text-xs font-extrabold">
               {['dia', 'semana', 'mes'].map(period => (
                 <button key={period} onClick={() => handlePeriodChange(period)} className={`px-3 py-1.5 rounded-xl cursor-pointer transition-all ${timePeriod === period ? 'bg-[#D16014] text-white' : 'text-gray-400 hover:text-white'}`}>
@@ -586,6 +592,7 @@ export default function AdminDashboard() {
                 }}
                 className="w-full bg-[#0A090C] border border-[#659B5E]/40 rounded-2xl pl-10 pr-4 py-3 text-xs font-bold text-[#F8FFE5] focus:outline-none focus:border-[#D16014] cursor-pointer"
               >
+                <option value="todas">Todas las Sedes • Consolidado General</option>
                 <option value="escazu">Sede Escazú • Centro Culinario</option>
                 <option value="santa_ana">Sede Santa Ana • Plaza Real</option>
                 <option value="cartago">Sede Cartago • Paso Ancho</option>
@@ -670,6 +677,15 @@ export default function AdminDashboard() {
                 <div className="text-3xl font-black text-[#F8FFE5]">{currentMetrics.coccion}</div>
                 <span className="text-[10px] text-gray-400">Objetivo: &lt; 20 min</span>
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-[#001812] border border-[#659B5E]/30 rounded-2xl p-5"><p className="text-xs text-gray-400">Ticket promedio</p><p className="text-2xl font-black text-amber-400">₡{averageTicket.toLocaleString('es-CR')}</p></div>
+              <div className="bg-[#001812] border border-[#659B5E]/30 rounded-2xl p-5"><p className="text-xs text-gray-400">Ocupación de mesas</p><p className="text-2xl font-black text-[#659B5E]">{currentMetrics.mesasTotal ? Math.round((currentMetrics.mesasTotal - currentMetrics.mesasLibres) / currentMetrics.mesasTotal * 100) : 0}% <span className="text-xs text-gray-400 font-normal">({currentMetrics.mesasTotal - currentMetrics.mesasLibres}/{currentMetrics.mesasTotal})</span></p></div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <section className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6"><h3 className="font-extrabold mb-4">Comparativo de Ventas por Sede</h3><div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={salesByBranch}><CartesianGrid stroke="#659B5E" strokeOpacity={0.18} vertical={false} /><XAxis dataKey="sede" stroke="#9ca3af" /><YAxis stroke="#9ca3af" /><Tooltip /><Bar dataKey="ventas" fill="#D16014" radius={[6,6,0,0]} /></BarChart></ResponsiveContainer></div></section>
+              <section className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6"><h3 className="font-extrabold mb-4">Distribución de Clientes por Sucursal</h3><div className="h-64"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={salesByBranch} dataKey="clientes" nameKey="sede" innerRadius={55} outerRadius={90} label>{salesByBranch.map((entry, index) => <Cell key={entry.sede} fill={['#D16014','#659B5E','#EAB308','#38BDF8'][index]} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer></div></section>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -1045,18 +1061,24 @@ export default function AdminDashboard() {
               <label className="space-y-1"><span>Frecuencia de pago</span><select aria-label="Frecuencia de pago" value={employeeForm.frecuenciaPago} onChange={event => setEmployeeForm({ ...employeeForm, frecuenciaPago: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5"><option>Quincenal</option><option>Mensual</option></select></label>
               <label className="space-y-1"><span>Días de pago</span><input aria-label="Días de pago" value={employeeForm.diaPago} onChange={event => setEmployeeForm({ ...employeeForm, diaPago: event.target.value })} placeholder="15 y 30 o último día del mes" className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5" /></label>
               <label className="space-y-1"><span>Banco destino</span><select aria-label="Banco destino" value={employeeForm.banco} onChange={event => setEmployeeForm({ ...employeeForm, banco: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5"><option>BAC Credomatic</option><option>Banco Nacional (BNCR)</option><option>Banco de Costa Rica (BCR)</option><option>Banco Popular</option></select></label>
-              <label className="space-y-1 sm:col-span-2"><span>Cuenta IBAN</span><input aria-label="Cuenta IBAN" value={employeeForm.iban} onChange={event => setEmployeeForm({ ...employeeForm, iban: event.target.value.toUpperCase() })} placeholder="CR..." className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5" /></label>
+              <label className="space-y-1"><span>Sede asignada</span><select aria-label="Sede asignada" value={employeeForm.sede || 'escazu'} onChange={event => setEmployeeForm({ ...employeeForm, sede: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5">{branchKeys.map(key => <option key={key} value={key}>{branchLabels[key]}</option>)}</select></label>
+              <label className="space-y-1 sm:col-span-2"><span>Cuenta IBAN CR (22 caracteres)</span><input aria-label="Cuenta IBAN" value={employeeForm.iban} onChange={event => setEmployeeForm({ ...employeeForm, iban: event.target.value.toUpperCase() })} placeholder="CR..." pattern="CR[0-9]{20}" title="Formato: CR seguido de 20 dígitos" className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5" /></label>
               <div className="flex items-end gap-2"><button type="submit" className="px-5 py-2.5 bg-[#D16014] text-white font-extrabold rounded-xl">{editingEmployeeId ? 'Guardar cambios' : 'Agregar empleado'}</button>{editingEmployeeId && <button type="button" onClick={() => { setEditingEmployeeId(null); setEmployeeForm({ nombre: '', puesto: 'Mesero de Salón & Terraza', salario: '', frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'BAC Credomatic', iban: '' }); }} className="px-4 py-2.5 border border-[#F8FFE5]/20 rounded-xl">Cancelar</button>}</div>
             </form>
-            <div className="overflow-x-auto rounded-xl border border-[#F8FFE5]/10"><table className="w-full text-left"><thead className="bg-[#0A090C] text-gray-300"><tr><th className="p-3">Colaborador</th><th className="p-3">Puesto</th><th className="p-3">Salario mensual</th><th className="p-3">Pago</th><th className="p-3">Banco / IBAN</th><th className="p-3">Acciones</th></tr></thead><tbody className="divide-y divide-[#F8FFE5]/10">{employees.map(employee => <tr key={employee.id}><td className="p-3 font-bold">{employee.nombre}</td><td className="p-3">{employee.puesto}</td><td className="p-3">₡{employee.salario.toLocaleString('es-CR')}</td><td className="p-3">{employee.frecuenciaPago}: {employee.diaPago}</td><td className="p-3">{employee.banco}<br /><span className="text-gray-400">{employee.iban || 'Pendiente de registrar'}</span></td><td className="p-3"><button type="button" aria-label={`Editar ${employee.nombre}`} onClick={() => { setEditingEmployeeId(employee.id); setEmployeeForm({ ...employee, salario: String(employee.salario) }); }} className="text-amber-300 hover:underline">Editar</button></td></tr>)}</tbody></table></div>
+            <div className="overflow-x-auto rounded-xl border border-[#F8FFE5]/10"><table className="w-full text-left"><thead className="bg-[#0A090C] text-gray-300"><tr><th className="p-3">Colaborador</th><th className="p-3">Puesto / Sede</th><th className="p-3">Salario mensual</th><th className="p-3">Pago</th><th className="p-3">Banco / IBAN</th><th className="p-3">Acciones</th></tr></thead><tbody className="divide-y divide-[#F8FFE5]/10">{employees.filter(employee => selectedSede === 'todas' || !employee.sede || employee.sede === selectedSede).map(employee => <tr key={employee.id}><td className="p-3 font-bold">{employee.nombre}</td><td className="p-3">{employee.puesto}<br/><span className="text-gray-400">{branchLabels[employee.sede] || 'Escazú'}</span></td><td className="p-3">₡{employee.salario.toLocaleString('es-CR')}</td><td className="p-3">{employee.frecuenciaPago}: {employee.diaPago}</td><td className="p-3">{employee.banco}<br /><span className="text-gray-400">{employee.iban || 'Pendiente de registrar'}</span></td><td className="p-3 flex gap-3"><button type="button" aria-label={`Editar ${employee.nombre}`} onClick={() => { setEditingEmployeeId(employee.id); setEmployeeForm({ ...employee, salario: String(employee.salario) }); }} className="text-amber-300 hover:underline">Editar</button><button type="button" aria-label={`Eliminar ${employee.nombre}`} onClick={() => { const next = employees.filter(item => item.id !== employee.id); setEmployees(next); localStorage.setItem('cacique_admin_payroll', encryptData(next)); }} className="text-red-300 hover:underline">Eliminar</button></td></tr>)}</tbody></table></div>
           </div>
         )}
 
         {/* MESAS */}
         {activeSection === 'mesas' && (
           <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-4 text-xs shadow-2xl">
-            <h3 className="font-extrabold text-base text-[#F8FFE5]">Control de Mesas - Sede {formatSedeName(selectedSede)}</h3>
-            <p className="text-gray-400">Total de mesas registradas: {currentMetrics.mesasTotal} | Mesas libres: {currentMetrics.mesasLibres}</p>
+            <h3 className="font-extrabold text-base text-[#F8FFE5]">Mesas y reservaciones — {selectedSede === 'todas' ? 'Todas las sedes' : formatSedeName(selectedSede)}</h3>
+            <p className="text-gray-400">Mesas registradas: {currentMetrics.mesasTotal} | Libres: {currentMetrics.mesasLibres} | Ocupadas: {currentMetrics.mesasTotal-currentMetrics.mesasLibres} | Reservadas: {reservations.filter(item => selectedSede === 'todas' || item.sede === selectedSede).length}</p>
+            <form className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3" onSubmit={event => { event.preventDefault(); const next = [...reservations, { ...reservationForm, id: Date.now(), personas: Number(reservationForm.personas), estado: 'Reservada' }]; setReservations(next); localStorage.setItem('cacique_admin_reservations', JSON.stringify(next)); setReservationForm({ ...reservationForm, cliente: '', fecha: '', hora: '' }); showToast('Reserva registrada', 'success'); }}>
+              <input required aria-label="Nombre del Cliente" placeholder="Nombre del cliente" value={reservationForm.cliente} onChange={event => setReservationForm({ ...reservationForm, cliente: event.target.value })} className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5"/><input required aria-label="Cantidad de Personas" type="number" min="1" value={reservationForm.personas} onChange={event => setReservationForm({ ...reservationForm, personas: event.target.value })} className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5"/><input required aria-label="Fecha" type="date" value={reservationForm.fecha} onChange={event => setReservationForm({ ...reservationForm, fecha: event.target.value })} className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5"/><input required aria-label="Hora" type="time" value={reservationForm.hora} onChange={event => setReservationForm({ ...reservationForm, hora: event.target.value })} className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5"/><select aria-label="Sede de reserva" value={reservationForm.sede} onChange={event => setReservationForm({ ...reservationForm, sede: event.target.value })} className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5">{branchKeys.map(key=><option key={key} value={key}>{branchLabels[key]}</option>)}</select><button className="rounded-xl bg-[#D16014] px-4 py-2 font-bold">Crear reserva</button>
+            </form>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">{branchKeys.filter(key => selectedSede === 'todas' || key === selectedSede).map(key => <div key={key} className="p-4 rounded-2xl bg-[#0A090C] border border-[#659B5E]/20"><strong>{branchLabels[key]}</strong><p className="text-gray-400">Libres {branchDetails[key].mesasLibres} · Ocupadas {branchDetails[key].mesasTotal-branchDetails[key].mesasLibres} · Reservadas {reservations.filter(item=>item.sede===key).length}</p></div>)}</div>
+            <div className="space-y-2">{reservations.filter(item => selectedSede === 'todas' || item.sede === selectedSede).map(item=><div key={item.id} className="flex flex-wrap justify-between gap-2 rounded-xl bg-[#0A090C] p-3"><span>{item.cliente} · {item.personas} personas · {item.fecha} {item.hora} · {branchLabels[item.sede]} · Mesa {item.mesa}</span><button onClick={()=>{const next=reservations.filter(res=>res.id!==item.id);setReservations(next);localStorage.setItem('cacique_admin_reservations',JSON.stringify(next));}} className="text-red-300">Cancelar</button></div>)}</div>
           </div>
         )}
 

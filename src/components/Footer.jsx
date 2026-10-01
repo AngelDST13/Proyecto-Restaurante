@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Phone, Clock, Mail, MessageSquare, ShieldCheck, Store } from 'lucide-react';
+import { Phone, Clock, Mail, MessageSquare, ShieldCheck, Store, Camera, Music2 } from 'lucide-react';
 import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Footer() {
@@ -27,6 +27,12 @@ export default function Footer() {
           <div className="flex items-center gap-2 text-[#659B5E] text-[11px] font-bold">
             <ShieldCheck className="w-4 h-4 shrink-0" />
             <span>Calidad Garantizada 100% Criolla</span>
+          </div>
+          <div className="flex flex-wrap gap-3 pt-1" aria-label="Redes sociales oficiales">
+            <a aria-label="Facebook El Cacique" href="https://www.facebook.com/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-amber-400"><svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.4 21v-8h2.7l.4-3.1h-3.1v-2c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.1H7.2V13H10v8h3.4Z"/></svg></a>
+            <a aria-label="Instagram El Cacique" href="https://www.instagram.com/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-amber-400"><Camera className="w-5 h-5" /></a>
+            <a aria-label="WhatsApp El Cacique" href="https://wa.me/50622008888" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-amber-400"><MessageSquare className="w-5 h-5" /></a>
+            <a aria-label="TikTok El Cacique" href="https://www.tiktok.com/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-amber-400"><Music2 className="w-5 h-5" /></a>
           </div>
         </div>
 
