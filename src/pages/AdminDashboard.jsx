@@ -7,7 +7,7 @@ import { useAccessibility } from '../context/AccessibilityContext';
 import FacturacionPanel from '../components/FacturacionPanel';
 import caciqueIcon from '../assets/img/Cacique.svg';
 import officialLogo from '../assets/img/LogoN.svg';
-import { decryptData, encryptData, formatSedeName } from '../services/authSecurity';
+import { decryptData, encryptData, formatSedeName, TEST_ACCESS_CREDENTIALS } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { createXlsxBlob, downloadBlob, menuCsvHeaders, menuRowsForExport, normalizeMenuRows, parseCsv, parseXlsx, readFileBuffer, readFileText, rowsToCsv, sanitizePlainText } from '../services/spreadsheetService';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
@@ -274,6 +274,15 @@ export default function AdminDashboard() {
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
+  };
+
+  const copyAccessCredentials = async credential => {
+    try {
+      await navigator.clipboard.writeText(`${credential.email}\n${credential.password}`);
+      showToast('Credenciales copiadas al portapapeles', 'success');
+    } catch {
+      showToast('No se pudieron copiar las credenciales en este navegador', 'error');
+    }
   };
 
   const exportReport = (format) => {
@@ -673,6 +682,20 @@ export default function AdminDashboard() {
             </div>
           </div>
 
+          <details className="rounded-xl border border-[#659B5E]/20 bg-black/20 px-3 py-2 text-xs">
+            <summary className="cursor-pointer py-1 font-bold text-amber-300">Accesos de prueba por sucursal</summary>
+            <div className="mt-2 max-h-64 space-y-2 overflow-y-auto">
+              {TEST_ACCESS_CREDENTIALS.map(credential => (
+                <div key={credential.email} className="rounded-lg border border-white/10 p-2">
+                  <p className="font-bold text-white">{credential.sede} · {credential.rol}</p>
+                  <p className="break-all font-mono text-[10px] text-zinc-300">{credential.email}</p>
+                  <p className="font-mono text-[10px] text-zinc-400">{credential.password}</p>
+                  <button type="button" onClick={() => copyAccessCredentials(credential)} className="mt-1 text-[10px] font-bold text-amber-300 underline underline-offset-2">Copiar credenciales</button>
+                </div>
+              ))}
+            </div>
+          </details>
+
           <nav className="space-y-1.5 text-xs font-bold uppercase tracking-wider">
             {[
                 { id: 'resumen', label: 'Resumen & Analíticas', icon: BarChart3 },
@@ -733,7 +756,7 @@ export default function AdminDashboard() {
       {/* ÁREA PRINCIPAL */}
       <main className="min-w-0 w-full max-w-full grow overflow-x-hidden p-4 sm:p-6 lg:p-10 space-y-8 overflow-y-auto">
         
-        <header className="bg-gradient-to-r from-[#001812] via-zinc-900 to-[#0A090C] rounded-3xl border border-[#659B5E]/30 p-6 sm:p-8 grid grid-cols-1 2xl:grid-cols-[minmax(16rem,1fr)_auto] items-center gap-6 shadow-2xl shadow-black/60">
+        <header className="bg-linear-to-r from-[#001812] via-zinc-900 to-[#0A090C] rounded-3xl border border-[#659B5E]/30 p-6 sm:p-8 grid grid-cols-1 2xl:grid-cols-[minmax(16rem,1fr)_auto] items-center gap-6 shadow-2xl shadow-black/60">
           <div className="min-w-0 space-y-1">
             <div>
               <span className="inline-flex px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-[11px] uppercase tracking-wider">
@@ -974,7 +997,7 @@ export default function AdminDashboard() {
         )}
 
         {activeSection === 'menu' && (
-          <div className="w-full max-w-full min-w-0 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-gradient-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 shadow-2xl sm:p-6">
+          <div className="w-full max-w-full min-w-0 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 shadow-2xl sm:p-6">
             <div className="mb-5 flex min-w-0 flex-wrap items-start justify-between gap-3"><div><h3 className="font-extrabold text-lg">Gestión dinámica del menú</h3><p className="text-gray-400 text-[11px]">Agrega, edita o elimina platillos y disponibilidad por sucursal.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => exportMenu('csv')} className="min-h-10 rounded-lg border border-white/15 px-3 text-xs font-bold hover:border-emerald-400">Exportar CSV</button><button type="button" onClick={() => exportMenu('xlsx')} className="min-h-10 rounded-lg border border-white/15 px-3 text-xs font-bold hover:border-emerald-400">Exportar Excel</button><button type="button" onClick={() => exportMenu('json')} className="min-h-10 rounded-lg border border-white/15 px-3 text-xs font-bold hover:border-amber-400">Exportar JSON</button><label className="flex min-h-10 cursor-pointer items-center rounded-lg bg-[#D16014] px-3 text-xs font-bold text-white hover:bg-[#b8510f]">Importar menú<input aria-label="Importar archivo de menú" type="file" accept=".csv,.xlsx,.json" onChange={importMenuFile} className="sr-only"/></label></div></div>
             <form onSubmit={addMenuCategory} className="mb-6 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><input value={newCategory} onChange={event => setNewCategory(event.target.value)} placeholder="Nueva categoría o sección" className="min-w-0 w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" /><button className="min-h-11 px-4 py-2.5 rounded-xl bg-[#D16014] text-white font-bold">Crear categoría</button></form>
             <form onSubmit={addMenuItem} className="mb-7 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
@@ -982,11 +1005,11 @@ export default function AdminDashboard() {
               <select aria-label="Categoría del platillo" value={newMenuItem.categoria} onChange={event => setNewMenuItem({ ...newMenuItem, categoria: event.target.value })} className="min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5">{menuCategories.map(category => <option key={category} value={category}>{category}</option>)}</select>
               <input required type="number" min="1" step="1" value={newMenuItem.precio} onChange={event => setNewMenuItem({ ...newMenuItem, precio: event.target.value })} placeholder="Precio en colones" className="min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
               <input value={newMenuItem.descripcion} onChange={event => setNewMenuItem({ ...newMenuItem, descripcion: event.target.value })} placeholder="Descripción breve" className="min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
-              <fieldset className="sm:col-span-2 min-w-0 rounded-2xl border border-[#659B5E]/25 bg-black/20 p-4"><legend className="px-2 font-bold text-amber-300">Restricción de disponibilidad por sede</legend><p className="mb-3 text-[11px] text-gray-400">Activa una tarjeta para excluir el platillo de esa sede.</p><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">{sedesDisponibles.map(sede => { const excluded = newMenuItem.sedesNoDisponibles.includes(sede); return <label key={sede} className={`relative flex min-h-24 min-w-0 cursor-pointer flex-col justify-between gap-3 rounded-2xl border p-4 text-xs transition-colors focus-within:ring-2 focus-within:ring-amber-400 ${excluded ? 'border-rose-600/40 bg-rose-950/40 text-rose-400' : 'border-emerald-600/40 bg-emerald-950/40 text-emerald-400'}`}><span className="flex min-w-0 items-start justify-between gap-2"><span className="break-words font-bold">{sede}</span><input aria-label={`No disponible en ${sede}`} type="checkbox" checked={excluded} onChange={() => handleToggleExcludedBranch(sede)} className="mt-0.5 h-4 w-4 shrink-0 accent-rose-500"/></span><span className="font-bold uppercase tracking-wider">{excluded ? 'No Disponible' : 'Disponible'}</span></label>; })}</div></fieldset>
+              <fieldset className="sm:col-span-2 min-w-0 rounded-2xl border border-[#659B5E]/25 bg-black/20 p-4"><legend className="px-2 font-bold text-amber-300">Restricción de disponibilidad por sede</legend><p className="mb-3 text-[11px] text-gray-400">Activa una tarjeta para excluir el platillo de esa sede.</p><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">{sedesDisponibles.map(sede => { const excluded = newMenuItem.sedesNoDisponibles.includes(sede); return <label key={sede} className={`relative flex min-h-24 min-w-0 cursor-pointer flex-col justify-between gap-3 rounded-2xl border p-4 text-xs transition-colors focus-within:ring-2 focus-within:ring-amber-400 ${excluded ? 'border-rose-600/40 bg-rose-950/40 text-rose-400' : 'border-emerald-600/40 bg-emerald-950/40 text-emerald-400'}`}><span className="flex min-w-0 items-start justify-between gap-2"><span className="wrap-break-word font-bold">{sede}</span><input aria-label={`No disponible en ${sede}`} type="checkbox" checked={excluded} onChange={() => handleToggleExcludedBranch(sede)} className="mt-0.5 h-4 w-4 shrink-0 accent-rose-500"/></span><span className="font-bold uppercase tracking-wider">{excluded ? 'No Disponible' : 'Disponible'}</span></label>; })}</div></fieldset>
               <div className="sm:col-span-2 flex flex-wrap justify-end gap-2"><button type="submit" className="min-h-11 rounded-xl bg-[#D16014] px-5 py-2.5 font-extrabold text-white">{editingMenuItemId ? 'Guardar cambios del platillo' : 'Guardar platillo'}</button>{editingMenuItemId && <button type="button" onClick={() => { setEditingMenuItemId(null); setNewMenuItem({ nombre: '', categoria: menuCategories[0] || '', precio: '', descripcion: '', sedesNoDisponibles: [] }); }} className="min-h-11 rounded-xl border border-white/15 px-4 py-2.5 font-bold">Cancelar edición</button>}</div>
             </form>
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]"><input aria-label="Buscar platillos" value={menuSearch} onChange={event => setMenuSearch(event.target.value)} placeholder="Buscar platillo, descripción o categoría..." className="min-w-0 rounded-xl border border-white/15 bg-[#0A090C] px-4 py-2.5"/><select aria-label="Filtrar por categoría" value={menuCategoryFilter} onChange={event => setMenuCategoryFilter(event.target.value)} className="min-w-0 rounded-xl border border-white/15 bg-[#0A090C] px-4 py-2.5"><option value="todas">Todas las categorías ({menuItems.length})</option>{menuCategories.map(category => <option key={category} value={category}>{category}</option>)}</select></div>
-            <div className="max-h-[36rem] w-full max-w-full divide-y divide-[#F8FFE5]/10 overflow-x-hidden overflow-y-auto scroll-smooth border-y border-[#F8FFE5]/10">{visibleMenuItems.length ? visibleMenuItems.map(item => <article key={item.id} className="flex min-w-0 flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center"><div className="min-w-0"><strong className="break-words text-white">{item.nombre}</strong><span className="ml-2 text-[#659B5E]">{item.categoria}</span><p className="mt-1 break-words text-gray-400">{item.descripcion}</p>{item.sedesNoDisponibles?.length > 0 && <p className="mt-1 break-words text-amber-300">No disponible en: {item.sedesNoDisponibles.join(', ')}</p>}</div><div className="flex shrink-0 flex-wrap items-center gap-3"><strong className="text-amber-300">₡{item.precio.toLocaleString('es-CR')}</strong><button type="button" aria-label={`Editar ${item.nombre}`} onClick={() => editMenuItem(item)} className="min-h-10 rounded-lg border border-amber-500/20 px-3 text-amber-200 hover:bg-amber-500/10"><Pencil className="h-4 w-4"/></button><button type="button" aria-label={`Eliminar ${item.nombre}`} onClick={() => setMenuItems(previous => previous.filter(current => current.id !== item.id))} className="min-h-10 min-w-10 rounded-lg border border-red-500/20 px-3 text-gray-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button></div></article>) : <p className="p-6 text-center text-zinc-400">No hay platillos que coincidan con los filtros.</p>}</div>
+            <div className="max-h-144 w-full max-w-full divide-y divide-[#F8FFE5]/10 overflow-x-hidden overflow-y-auto scroll-smooth border-y border-[#F8FFE5]/10">{visibleMenuItems.length ? visibleMenuItems.map(item => <article key={item.id} className="flex min-w-0 flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center"><div className="min-w-0"><strong className="wrap-break-word text-white">{item.nombre}</strong><span className="ml-2 text-[#659B5E]">{item.categoria}</span><p className="mt-1 wrap-break-word text-gray-400">{item.descripcion}</p>{item.sedesNoDisponibles?.length > 0 && <p className="mt-1 wrap-break-word text-amber-300">No disponible en: {item.sedesNoDisponibles.join(', ')}</p>}</div><div className="flex shrink-0 flex-wrap items-center gap-3"><strong className="text-amber-300">₡{item.precio.toLocaleString('es-CR')}</strong><button type="button" aria-label={`Editar ${item.nombre}`} onClick={() => editMenuItem(item)} className="min-h-10 rounded-lg border border-amber-500/20 px-3 text-amber-200 hover:bg-amber-500/10"><Pencil className="h-4 w-4"/></button><button type="button" aria-label={`Eliminar ${item.nombre}`} onClick={() => setMenuItems(previous => previous.filter(current => current.id !== item.id))} className="min-h-10 min-w-10 rounded-lg border border-red-500/20 px-3 text-gray-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button></div></article>) : <p className="p-6 text-center text-zinc-400">No hay platillos que coincidan con los filtros.</p>}</div>
           </div>
         )}
 
@@ -1218,7 +1241,7 @@ export default function AdminDashboard() {
         )}
 
         {/* ARQUEO DE CAJA */}
-        {activeSection === 'arqueo' && <FacturacionPanel key={selectedSede} sede={selectedSede === 'todas' ? 'escazu' : selectedSede} sedeNombre={selectedSede === 'todas' ? 'Escazú (sede operativa)' : formatSedeName(selectedSede)} inventory={branchInventory} onPurchase={handleRegisterPurchase} />}
+        {activeSection === 'arqueo' && <FacturacionPanel key={selectedSede} sede={selectedSede === 'todas' ? 'escazu' : selectedSede} sedeNombre={selectedSede === 'todas' ? 'Escazú (sede operativa)' : formatSedeName(selectedSede)} inventory={branchInventory} onPurchase={handleRegisterPurchase} responsable={user?.nombre || 'Administración'} />}
 
         {/* PERSONAL */}
         {activeSection === 'personal' && (
@@ -1241,7 +1264,7 @@ export default function AdminDashboard() {
 
         {/* MESAS */}
         {activeSection === 'mesas' && (
-          <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-gradient-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 text-xs shadow-2xl sm:p-6" aria-labelledby="reservations-title">
+          <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 text-xs shadow-2xl sm:p-6" aria-labelledby="reservations-title">
             <header><h3 id="reservations-title" className="font-extrabold text-lg text-[#F8FFE5]">Mesas y reservaciones — {selectedSede === 'todas' ? 'Todas las sedes' : formatSedeName(selectedSede)}</h3><p className="mt-1 text-gray-400">Asigna mesas, consulta su estado y gestiona las reservas por sucursal.</p></header>
 
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -1249,7 +1272,7 @@ export default function AdminDashboard() {
                 const reserved = reservations.filter(item => item.sede === key && item.estado !== 'Cancelada').length;
                 const occupied = Math.min(branchDetails[key].mesasTotal, branchDetails[key].mesasTotal - branchDetails[key].mesasLibres + reserved);
                 const percent = Math.round(occupied / branchDetails[key].mesasTotal * 100);
-                return <article key={key} className="min-w-0 rounded-2xl border border-[#659B5E]/20 bg-[#0A090C] p-4"><div className="flex items-center justify-between gap-2"><strong className="text-sm">{branchLabels[key]}</strong><span className="text-amber-300">{percent}% ocupación</span></div><div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-label={`Ocupación ${branchLabels[key]}`} aria-valuenow={percent} aria-valuemin="0" aria-valuemax="100"><div className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-amber-400" style={{ width: `${percent}%` }} /></div><p className="mt-2 text-gray-400">{occupied}/{branchDetails[key].mesasTotal} mesas ocupadas o reservadas</p></article>;
+                return <article key={key} className="min-w-0 rounded-2xl border border-[#659B5E]/20 bg-[#0A090C] p-4"><div className="flex items-center justify-between gap-2"><strong className="text-sm">{branchLabels[key]}</strong><span className="text-amber-300">{percent}% ocupación</span></div><div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-label={`Ocupación ${branchLabels[key]}`} aria-valuenow={percent} aria-valuemin="0" aria-valuemax="100"><div className="h-full rounded-full bg-linear-to-r from-emerald-600 to-amber-400" style={{ width: `${percent}%` }} /></div><p className="mt-2 text-gray-400">{occupied}/{branchDetails[key].mesasTotal} mesas ocupadas o reservadas</p></article>;
               })}
             </div>
 
@@ -1278,7 +1301,7 @@ export default function AdminDashboard() {
               <div className="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-3"><button className="min-h-11 rounded-xl bg-[#D16014] px-4 py-2 font-bold">{editingReservationId ? 'Guardar cambios de reserva' : 'Crear reserva'}</button>{editingReservationId && <button type="button" onClick={() => { setEditingReservationId(null); setReservationForm({ cliente: '', personas: 2, fecha: '', hora: '', sede: selectedSede === 'todas' ? 'escazu' : selectedSede, mesa: '1' }); }} className="min-h-11 rounded-xl border border-white/15 px-4 py-2 font-bold">Cancelar edición</button>}</div>
             </form>
 
-            <section className="min-w-0 space-y-3" aria-labelledby="active-reservations-title"><h4 id="active-reservations-title" className="font-bold text-amber-300">Reservaciones activas</h4>{reservations.filter(item => selectedSede === 'todas' || item.sede === selectedSede).length === 0 ? <p className="rounded-xl border border-white/10 bg-black/20 p-4 text-zinc-400">No hay reservaciones activas para esta sede.</p> : reservations.filter(item => selectedSede === 'todas' || item.sede === selectedSede).map(item => <article key={item.id} className="flex min-w-0 flex-col justify-between gap-3 rounded-xl border border-white/10 bg-[#0A090C] p-4 sm:flex-row sm:items-center"><div className="min-w-0"><strong className="break-words">{item.cliente}</strong><p className="mt-1 break-words text-gray-400">{item.personas} personas · {item.fecha} {item.hora} · {branchLabels[item.sede]} · Mesa {String(item.mesa).padStart(2, '0')}</p><span className="mt-2 inline-flex rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-200">{item.estado || 'Reservada'}</span></div><div className="flex flex-wrap gap-2"><button type="button" aria-label={`Editar reserva de ${item.cliente}`} onClick={() => { setEditingReservationId(item.id); setReservationForm({ ...item, personas: String(item.personas) }); }} className="min-h-10 rounded-lg border border-white/15 px-3 text-zinc-200">Editar</button>{item.estado !== 'Confirmada' && <button type="button" onClick={() => updateReservationStatus(item.id, 'Confirmada')} className="min-h-10 rounded-lg border border-emerald-600/30 px-3 text-emerald-300">Confirmar</button>}<button type="button" onClick={() => cancelReservation(item.id)} className="min-h-10 rounded-lg border border-rose-600/30 px-3 text-rose-300">Cancelar</button></div></article>)}</section>
+            <section className="min-w-0 space-y-3" aria-labelledby="active-reservations-title"><h4 id="active-reservations-title" className="font-bold text-amber-300">Reservaciones activas</h4>{reservations.filter(item => selectedSede === 'todas' || item.sede === selectedSede).length === 0 ? <p className="rounded-xl border border-white/10 bg-black/20 p-4 text-zinc-400">No hay reservaciones activas para esta sede.</p> : reservations.filter(item => selectedSede === 'todas' || item.sede === selectedSede).map(item => <article key={item.id} className="flex min-w-0 flex-col justify-between gap-3 rounded-xl border border-white/10 bg-[#0A090C] p-4 sm:flex-row sm:items-center"><div className="min-w-0"><strong className="wrap-break-word">{item.cliente}</strong><p className="mt-1 wrap-break-word text-gray-400">{item.personas} personas · {item.fecha} {item.hora} · {branchLabels[item.sede]} · Mesa {String(item.mesa).padStart(2, '0')}</p><span className="mt-2 inline-flex rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-200">{item.estado || 'Reservada'}</span></div><div className="flex flex-wrap gap-2"><button type="button" aria-label={`Editar reserva de ${item.cliente}`} onClick={() => { setEditingReservationId(item.id); setReservationForm({ ...item, personas: String(item.personas) }); }} className="min-h-10 rounded-lg border border-white/15 px-3 text-zinc-200">Editar</button>{item.estado !== 'Confirmada' && <button type="button" onClick={() => updateReservationStatus(item.id, 'Confirmada')} className="min-h-10 rounded-lg border border-emerald-600/30 px-3 text-emerald-300">Confirmar</button>}<button type="button" onClick={() => cancelReservation(item.id)} className="min-h-10 rounded-lg border border-rose-600/30 px-3 text-rose-300">Cancelar</button></div></article>)}</section>
           </section>
         )}
 
@@ -1413,7 +1436,7 @@ export default function AdminDashboard() {
       )}
 
       {showInactivityWarning && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
           <section data-inactivity-dialog="true" role="dialog" aria-modal="true" aria-labelledby="inactivity-title" className="w-full max-w-md rounded-3xl border border-amber-500/40 bg-zinc-950 p-6 sm:p-8 shadow-2xl shadow-black/60 space-y-5">
             <div className="flex items-center gap-3"><AlertCircle className="w-8 h-8 text-amber-400"/><h2 id="inactivity-title" className="text-lg font-black text-white">Aviso de Inactividad de Sesión</h2></div>
             <p className="text-sm text-zinc-300">Su sesión administrativa expirará en 60 segundos debido a inactividad por seguridad.</p>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { startTransition, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Calendar, Clock, Users, MapPin, Send, 
@@ -37,8 +37,10 @@ export default function ReservationModal({
 
   useEffect(() => {
     const currentDay = new Date().toISOString().split('T')[0];
-    setTodayStr(currentDay);
-    setFormData(previous => previous.fecha ? previous : { ...previous, fecha: currentDay });
+    startTransition(() => {
+      setTodayStr(currentDay);
+      setFormData(previous => previous.fecha ? previous : { ...previous, fecha: currentDay });
+    });
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && onClose) {
         onClose();
@@ -196,7 +198,7 @@ export default function ReservationModal({
                     min={todayStr}
                     value={formData.fecha}
                     onChange={handleChange}
-                    className="w-full bg-[#0A090C] border border-[#659B5E]/40 rounded-xl py-3 pl-10 pr-3 text-xs font-mono font-bold text-white focus:outline-none focus:border-[#D16014] [color-scheme:dark] cursor-pointer"
+                    className="w-full bg-[#0A090C] border border-[#659B5E]/40 rounded-xl py-3 pl-10 pr-3 text-xs font-mono font-bold text-white focus:outline-none focus:border-[#D16014] scheme-dark cursor-pointer"
                   />
                 </div>
                 {errors.fecha && <p className="text-[10px] text-red-400 mt-1 font-semibold">{errors.fecha}</p>}
@@ -212,7 +214,7 @@ export default function ReservationModal({
                     name="hora"
                     value={formData.hora}
                     onChange={handleChange}
-                    className="w-full bg-[#0A090C] border border-[#659B5E]/40 rounded-xl py-3 pl-10 pr-3 text-xs font-mono font-bold text-white focus:outline-none focus:border-[#D16014] [color-scheme:dark] cursor-pointer"
+                    className="w-full bg-[#0A090C] border border-[#659B5E]/40 rounded-xl py-3 pl-10 pr-3 text-xs font-mono font-bold text-white focus:outline-none focus:border-[#D16014] scheme-dark cursor-pointer"
                   />
                 </div>
               </div>
@@ -220,7 +222,7 @@ export default function ReservationModal({
               {/* INCREMENTO Y DECREMENTO DE PERSONAS (IMPOSIBLE NEGATIVOS) */}
               <div>
                 <label className="block text-xs font-bold text-gray-300 mb-1.5">Personas</label>
-                <div className="flex items-center justify-between bg-[#0A090C] border border-[#659B5E]/40 rounded-xl p-1.5 h-[42px]">
+                <div className="flex items-center justify-between bg-[#0A090C] border border-[#659B5E]/40 rounded-xl p-1.5 h-10.5">
                   <button
                     type="button"
                     onClick={() => handlePersonasChange(-1)}

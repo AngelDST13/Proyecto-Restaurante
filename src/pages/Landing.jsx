@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { startTransition, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReservationModal from '../components/ReservationModal';
 import Navbar from '../components/Navbar';
@@ -70,7 +70,10 @@ export default function Landing() {
   };
 
   const [temporada, setTemporada] = useState(null);
-  useEffect(() => { setTemporada(getSeasonForDate(new Date())); }, []);
+  useEffect(() => {
+    const currentSeason = getSeasonForDate(new Date());
+    startTransition(() => setTemporada(currentSeason));
+  }, []);
 
   const sedesInfo = {
     'ESCAZÚ': {
@@ -675,7 +678,7 @@ export default function Landing() {
         target="_blank"
         rel="noreferrer"
         aria-label="Contactar a El Cacique por WhatsApp"
-        className="fixed bottom-5 right-5 z-40 inline-flex min-h-14 items-center gap-2 rounded-full border border-white/20 bg-emerald-600 px-5 py-3 font-bold text-white shadow-xl shadow-black/40 transition hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+        className="fixed bottom-5 right-5 z-40 inline-flex min-h-14 items-center gap-2 rounded-full border border-white/20 bg-emerald-600 px-5 py-3 font-bold text-white shadow-xl shadow-black/40 transition hover:bg-emerald-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
       >
         <MessageCircle aria-hidden="true" className="h-5 w-5" />
         <span className="hidden sm:inline">WhatsApp</span>

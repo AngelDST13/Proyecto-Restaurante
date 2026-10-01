@@ -10,7 +10,7 @@ function readStored(key) {
   try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; }
 }
 
-export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escazú', inventory = [], onPurchase = () => {} }) {
+export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escazú', inventory = [], onPurchase = () => {}, responsable = 'Cajero de turno' }) {
   const storageKey = `${STORAGE_PREFIX}${sede}`;
   const savedState = useMemo(() => readStored(storageKey) || {}, [storageKey]);
   const [openingAmount, setOpeningAmount] = useState(savedState.openingAmount || '');
@@ -19,6 +19,10 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
   const [movements, setMovements] = useState(savedState.movements || []);
   const [expenses, setExpenses] = useState(savedState.expenses || []);
   const [financeImports, setFinanceImports] = useState(savedState.financeImports || []);
+  const [cashierName, setCashierName] = useState(savedState.cashierName || responsable);
+  const [openedAt, setOpenedAt] = useState(savedState.openedAt || '');
+  const [openedAtLabel, setOpenedAtLabel] = useState(savedState.openedAtLabel || savedState.openedAt || '');
+  const [countedAmount, setCountedAmount] = useState(savedState.countedAmount ?? '');
   const [lastInvoice, setLastInvoice] = useState(null);
   const [saleForm, setSaleForm] = useState({ cliente: '', cedula: '', descripcion: '', subtotal: '', pago: 'Efectivo' });
   const [movementForm, setMovementForm] = useState({ tipo: 'Entrada', monto: '', nota: '' });
@@ -35,13 +39,17 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
   const invoiceTotal = invoiceSubtotal + invoiceIva;
 
   const updatePersistedState = (updates) => {
-    const next = { openingAmount, cashOpen, sales, movements, expenses, financeImports, ...updates };
+    const next = { openingAmount, cashOpen, sales, movements, expenses, financeImports, cashierName, openedAt, openedAtLabel, countedAmount, ...updates };
     setOpeningAmount(String(next.openingAmount ?? ''));
     setCashOpen(Boolean(next.cashOpen));
     setSales(next.sales);
     setMovements(next.movements);
     setExpenses(next.expenses);
     setFinanceImports(next.financeImports);
+    setCashierName(next.cashierName);
+    setOpenedAt(next.openedAt);
+    setOpenedAtLabel(next.openedAtLabel);
+    setCountedAmount(next.countedAmount);
     persist(next);
   };
 
@@ -49,8 +57,15 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
     event.preventDefault();
     const amount = Number(openingAmount);
     if (!Number.isFinite(amount) || amount < 0) { setError('Ingrese un monto inicial válido.'); return; }
+    const cleanCashierName = sanitizePlainText(cashierName);
+    if (!cleanCashierName) { setError('Ingrese el nombre de la persona responsable de la caja.'); return; }
+    const openingDate = new Date();
+    const openingTime = openingDate.toISOString();
+    const openingTimeLabel = openingDate.toLocaleString('es-CR');
     setError('');
-    updatePersistedState({ openingAmount: amount, cashOpen: true });
+    setOpenedAt(openingTime);
+    setOpenedAtLabel(openingTimeLabel);
+    updatePersistedState({ openingAmount: amount, cashOpen: true, cashierName: cleanCashierName, openedAt: openingTime, openedAtLabel: openingTimeLabel, countedAmount: '' });
   };
 
   const registerSale = (event) => {
@@ -61,12 +76,13 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
     if (!cashOpen) { setError('Abra la caja antes de registrar ventas.'); return; }
     if (!saleForm.cliente.trim() || !saleForm.cedula.trim() || !saleForm.descripcion.trim() || !Number.isFinite(subtotal) || subtotal <= 0) { setError('Complete cliente, cédula, detalle y subtotal válido.'); return; }
     const issuedAt = new Date();
-    const sale = { id: Date.now(), cliente: sanitizePlainText(saleForm.cliente), cedula: sanitizePlainText(saleForm.cedula), descripcion: sanitizePlainText(saleForm.descripcion), subtotal, iva, total, pago: saleForm.pago, fecha: issuedAt.toISOString() };
+    const sale = { id: crypto.randomUUID(), cliente: sanitizePlainText(saleForm.cliente), cedula: sanitizePlainText(saleForm.cedula), descripcion: sanitizePlainText(saleForm.descripcion), subtotal, iva, total, pago: saleForm.pago, fecha: issuedAt.toISOString() };
     const nextSales = [sale, ...sales];
     updatePersistedState({ sales: nextSales });
     const consecutive = `FE-${issuedAt.getFullYear()}-${String(nextSales.length).padStart(6, '0')}`;
-    const numericKey = Array.from({ length: 50 }, () => Math.floor(Math.random() * 10)).join('');
-    setLastInvoice({ ...sale, consecutive, key: numericKey, issuedAtLabel: issuedAt.toLocaleString('es-CR') });
+    const numericKey = Array.from(crypto.getRandomValues(new Uint8Array(50)), byte => String(byte % 10)).join('');
+    const supportUrl = `${WHATSAPP}?text=${encodeURIComponent(`Consulta sobre factura ${consecutive}`)}`;
+    setLastInvoice({ ...sale, consecutive, key: numericKey, supportUrl, issuedAtLabel: issuedAt.toLocaleString('es-CR') });
     setSaleForm({ cliente: '', cedula: '', descripcion: '', subtotal: '', pago: 'Efectivo' });
     setError('');
   };
@@ -75,7 +91,7 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
     event.preventDefault();
     const monto = Number(movementForm.monto);
     if (!cashOpen || !Number.isFinite(monto) || monto <= 0 || !movementForm.nota.trim()) { setError('Abra la caja y complete monto y motivo del movimiento.'); return; }
-    updatePersistedState({ movements: [{ ...movementForm, nota: sanitizePlainText(movementForm.nota), monto, id: Date.now() }, ...movements] });
+    updatePersistedState({ movements: [{ ...movementForm, nota: sanitizePlainText(movementForm.nota), monto, id: crypto.randomUUID() }, ...movements] });
     setMovementForm({ tipo: 'Entrada', monto: '', nota: '' });
     setError('');
   };
@@ -85,7 +101,7 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
     const cantidad = Number(purchaseForm.cantidad);
     const costo = Number(purchaseForm.costo);
     if (!purchaseForm.insumo.trim() || cantidad <= 0 || costo <= 0) { setError('Complete insumo, cantidad y costo de compra.'); return; }
-    const expense = { id: Date.now(), insumo: sanitizePlainText(purchaseForm.insumo), cantidad, costo, pagadoEfectivo: cashOpen, fecha: new Date().toISOString() };
+    const expense = { id: crypto.randomUUID(), insumo: sanitizePlainText(purchaseForm.insumo), cantidad, costo, pagadoEfectivo: cashOpen, fecha: new Date().toISOString() };
     updatePersistedState({ expenses: [expense, ...expenses] });
     onPurchase({ ...expense, sede });
     setPurchaseForm({ insumo: '', cantidad: '', costo: '' });
@@ -94,8 +110,13 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
 
   const closeCash = () => {
     if (!cashOpen) { setError('La caja ya está cerrada.'); return; }
-    updatePersistedState({ cashOpen: false });
-    setError(`Cierre registrado. Arqueo final: ₡${cashBalance.toLocaleString('es-CR')}`);
+    const counted = Number(countedAmount);
+    if (!Number.isFinite(counted) || counted < 0 || countedAmount === '') { setError('Ingrese un monto contado válido para cerrar la caja.'); return; }
+    const grossSales = sales.reduce((total, sale) => total + Number(sale.total || 0), 0);
+    const retainedVat = sales.reduce((total, sale) => total + Number(sale.iva || 0), 0);
+    const difference = counted - cashBalance;
+    updatePersistedState({ cashOpen: false, countedAmount: counted, closedAt: new Date().toISOString() });
+    setError(`Cierre registrado. Responsable: ${cashierName}. Ventas brutas: ₡${grossSales.toLocaleString('es-CR')}; IVA 13%: ₡${retainedVat.toLocaleString('es-CR')}; efectivo esperado: ₡${cashBalance.toLocaleString('es-CR')}; contado: ₡${counted.toLocaleString('es-CR')}; diferencia: ₡${difference.toLocaleString('es-CR')}.`);
   };
 
   const exportCashReport = format => {
@@ -147,7 +168,7 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
   const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#D16014] px-4 py-2.5 font-bold text-white hover:bg-[#b8510f] disabled:cursor-not-allowed disabled:opacity-50';
 
   return (
-    <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-gradient-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 shadow-2xl sm:p-6" aria-labelledby="cashier-title">
+    <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 shadow-2xl sm:p-6" aria-labelledby="cashier-title">
       <header className="flex min-w-0 flex-wrap items-center justify-between gap-4 border-b border-[#659B5E]/20 pb-4">
         <div className="min-w-0"><h2 id="cashier-title" className="flex flex-wrap items-center gap-2 text-lg font-black text-white"><Wallet className="h-5 w-5 shrink-0 text-amber-400"/>Facturación, POS y Caja Chica</h2><p className="mt-1 text-xs text-zinc-400">Arqueo Financiero Diario de Caja · movimientos de {sedeNombre}; guardado local en este dispositivo.</p></div>
         <span className={`rounded-full border px-3 py-1 text-xs font-bold ${cashOpen ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-zinc-600 bg-zinc-800 text-zinc-300'}`}>{cashOpen ? 'Caja abierta' : 'Caja cerrada'}</span>
@@ -161,9 +182,11 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
       </div>
 
       {!cashOpen && <form onSubmit={openCash} className="grid min-w-0 grid-cols-1 gap-3 rounded-2xl border border-[#659B5E]/20 bg-black/20 p-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <label className="min-w-0 space-y-1 text-xs text-zinc-300">Responsable de caja<input aria-label="Responsable de caja" className={fieldClass} value={cashierName} onChange={event => setCashierName(event.target.value)} placeholder="Nombre del cajero" /></label>
         <label className="min-w-0 space-y-1 text-xs text-zinc-300">Monto inicial de caja<input aria-label="Monto inicial" className={fieldClass} min="0" type="number" value={openingAmount} onChange={event => setOpeningAmount(event.target.value)} placeholder="₡ 0"/></label>
         <button className={`${actionClass} self-end`} type="submit"><Wallet className="h-4 w-4"/>Abrir caja</button>
       </form>}
+      {cashOpen && <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs text-zinc-300"><span>Responsable: <strong className="text-white">{cashierName}</strong></span><span>Apertura: <time dateTime={openedAt}>{openedAtLabel || 'Hora no registrada'}</time></span></div>}
 
       <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-2">
         <form onSubmit={registerSale} className="min-w-0 space-y-3 rounded-2xl border border-[#659B5E]/20 bg-black/20 p-4">
@@ -191,14 +214,14 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
       </div>
 
       {error && <p role="status" className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm text-amber-200">{error}</p>}
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-bold text-white">Ventas recientes ({sales.length})</h3><p className="mt-1 text-xs text-zinc-400">Registros financieros importados: {financeImports.length}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => exportCashReport('csv')} className="min-h-10 rounded-lg border border-white/15 px-3 font-bold text-zinc-200">Exportar CSV</button><button type="button" onClick={() => exportCashReport('xlsx')} className="min-h-10 rounded-lg border border-white/15 px-3 font-bold text-emerald-200">Exportar Excel</button><button type="button" onClick={() => exportCashReport('json')} className="min-h-10 rounded-lg border border-white/15 px-3 font-bold text-amber-200">Exportar JSON</button><label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-amber-500/25 px-3 font-bold text-amber-200 hover:bg-amber-500/10"><Upload className="h-4 w-4"/>Importar CSV / Excel<input aria-label="Importar archivo financiero" type="file" accept=".csv,.xlsx" onChange={importCashReport} className="sr-only"/></label>{cashOpen && <button type="button" onClick={closeCash} className="min-h-11 rounded-xl border border-red-400/30 px-4 py-2 font-bold text-red-300 hover:bg-red-500/10">Cerrar caja y registrar arqueo</button>}</div></div>
-      <div className="w-full max-w-full overflow-x-auto rounded-xl border border-[#659B5E]/20"><table className="w-full min-w-[600px] text-left text-sm"><thead className="bg-black/30 text-zinc-300"><tr><th className="p-3">Cliente</th><th className="p-3">Detalle</th><th className="p-3">Pago</th><th className="p-3 text-right">Total</th></tr></thead><tbody className="divide-y divide-white/5">{sales.map(sale => <tr key={sale.id}><td className="p-3">{sale.cliente}</td><td className="p-3">{sale.descripcion}</td><td className="p-3">{sale.pago}</td><td className="p-3 text-right">₡{sale.total.toLocaleString('es-CR')}</td></tr>)}</tbody></table></div>
-      {financeImports.length > 0 && <div className="w-full max-w-full overflow-x-auto rounded-xl border border-[#659B5E]/20"><table className="w-full min-w-[520px] text-left text-sm"><caption className="p-3 text-left font-bold text-zinc-200">Histórico financiero importado</caption><thead className="bg-black/30 text-zinc-300"><tr><th className="p-3">Sede</th><th className="p-3">Período</th><th className="p-3 text-right">Ventas</th><th className="p-3 text-right">Costos</th></tr></thead><tbody className="divide-y divide-white/5">{financeImports.map((row, index) => <tr key={`${row.sede}-${row.periodo}-${index}`}><td className="p-3">{row.sede}</td><td className="p-3">{row.periodo}</td><td className="p-3 text-right">₡{row.ventas.toLocaleString('es-CR')}</td><td className="p-3 text-right">₡{row.costos.toLocaleString('es-CR')}</td></tr>)}</tbody></table></div>}
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-bold text-white">Ventas recientes ({sales.length})</h3><p className="mt-1 text-xs text-zinc-400">Registros financieros importados: {financeImports.length}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => exportCashReport('csv')} className="min-h-10 rounded-lg border border-white/15 px-3 font-bold text-zinc-200">Exportar CSV</button><button type="button" onClick={() => exportCashReport('xlsx')} className="min-h-10 rounded-lg border border-white/15 px-3 font-bold text-emerald-200">Exportar Excel</button><button type="button" onClick={() => exportCashReport('json')} className="min-h-10 rounded-lg border border-white/15 px-3 font-bold text-amber-200">Exportar JSON</button><label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-amber-500/25 px-3 font-bold text-amber-200 hover:bg-amber-500/10"><Upload className="h-4 w-4"/>Importar CSV / Excel<input aria-label="Importar archivo financiero" type="file" accept=".csv,.xlsx" onChange={importCashReport} className="sr-only"/></label>{cashOpen && <><input aria-label="Dinero contado al cierre" className="min-h-10 w-40 rounded-lg border border-white/15 bg-[#0A090C] px-3" type="number" min="0" value={countedAmount} onChange={event => setCountedAmount(event.target.value)} placeholder="Efectivo contado ₡"/><button type="button" onClick={closeCash} className="min-h-11 rounded-xl border border-red-400/30 px-4 py-2 font-bold text-red-300 hover:bg-red-500/10">Cerrar caja y registrar arqueo</button></>}</div></div>
+      <div className="w-full max-w-full overflow-x-auto rounded-xl border border-[#659B5E]/20"><table className="w-full min-w-150 text-left text-sm"><thead className="bg-black/30 text-zinc-300"><tr><th className="p-3">Cliente</th><th className="p-3">Detalle</th><th className="p-3">Pago</th><th className="p-3 text-right">Total</th></tr></thead><tbody className="divide-y divide-white/5">{sales.map(sale => <tr key={sale.id}><td className="p-3">{sale.cliente}</td><td className="p-3">{sale.descripcion}</td><td className="p-3">{sale.pago}</td><td className="p-3 text-right">₡{sale.total.toLocaleString('es-CR')}</td></tr>)}</tbody></table></div>
+      {financeImports.length > 0 && <div className="w-full max-w-full overflow-x-auto rounded-xl border border-[#659B5E]/20"><table className="w-full min-w-130 text-left text-sm"><caption className="p-3 text-left font-bold text-zinc-200">Histórico financiero importado</caption><thead className="bg-black/30 text-zinc-300"><tr><th className="p-3">Sede</th><th className="p-3">Período</th><th className="p-3 text-right">Ventas</th><th className="p-3 text-right">Costos</th></tr></thead><tbody className="divide-y divide-white/5">{financeImports.map((row, index) => <tr key={`${row.sede}-${row.periodo}-${index}`}><td className="p-3">{row.sede}</td><td className="p-3">{row.periodo}</td><td className="p-3 text-right">₡{row.ventas.toLocaleString('es-CR')}</td><td className="p-3 text-right">₡{row.costos.toLocaleString('es-CR')}</td></tr>)}</tbody></table></div>}
 
       {lastInvoice && <article className="mx-auto w-full max-w-3xl space-y-4 rounded-2xl bg-white p-5 text-zinc-900 sm:p-8" aria-label="Factura emitida">
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-200 pb-4"><div className="flex items-center gap-3"><img src={officialLogo} alt="Logo El Cacique" className="h-16 w-16 object-contain"/><div><strong className="text-lg">CHICHARRONERA EL CACIQUE</strong><p className="text-sm text-zinc-500">Factura electrónica · {sedeNombre}</p></div></div><div className="text-right"><strong>{lastInvoice.consecutive}</strong><p className="text-xs text-zinc-500">{lastInvoice.issuedAtLabel}</p></div></div>
         <p><strong>Cliente:</strong> {lastInvoice.cliente} · <strong>Cédula:</strong> {lastInvoice.cedula}</p><p className="whitespace-pre-line"><strong>Detalle:</strong> {lastInvoice.descripcion}</p><p className="break-all text-xs"><strong>Clave numérica simulada:</strong> {lastInvoice.key}</p>
-        <div className="flex flex-wrap items-end justify-between gap-5 border-t border-zinc-200 pt-4"><div className="space-y-1 text-sm"><p>Subtotal: ₡{lastInvoice.subtotal.toLocaleString('es-CR')}</p><p>IVA 13%: ₡{lastInvoice.iva.toLocaleString('es-CR')}</p><strong className="text-base">Total: ₡{lastInvoice.total.toLocaleString('es-CR')}</strong></div><div className="text-center"><img className="h-28 w-28" alt="Código QR para soporte por WhatsApp" src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(WHATSAPP)}`}/><a className="text-xs text-emerald-700 underline" href={WHATSAPP} target="_blank" rel="noreferrer">Soporte WhatsApp</a></div></div>
+        <div className="flex flex-wrap items-end justify-between gap-5 border-t border-zinc-200 pt-4"><div className="space-y-1 text-sm"><p>Subtotal: ₡{lastInvoice.subtotal.toLocaleString('es-CR')}</p><p>IVA 13%: ₡{lastInvoice.iva.toLocaleString('es-CR')}</p><strong className="text-base">Total: ₡{lastInvoice.total.toLocaleString('es-CR')}</strong></div><div className="text-center"><img className="h-28 w-28" alt="Código QR para soporte por WhatsApp" src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(lastInvoice.supportUrl)}`}/><a className="text-xs text-emerald-700 underline" href={lastInvoice.supportUrl} target="_blank" rel="noreferrer">Soporte WhatsApp</a></div></div>
         <p className="border-t border-dashed border-zinc-300 pt-3 text-center text-[10px] text-zinc-500">Representación simulada para demostración; no sustituye el comprobante electrónico autorizado por Hacienda.</p>
         <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-zinc-900 px-4 py-2 font-bold text-white print:hidden"><Printer className="h-4 w-4"/>Imprimir factura</button>
       </article>}
@@ -207,5 +230,5 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
 }
 
 function Metric({ label, amount }) {
-  return <div className="min-w-0 rounded-2xl border border-[#659B5E]/20 bg-black/20 p-4"><span className="text-xs text-zinc-400">{label}</span><strong className="mt-1 block break-words text-xl font-black text-amber-300">₡{amount.toLocaleString('es-CR')}</strong></div>;
+  return <div className="min-w-0 rounded-2xl border border-[#659B5E]/20 bg-black/20 p-4"><span className="text-xs text-zinc-400">{label}</span><strong className="mt-1 block wrap-break-word text-xl font-black text-amber-300">₡{amount.toLocaleString('es-CR')}</strong></div>;
 }

@@ -48,28 +48,28 @@ export const VALID_ACCOUNTS = {
     sede: 'heredia'
   },
   'cocina.escazu@elcacique.com': {
-    password: 'Cocina2026!',
+    password: 'CocinaEscazu2026!',
     nombre: 'Cocina Escazú',
     alias: 'Cocina Escazú',
     rol: 'cocina',
     sede: 'escazu'
   },
   'cocina.santaana@elcacique.com': {
-    password: 'Cocina2026!',
+    password: 'CocinaSantaAna2026!',
     nombre: 'Cocina Santa Ana',
     alias: 'Cocina Santa Ana',
     rol: 'cocina',
     sede: 'santa_ana'
   },
   'cocina.cartago@elcacique.com': {
-    password: 'Cocina2026!',
+    password: 'CocinaCartago2026!',
     nombre: 'Cocina Cartago',
     alias: 'Cocina Cartago',
     rol: 'cocina',
     sede: 'cartago'
   },
   'cocina.heredia@elcacique.com': {
-    password: 'Cocina2026!',
+    password: 'CocinaHeredia2026!',
     nombre: 'Cocina Heredia',
     alias: 'Cocina Heredia',
     rol: 'cocina',
@@ -87,6 +87,13 @@ export function formatSedeName(sedeKey = 'escazu') {
   };
   return names[cleanSedeKey] || 'Escazú';
 }
+
+export const TEST_ACCESS_CREDENTIALS = Object.entries(VALID_ACCOUNTS).map(([email, account]) => ({
+  email,
+  password: account.password,
+  sede: account.rol === 'administrador' ? 'Todas las sedes' : formatSedeName(account.sede),
+  rol: account.rol === 'administrador' ? 'Administrador' : account.rol === 'cocina' ? 'Cocina KDS' : 'Cajero / Mesero'
+}));
 
 export function sanitizeUserForSession(userObj) {
   if (!userObj) return null;

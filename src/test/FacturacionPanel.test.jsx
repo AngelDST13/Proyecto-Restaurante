@@ -21,6 +21,7 @@ describe('FacturacionPanel: caja, ventas e inventario', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Registrar venta' }));
     expect(screen.getByRole('article', { name: 'Factura emitida' })).toBeInTheDocument();
     expect(screen.getByText(/Clave numérica simulada:/)).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'Factura emitida' }).textContent).toMatch(/Clave numérica simulada:\s*\d{50}/);
     expect(screen.getByAltText('Código QR para soporte por WhatsApp')).toHaveAttribute('src', expect.stringContaining('qrserver.com'));
     const invoice = screen.getByRole('article', { name: 'Factura emitida' });
     expect(within(invoice).getByText(/IVA 13%:/)).toBeInTheDocument();
@@ -32,9 +33,10 @@ describe('FacturacionPanel: caja, ventas e inventario', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Registrar compra' }));
     expect(onPurchase).toHaveBeenCalledWith(expect.objectContaining({ insumo: 'Carne', cantidad: 4, costo: 3500, sede: 'cartago' }));
 
+    fireEvent.change(screen.getByLabelText('Dinero contado al cierre'), { target: { value: '15000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar caja y registrar arqueo' }));
-    expect(screen.getByRole('status')).toHaveTextContent('Cierre registrado');
-    expect(JSON.parse(localStorage.getItem('cacique_cashier_cartago')).cashOpen).toBe(false);
+    expect(screen.getByRole('status')).toHaveTextContent(/Cierre registrado.*efectivo esperado.*contado.*diferencia/i);
+    expect(JSON.parse(localStorage.getItem('cacique_cashier_cartago'))).toMatchObject({ cashOpen: false, countedAmount: 15000, cashierName: 'Cajero de turno' });
   });
 
   it('valida el estado de caja, montos y campos antes de aceptar operaciones', () => {

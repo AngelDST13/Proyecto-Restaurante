@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { decryptData, formatSedeName } from '../services/authSecurity';
 import { subscribeToLiveEvents } from '../services/n8nService';
+import { recordCashierSale } from '../services/cashierService';
 import Toast from '../components/Toast';
 import { 
   Utensils, LogOut, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, Scissors, CreditCard, User,
@@ -275,6 +276,42 @@ export default function WaiterDashboard() {
     showToast(`${isElectronicInvoice ? 'Borrador de factura' : 'Pre-cuenta'} generado para ${mesa.numero}`, 'info');
   };
 
+  const handleChargeReceipt = () => {
+    if (!precuentaTable) return;
+    const saleSubtotal = Number(precuentaTable.subtotal ?? precuentaTable.total ?? 0);
+    const saleIva = Number(precuentaTable.iva ?? Math.round(saleSubtotal * 0.13));
+    const saleService = Number(precuentaTable.servicio ?? Math.round(saleSubtotal * 0.1));
+    const result = recordCashierSale({
+      sede: user?.sede || 'escazu',
+      cliente: precuentaTable.clienteNombre || precuentaTable.clienteCorreo || 'Cliente de mesa',
+      cedula: precuentaTable.cedulaCliente || '',
+      descripcion: (precuentaTable.items || []).map(item => `${item.cantidad} x ${item.nombre}`).join(', '),
+      subtotal: saleSubtotal,
+      iva: saleIva,
+      total: saleSubtotal + saleIva + saleService,
+      pago: precuentaTable.metodoPago === 'Sinpe Móvil' ? 'SINPE Móvil' : precuentaTable.metodoPago,
+      fecha: new Date().toISOString()
+    });
+    if (!result.success) {
+      showToast(result.message, 'error');
+      return;
+    }
+
+    setTables(previous => ({
+      ...previous,
+      [selectedFloor]: previous[selectedFloor].map(table => table.id === precuentaTable.id
+        ? { ...table, estado: 'Libre', total: 0, subtotal: 0, iva: 0, servicio: 0, items: [] }
+        : table)
+    }));
+    setPrecuentaTable(null);
+    setSelectedTable(null);
+    setOrderItems([]);
+    setCustomerName('');
+    setCustomerEmail('');
+    setCustomerId('');
+    showToast(`Cobro registrado en caja ${formatSedeName(user?.sede || 'escazu')}`, 'success');
+  };
+
   const formatCurrency = (amount) => `₡${amount.toLocaleString('es-CR')}`;
 
   const filteredMenu = platillosMenu.filter(p => {
@@ -298,7 +335,7 @@ export default function WaiterDashboard() {
         const precuentaItemsCount = precuentaItems.reduce((total, item) => total + item.cantidad, 0);
 
         return (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" role="presentation" onMouseDown={(event) => {
+          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/70 p-4" role="presentation" onMouseDown={(event) => {
             if (event.target === event.currentTarget) setPrecuentaTable(null);
           }}>
             <section
@@ -369,6 +406,13 @@ export default function WaiterDashboard() {
               >
                 Imprimir comprobante
               </button>
+              <button
+                type="button"
+                onClick={handleChargeReceipt}
+                className="mt-2 w-full rounded-xl bg-[#D16014] py-3 text-xs font-bold text-white transition-colors hover:bg-[#b8510f] print:hidden"
+              >
+                Cobrar y cerrar cuenta
+              </button>
               <style>{`@media print { body * { visibility: hidden !important; } #precuenta-print, #precuenta-print * { visibility: visible !important; } #precuenta-print { position: fixed; inset: 0; width: 100%; max-width: none; border: 0; box-shadow: none; background: white; color: black; } #precuenta-print p, #precuenta-print span, #precuenta-print h2 { color: black !important; } }`}</style>
             </section>
           </div>
@@ -413,7 +457,7 @@ export default function WaiterDashboard() {
         {/* ENCABEZADO TIPO TERMINAL POS EJECUTIVO */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-[#0A110D] p-5 rounded-2xl border border-[#659B5E]/30 shadow-2xl">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D16014] to-[#B8510F] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-[#D16014]/40">
+            <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-[#D16014] to-[#B8510F] flex items-center justify-center text-white font-black text-xl shadow-lg shadow-[#D16014]/40">
               <Coffee className="w-6 h-6" />
             </div>
             <div>
@@ -634,7 +678,7 @@ export default function WaiterDashboard() {
                   <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 text-xs">
                     {filteredMenu.map(p => (
                       <div key={p.id} className="p-2.5 bg-[#07090E] rounded-xl flex justify-between items-center border border-[#F8FFE5]/10 hover:border-[#D16014]/50 transition-all">
-                        <div className="max-w-[200px]">
+                        <div className="max-w-50">
                           <span className="font-bold text-[#F8FFE5] block truncate">{p.nombre}</span>
                           <span className="text-[10px] text-[#D16014] font-bold">₡{p.precio.toLocaleString()}</span>
                         </div>
@@ -779,7 +823,7 @@ export default function WaiterDashboard() {
               ) : (
                 <div className="text-center py-16 text-xs text-gray-500 space-y-3">
                   <AlertCircle className="w-10 h-10 mx-auto text-gray-600" />
-                  <p className="max-w-[220px] mx-auto">Selecciona una mesa en el plano para iniciar o editar su comanda.</p>
+                  <p className="max-w-55 mx-auto">Selecciona una mesa en el plano para iniciar o editar su comanda.</p>
                 </div>
               )}
             </div>

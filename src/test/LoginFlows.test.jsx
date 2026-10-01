@@ -44,7 +44,10 @@ describe('Login: validaciones, errores y redirección por rol', () => {
 
   it.each([
     ['mesero.escazu@elcacique.com', 'MeseroEscazu2026!', '/waiter'],
-    ['cocina.escazu@elcacique.com', 'Cocina2026!', '/kitchen']
+    ['cocina.escazu@elcacique.com', 'CocinaEscazu2026!', '/kitchen'],
+    ['cocina.santaana@elcacique.com', 'CocinaSantaAna2026!', '/kitchen'],
+    ['cocina.cartago@elcacique.com', 'CocinaCartago2026!', '/kitchen'],
+    ['cocina.heredia@elcacique.com', 'CocinaHeredia2026!', '/kitchen']
   ])('redirige las credenciales del personal a %s -> %s', async (emailValue, passwordValue, expectedPath) => {
     vi.useFakeTimers();
     renderLogin();
@@ -53,6 +56,14 @@ describe('Login: validaciones, errores y redirección por rol', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /Iniciar Sesión/i }).find(button => button.type === 'submit'));
     await act(async () => { await vi.advanceTimersByTimeAsync(500); });
     expect(screen.getByTestId('current-path')).toHaveTextContent(expectedPath);
+  });
+
+  it('carga las credenciales seleccionadas en el formulario sin enviarlo', () => {
+    renderLogin();
+    fireEvent.click(screen.getByRole('button', { name: 'Cargar credenciales Cocina KDS Escazú' }));
+    expect(screen.getByPlaceholderText(/admin@elcacique.com/i)).toHaveValue('cocina.escazu@elcacique.com');
+    expect(screen.getByPlaceholderText('••••••••••••')).toHaveValue('CocinaEscazu2026!');
+    expect(screen.getByTestId('current-path')).toHaveTextContent('/login');
   });
 
   it('valida el registro y asigna un cupón al nuevo cliente', async () => {

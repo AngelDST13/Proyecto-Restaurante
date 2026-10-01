@@ -1,19 +1,21 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import { triggerN8nAutomation } from '../services/n8nService';
+import { TEST_ACCESS_CREDENTIALS } from '../services/authSecurity';
 import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket, Store } from 'lucide-react';
 import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Login() {
   const { loginWithCredentials, registerClient } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isRegister, setIsRegister] = useState(false);
   
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(location.state?.email || '');
+  const [password, setPassword] = useState(location.state?.password || '');
   const [nombre, setNombre] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
@@ -221,37 +223,20 @@ export default function Login() {
           </div>
 
           {!isRegister && (
-            <div className="p-3 bg-[#0A090C] border border-[#F8FFE5]/10 rounded-xl space-y-2 text-[10px]">
-              <span className="text-gray-400 font-extrabold block uppercase tracking-wider">Accesos de prueba por sucursal:</span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-[9px]">
-                <div className="space-y-0.5">
-                  <p className="text-[#D16014] font-bold">Escazú</p>
-                  <p>Mesero: mesero.escazu@elcacique.com</p>
-                  <p>Cocina: cocina.escazu@elcacique.com</p>
-                  <p className="text-gray-500">Claves: MeseroEscazu2026! / Cocina2026!</p>
-                </div>
-                <div className="space-y-0.5">
-                  <p className="text-[#659B5E] font-bold">Santa Ana</p>
-                  <p>Mesero: mesero.santaana@elcacique.com</p>
-                  <p>Cocina: cocina.santaana@elcacique.com</p>
-                  <p className="text-gray-500">Claves: MeseroSantaAna2026! / Cocina2026!</p>
-                </div>
-                <div className="space-y-0.5">
-                  <p className="text-amber-400 font-bold">Cartago</p>
-                  <p>Mesero: mesero.cartago@elcacique.com</p>
-                  <p>Cocina: cocina.cartago@elcacique.com</p>
-                  <p className="text-gray-500">Claves: MeseroCartago2026! / Cocina2026!</p>
-                </div>
-                <div className="space-y-0.5">
-                  <p className="text-purple-400 font-bold">Heredia</p>
-                  <p>Mesero: mesero.heredia@elcacique.com</p>
-                  <p>Cocina: cocina.heredia@elcacique.com</p>
-                  <p className="text-gray-500">Claves: MeseroHeredia2026! / Cocina2026!</p>
-                </div>
+            <div className="space-y-3 rounded-xl border border-[#F8FFE5]/10 bg-[#0A090C] p-3 text-[10px]" aria-label="Accesos de prueba por sucursal">
+              <span className="block font-extrabold uppercase tracking-wider text-gray-300">Accesos de prueba por sucursal</span>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {TEST_ACCESS_CREDENTIALS.map(credential => (
+                  <article key={credential.email} className="min-w-0 space-y-1 rounded-lg border border-white/10 bg-black/20 p-2.5">
+                    <p className="font-bold text-amber-300">{credential.sede} · {credential.rol}</p>
+                    <p className="break-all font-mono text-gray-300">{credential.email}</p>
+                    <p className="font-mono text-gray-400">Clave: {credential.password}</p>
+                    <button type="button" onClick={() => { setIsRegister(false); setEmail(credential.email); setPassword(credential.password); }} className="mt-1 min-h-8 rounded-md border border-amber-500/30 px-2.5 font-bold text-amber-200 transition-colors hover:bg-amber-500/10 focus-visible:outline-2 focus-visible:outline-amber-400" aria-label={`Cargar credenciales ${credential.rol} ${credential.sede}`}>
+                      Cargar Credenciales
+                    </button>
+                  </article>
+                ))}
               </div>
-              <p className="pt-1 border-t border-[#F8FFE5]/10 text-center font-mono text-[9px]">
-                <span className="text-amber-300 font-bold">Admin:</span> admin@elcacique.com | AdminCacique2026!
-              </p>
             </div>
           )}
 

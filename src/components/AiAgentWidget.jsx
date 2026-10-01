@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import { Bot, X, Send, Minus, Sparkles, ShieldCheck, EyeOff, MessageSquare } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -34,14 +34,14 @@ export default function AiAgentWidget() {
   }, [messages, loading]);
 
   useEffect(() => {
-    setMessages([
+    startTransition(() => setMessages([
       {
         sender: 'bot',
         text: isStaffContext
           ? `Bienvenido ${user?.nombre || 'Colaborador'}. Asistente Operativo Staff activo. Indique su consulta de comandas, KDS, inventario o reservaciones.`
           : 'Bienvenido a Chicharronera El Cacique. ¿En qué puedo asistirle hoy?\n\n1. Menú y precios\n2. Horarios y sedes\n3. Reservaciones'
       }
-    ]);
+    ]));
   }, [location.pathname, user?.nombre, isStaffContext]);
 
   useEffect(() => {
@@ -138,7 +138,7 @@ export default function AiAgentWidget() {
       )}
 
       {!isHidden && isOpen && !isMinimized && (
-        <div className={`cacique-chat-enter fixed ${positionClasses} z-50 w-[calc(100vw-2rem)] sm:w-96 bg-zinc-950/98 backdrop-blur-2xl border border-amber-500/40 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-[480px] max-h-[82vh]`}>
+        <div className={`cacique-chat-enter fixed ${positionClasses} z-50 w-[calc(100vw-2rem)] sm:w-96 bg-zinc-950/98 backdrop-blur-2xl border border-amber-500/40 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-120 max-h-[82vh]`}>
           <div className="p-4 bg-amber-600 border-b border-amber-500/30 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg border border-white/20 bg-black/20 text-white">

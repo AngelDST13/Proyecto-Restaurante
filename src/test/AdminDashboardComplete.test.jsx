@@ -165,7 +165,8 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
     open('Arqueo de Caja & POS');
     fireEvent.change(screen.getByLabelText('Monto inicial'), { target: { value: '20000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Abrir caja' }));
+    fireEvent.change(screen.getByLabelText('Dinero contado al cierre'), { target: { value: '20000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar caja y registrar arqueo' }));
-    expect(screen.getByRole('status')).toHaveTextContent(/Cierre registrado. Arqueo final:/i);
+    expect(screen.getByRole('status')).toHaveTextContent(/Cierre registrado.*efectivo esperado.*contado.*diferencia/i);
   });
 });
