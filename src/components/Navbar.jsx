@@ -89,7 +89,7 @@ export default function Navbar({ onOpenReservation }) {
             <img
               src={caciqueIcon}
               alt="Logo El Cacique"
-              className="w-full h-full object-contain relative z-10 filter drop-shadow-[0_0_12px_rgba(209,96,20,0.8)] group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-contain relative z-10 filter drop-shadow-[0_0_12px_rgba(245,158,11,0.4)] group-hover:scale-105 transition-transform duration-300"
             />
           </div>
           <div>

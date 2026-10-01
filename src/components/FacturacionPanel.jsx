@@ -18,7 +18,7 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
   const [movements, setMovements] = useState(savedState.movements || []);
   const [expenses, setExpenses] = useState(savedState.expenses || []);
   const [lastInvoice, setLastInvoice] = useState(null);
-  const [saleForm, setSaleForm] = useState({ cliente: '', descripcion: '', total: '', pago: 'Efectivo' });
+  const [saleForm, setSaleForm] = useState({ cliente: '', cedula: '', descripcion: '', subtotal: '', pago: 'Efectivo' });
   const [movementForm, setMovementForm] = useState({ tipo: 'Entrada', monto: '', nota: '' });
   const [purchaseForm, setPurchaseForm] = useState({ insumo: '', cantidad: '', costo: '' });
   const [error, setError] = useState('');
@@ -28,6 +28,9 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
   const cashMovements = movements.reduce((total, movement) => total + (movement.tipo === 'Entrada' ? movement.monto : -movement.monto), 0);
   const cashExpenses = expenses.filter(expense => expense.pagadoEfectivo).reduce((total, expense) => total + expense.costo, 0);
   const cashBalance = Number(openingAmount || 0) + cashSales + cashMovements - cashExpenses;
+  const invoiceSubtotal = Number(saleForm.subtotal) || 0;
+  const invoiceIva = Math.round(invoiceSubtotal * 0.13);
+  const invoiceTotal = invoiceSubtotal + invoiceIva;
 
   const updatePersistedState = (updates) => {
     const next = { openingAmount, cashOpen, sales, movements, expenses, ...updates };
@@ -49,17 +52,18 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
 
   const registerSale = (event) => {
     event.preventDefault();
-    const total = Number(saleForm.total);
+    const subtotal = Number(saleForm.subtotal);
+    const iva = Math.round(subtotal * 0.13);
+    const total = subtotal + iva;
     if (!cashOpen) { setError('Abra la caja antes de registrar ventas.'); return; }
-    if (!saleForm.cliente.trim() || !saleForm.descripcion.trim() || !Number.isFinite(total) || total <= 0) { setError('Complete cliente, detalle y monto válido.'); return; }
-    const sale = { id: Date.now(), cliente: saleForm.cliente.trim(), descripcion: saleForm.descripcion.trim(), total, pago: saleForm.pago, fecha: new Date().toISOString() };
+    if (!saleForm.cliente.trim() || !saleForm.cedula.trim() || !saleForm.descripcion.trim() || !Number.isFinite(subtotal) || subtotal <= 0) { setError('Complete cliente, cédula, detalle y subtotal válido.'); return; }
+    const sale = { id: Date.now(), cliente: saleForm.cliente.trim(), cedula: saleForm.cedula.trim(), descripcion: saleForm.descripcion.trim(), subtotal, iva, total, pago: saleForm.pago, fecha: new Date().toISOString() };
     const nextSales = [sale, ...sales];
     updatePersistedState({ sales: nextSales });
-    const subtotal = Math.round(total / 1.13);
     const consecutive = `FE-${new Date().getFullYear()}-${String(nextSales.length).padStart(6, '0')}`;
     const numericKey = Array.from({ length: 50 }, () => Math.floor(Math.random() * 10)).join('');
-    setLastInvoice({ ...sale, consecutive, key: numericKey, subtotal, iva: total - subtotal });
-    setSaleForm({ cliente: '', descripcion: '', total: '', pago: 'Efectivo' });
+    setLastInvoice({ ...sale, consecutive, key: numericKey });
+    setSaleForm({ cliente: '', cedula: '', descripcion: '', subtotal: '', pago: 'Efectivo' });
     setError('');
   };
 
@@ -115,9 +119,11 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
       <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-2">
         <form onSubmit={registerSale} className="min-w-0 space-y-3 rounded-2xl border border-[#659B5E]/20 bg-black/20 p-4">
           <h3 className="font-bold text-white">Registrar venta y emitir factura</h3>
-          <input className={fieldClass} aria-label="Cliente de venta" placeholder="Nombre del cliente" value={saleForm.cliente} onChange={event => setSaleForm({ ...saleForm, cliente: event.target.value })}/>
-          <input className={fieldClass} aria-label="Detalle de venta" placeholder="Detalle de productos o servicios" value={saleForm.descripcion} onChange={event => setSaleForm({ ...saleForm, descripcion: event.target.value })}/>
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2"><input className={fieldClass} aria-label="Total de venta" type="number" min="1" placeholder="Total con IVA" value={saleForm.total} onChange={event => setSaleForm({ ...saleForm, total: event.target.value })}/><select className={fieldClass} aria-label="Método de pago" value={saleForm.pago} onChange={event => setSaleForm({ ...saleForm, pago: event.target.value })}><option>Efectivo</option><option>Tarjeta</option><option>SINPE Móvil</option></select></div>
+          <input required className={fieldClass} aria-label="Cliente de venta" placeholder="Nombre del cliente" value={saleForm.cliente} onChange={event => setSaleForm({ ...saleForm, cliente: event.target.value })}/>
+          <input required className={fieldClass} aria-label="Cédula del cliente" placeholder="Cédula física o jurídica" value={saleForm.cedula} onChange={event => setSaleForm({ ...saleForm, cedula: event.target.value })}/>
+          <textarea required rows="2" className={fieldClass} aria-label="Detalle de venta" placeholder="Ítems: producto, cantidad y precio" value={saleForm.descripcion} onChange={event => setSaleForm({ ...saleForm, descripcion: event.target.value })}/>
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2"><input required className={fieldClass} aria-label="Subtotal de venta" type="number" min="1" placeholder="Subtotal sin IVA" value={saleForm.subtotal} onChange={event => setSaleForm({ ...saleForm, subtotal: event.target.value })}/><select className={fieldClass} aria-label="Método de pago" value={saleForm.pago} onChange={event => setSaleForm({ ...saleForm, pago: event.target.value })}><option>Efectivo</option><option>Tarjeta</option><option>SINPE Móvil</option></select></div>
+          <div className="flex flex-wrap justify-between gap-2 rounded-xl border border-[#659B5E]/20 bg-black/20 p-3 text-sm"><span>Subtotal: ₡{invoiceSubtotal.toLocaleString('es-CR')}</span><span>IVA 13%: ₡{invoiceIva.toLocaleString('es-CR')}</span><strong className="text-amber-300">Total: ₡{invoiceTotal.toLocaleString('es-CR')}</strong></div>
           <button type="submit" className={actionClass}><Receipt className="h-4 w-4"/>Registrar venta</button>
         </form>
 
@@ -141,7 +147,7 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
 
       {lastInvoice && <article className="mx-auto w-full max-w-3xl space-y-4 rounded-2xl bg-white p-5 text-zinc-900 sm:p-8" aria-label="Factura emitida">
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-200 pb-4"><div className="flex items-center gap-3"><img src={officialLogo} alt="Logo El Cacique" className="h-16 w-16 object-contain"/><div><strong className="text-lg">CHICHARRONERA EL CACIQUE</strong><p className="text-sm text-zinc-500">Factura electrónica · {sedeNombre}</p></div></div><div className="text-right"><strong>{lastInvoice.consecutive}</strong><p className="text-xs text-zinc-500">{new Date(lastInvoice.fecha).toLocaleString('es-CR')}</p></div></div>
-        <p><strong>Cliente:</strong> {lastInvoice.cliente}</p><p><strong>Detalle:</strong> {lastInvoice.descripcion}</p><p className="break-all text-xs"><strong>Clave numérica simulada:</strong> {lastInvoice.key}</p>
+        <p><strong>Cliente:</strong> {lastInvoice.cliente} · <strong>Cédula:</strong> {lastInvoice.cedula}</p><p className="whitespace-pre-line"><strong>Detalle:</strong> {lastInvoice.descripcion}</p><p className="break-all text-xs"><strong>Clave numérica simulada:</strong> {lastInvoice.key}</p>
         <div className="flex flex-wrap items-end justify-between gap-5 border-t border-zinc-200 pt-4"><div className="space-y-1 text-sm"><p>Subtotal: ₡{lastInvoice.subtotal.toLocaleString('es-CR')}</p><p>IVA 13%: ₡{lastInvoice.iva.toLocaleString('es-CR')}</p><strong className="text-base">Total: ₡{lastInvoice.total.toLocaleString('es-CR')}</strong></div><div className="text-center"><img className="h-28 w-28" alt="Código QR para soporte por WhatsApp" src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(WHATSAPP)}`}/><a className="text-xs text-emerald-700 underline" href={WHATSAPP} target="_blank" rel="noreferrer">Soporte WhatsApp</a></div></div>
         <p className="border-t border-dashed border-zinc-300 pt-3 text-center text-[10px] text-zinc-500">Representación simulada para demostración; no sustituye el comprobante electrónico autorizado por Hacienda.</p>
         <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-zinc-900 px-4 py-2 font-bold text-white print:hidden"><Printer className="h-4 w-4"/>Imprimir factura</button>

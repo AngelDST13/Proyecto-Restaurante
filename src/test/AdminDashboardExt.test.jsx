@@ -19,7 +19,7 @@ describe('AdminDashboard secondary modules', () => {
   it('presenta bienvenida, logo, selector multi-sede y gráficos', () => {
     renderAdmin();
     expect(screen.getByRole('heading', { name: /(Buenos días|Buenas tardes|Buenas noches), Angel!/i })).toBeInTheDocument();
-    expect(screen.getByAltText('El Cacique Logo')).toHaveAttribute('src', expect.stringContaining('LogoN.svg'));
+    expect(screen.getByAltText('El Cacique Logo')).toHaveAttribute('src', expect.stringContaining('Cacique.svg'));
     expect(screen.queryByAltText('Logo oficial de El Cacique')).not.toBeInTheDocument();
     const branchSelect = screen.getByRole('combobox', { name: 'Sede del panel' });
     for (const label of ['Todas las Sedes • Consolidado General', 'Sede Escazú • Centro Culinario', 'Sede Santa Ana • Plaza Real', 'Sede Cartago • Paso Ancho', 'Sede Heredia • Vía Central']) {
@@ -57,7 +57,7 @@ describe('AdminDashboard secondary modules', () => {
     fireEvent.change(screen.getByLabelText('Fecha'), { target: { value: '2026-10-20' } });
     fireEvent.change(screen.getByLabelText('Hora'), { target: { value: '19:30' } });
     fireEvent.click(screen.getByRole('button', { name: 'Crear reserva' }));
-    expect(screen.getByText(/Reserva QA · 2 personas/)).toBeInTheDocument();
+    expect(screen.getByText('Reserva QA').closest('article')).toHaveTextContent('2 personas');
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
     expect(screen.queryByText(/Reserva QA · 2 personas/)).not.toBeInTheDocument();
   });

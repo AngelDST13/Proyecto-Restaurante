@@ -82,6 +82,47 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
     expect(screen.getByText(/₡7.?900/)).toBeInTheDocument();
   });
 
+  it('sincroniza A-, reinicio y A+ con el AccessibilityContext', () => {
+    renderAdmin();
+    const root = document.documentElement;
+    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
+    expect(root.style.fontSize).toBe('110%');
+    fireEvent.click(screen.getByRole('button', { name: 'Reducir tamaño de letra' }));
+    expect(root.style.fontSize).toBe('100%');
+    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Restablecer tamaño de letra' }));
+    expect(root.style.fontSize).toBe('100%');
+  });
+
+  it('actualiza y persiste el stock de la sede cuando registra una compra en caja', () => {
+    localStorage.removeItem('cacique_admin_inventory');
+    renderAdmin();
+    open('Arqueo de Caja & POS');
+    fireEvent.change(screen.getByLabelText('Monto inicial'), { target: { value: '10000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir caja' }));
+    fireEvent.change(screen.getByLabelText('Insumo comprado'), { target: { value: 'Carne de Cerdo para Chicharrón' } });
+    fireEvent.change(screen.getByLabelText('Cantidad comprada'), { target: { value: '5' } });
+    fireEvent.change(screen.getByLabelText('Costo de compra'), { target: { value: '8000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar compra' }));
+    expect(JSON.parse(localStorage.getItem('cacique_admin_inventory'))).toEqual(expect.arrayContaining([
+      expect.objectContaining({ nombre: 'Carne de Cerdo para Chicharrón', stock: 125, sede: 'escazu' })
+    ]));
+    open('Gestión de Inventario');
+    expect(screen.getByText('125 kg')).toBeInTheDocument();
+  });
+
+  it('muestra el cambio de color al alternar disponibilidad por sede', () => {
+    renderAdmin();
+    open('Gestión de Menú');
+    const checkbox = screen.getByLabelText('No disponible en Sede Escazú');
+    const card = checkbox.closest('label');
+    expect(card).toHaveClass('bg-emerald-950/40');
+    fireEvent.click(checkbox);
+    expect(card).toHaveClass('bg-rose-950/40');
+    expect(card).toHaveTextContent('No Disponible');
+  });
+
   it('selecciona varios clientes para un envío de correo', async () => {
     renderAdmin();
     open('Centro de Correos');
@@ -102,10 +143,11 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
   });
 
   it('ejecuta fallback del logo y acciones de inventario, promociones, reseñas y caja', () => {
+    localStorage.removeItem('cacique_cashier_escazu');
     renderAdmin();
     const logo = screen.getByAltText('El Cacique Logo');
     fireEvent.error(logo);
-    expect(logo).toHaveAttribute('src', expect.stringContaining('Cacique.svg'));
+    expect(logo).toHaveAttribute('src', expect.stringContaining('LogoN.svg'));
 
     open('Gestión de Inventario');
     fireEvent.change(screen.getAllByRole('combobox').at(-1), { target: { value: 'optimo' } });

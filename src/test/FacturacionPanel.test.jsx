@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import FacturacionPanel from '../components/FacturacionPanel';
 
@@ -13,14 +13,17 @@ describe('FacturacionPanel: caja, ventas e inventario', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Abrir caja' }));
 
     fireEvent.change(screen.getByLabelText('Cliente de venta'), { target: { value: 'Cliente QA' } });
+    fireEvent.change(screen.getByLabelText('Cédula del cliente'), { target: { value: '101230456' } });
     fireEvent.change(screen.getByLabelText('Detalle de venta'), { target: { value: 'Chifrijo' } });
-    fireEvent.change(screen.getByLabelText('Total de venta'), { target: { value: '11300' } });
+    fireEvent.change(screen.getByLabelText('Subtotal de venta'), { target: { value: '10000' } });
     fireEvent.change(screen.getByLabelText('Método de pago'), { target: { value: 'SINPE Móvil' } });
     fireEvent.click(screen.getByRole('button', { name: 'Registrar venta' }));
     expect(screen.getByRole('article', { name: 'Factura emitida' })).toBeInTheDocument();
     expect(screen.getByText(/Clave numérica simulada:/)).toBeInTheDocument();
     expect(screen.getByAltText('Código QR para soporte por WhatsApp')).toHaveAttribute('src', expect.stringContaining('qrserver.com'));
-    expect(screen.getByText(/IVA 13%:/)).toBeInTheDocument();
+    const invoice = screen.getByRole('article', { name: 'Factura emitida' });
+    expect(within(invoice).getByText(/IVA 13%:/)).toBeInTheDocument();
+    expect(within(invoice).getByText(/Total: ₡11.?300/)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Insumo comprado'), { target: { value: 'Carne' } });
     fireEvent.change(screen.getByLabelText('Cantidad comprada'), { target: { value: '4' } });
