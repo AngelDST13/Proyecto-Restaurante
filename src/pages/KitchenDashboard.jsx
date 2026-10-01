@@ -212,7 +212,7 @@ export default function KitchenDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] font-sans pb-16">
+    <div className="min-h-screen w-full max-w-full min-w-0 overflow-x-hidden bg-[#0A090C] text-[#F8FFE5] font-sans pb-16">
       
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />

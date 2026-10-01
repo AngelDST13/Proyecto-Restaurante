@@ -68,6 +68,39 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
     expect(screen.getByText('Vigorón Criollo (1kg)')).toBeInTheDocument();
   });
 
+  it('edita un platillo existente y refleja precio, categoría, descripción y restricciones', () => {
+    renderAdmin();
+    open('Gestión de Menú');
+    fireEvent.click(screen.getByRole('button', { name: 'Editar Chifrijo Especial Cacique' }));
+    fireEvent.change(screen.getByPlaceholderText('Precio en colones'), { target: { value: '7900' } });
+    fireEvent.change(screen.getByPlaceholderText('Descripción breve'), { target: { value: 'Receta actualizada de prueba' } });
+    fireEvent.change(screen.getByLabelText('Categoría del platillo'), { target: { value: 'Bebidas' } });
+    fireEvent.click(screen.getByLabelText(/No disponible en Sede Heredia/i));
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios del platillo' }));
+    expect(screen.getByText('Receta actualizada de prueba')).toBeInTheDocument();
+    expect(screen.getByText('No disponible en: Sede Heredia')).toBeInTheDocument();
+    expect(screen.getByText(/₡7.?900/)).toBeInTheDocument();
+  });
+
+  it('selecciona varios clientes para un envío de correo', async () => {
+    renderAdmin();
+    open('Centro de Correos');
+    fireEvent.change(screen.getByLabelText('Nombre del cliente'), { target: { value: 'Cliente Uno' } });
+    fireEvent.change(screen.getByLabelText('Correo del cliente'), { target: { value: 'uno@example.cr' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar contacto' }));
+    fireEvent.change(screen.getByLabelText('Nombre del cliente'), { target: { value: 'Cliente Dos' } });
+    fireEvent.change(screen.getByLabelText('Correo del cliente'), { target: { value: 'dos@example.cr' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar contacto' }));
+    fireEvent.change(screen.getByLabelText('Audiencia'), { target: { value: 'clientes_seleccionados' } });
+    fireEvent.click(screen.getByLabelText('Cliente Uno — uno@example.cr'));
+    fireEvent.click(screen.getByLabelText('Cliente Dos — dos@example.cr'));
+    fireEvent.change(screen.getByPlaceholderText('Asunto del comunicado'), { target: { value: 'Aviso QA' } });
+    fireEvent.change(screen.getByPlaceholderText('Escriba el mensaje...'), { target: { value: 'Mensaje QA' } });
+    fireEvent.click(screen.getByRole('button', { name: /Despachar con n8n/i }));
+    const { triggerN8nAutomation } = await import('../services/n8nService');
+    expect(triggerN8nAutomation).toHaveBeenCalledWith('INVENTARIO_ALERTA', expect.objectContaining({ destinatarios: ['uno@example.cr', 'dos@example.cr'] }));
+  });
+
   it('ejecuta fallback del logo y acciones de inventario, promociones, reseñas y caja', () => {
     renderAdmin();
     const logo = screen.getByAltText('El Cacique Logo');
@@ -87,7 +120,9 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
     fireEvent.click(screen.getByRole('button', { name: 'Revisar moderación' }));
     expect(screen.getByText(/No hay reseñas pendientes/i)).toBeInTheDocument();
     open('Arqueo de Caja & POS');
-    fireEvent.click(screen.getByRole('button', { name: 'Registrar Cierre Diario de Caja' }));
-    expect(screen.getByText(/Cierre de caja registrado exitosamente/i)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Monto inicial'), { target: { value: '20000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir caja' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar caja y registrar arqueo' }));
+    expect(screen.getByRole('status')).toHaveTextContent(/Cierre registrado. Arqueo final:/i);
   });
 });

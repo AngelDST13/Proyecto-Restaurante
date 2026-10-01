@@ -21,7 +21,7 @@ describe('AdminDashboard secondary modules', () => {
     expect(screen.getByRole('heading', { name: /(Buenos días|Buenas tardes|Buenas noches), Angel!/i })).toBeInTheDocument();
     expect(screen.getByAltText('El Cacique Logo')).toHaveAttribute('src', expect.stringContaining('LogoN.svg'));
     expect(screen.queryByAltText('Logo oficial de El Cacique')).not.toBeInTheDocument();
-    const branchSelect = screen.getAllByRole('combobox')[0];
+    const branchSelect = screen.getByRole('combobox', { name: 'Sede del panel' });
     for (const label of ['Todas las Sedes • Consolidado General', 'Sede Escazú • Centro Culinario', 'Sede Santa Ana • Plaza Real', 'Sede Cartago • Paso Ancho', 'Sede Heredia • Vía Central']) {
       expect(branchSelect).toContainElement(screen.getByRole('option', { name: label }));
     }
@@ -35,6 +35,19 @@ describe('AdminDashboard secondary modules', () => {
     fireEvent.change(branchSelect, { target: { value: 'santa_ana' } });
     expect(screen.getByText('Plátano Verde para Patacones')).toBeInTheDocument();
     expect(screen.queryByText('Yuca Fresca de Paila')).not.toBeInTheDocument();
+  });
+
+  it('carga y selecciona históricos mensuales persistidos', () => {
+    localStorage.removeItem('cacique_admin_history_2026');
+    renderAdmin();
+    fireEvent.click(screen.getByRole('button', { name: /Cargar histórico/i }));
+    expect(JSON.parse(localStorage.getItem('cacique_admin_history_2026'))).toHaveLength(36);
+    const monthSelect = screen.getByRole('combobox', { name: 'Mes del histórico' });
+    fireEvent.change(monthSelect, { target: { value: '2026-01' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Mes' }));
+    expect(screen.getByText('Ventas (mes)').parentElement.parentElement).toHaveTextContent(/16[\s,.]964[\s,.]640/);
+    expect(screen.getByText(/Insumos consumidos · Enero 2026/i)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /Gráfico de ventas para el periodo mes/i })).toBeInTheDocument();
   });
 
   it('crea y cancela una reserva guardando el nuevo estado', () => {
@@ -73,7 +86,7 @@ describe('AdminDashboard secondary modules', () => {
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     renderAdmin();
     fireEvent.click(screen.getByRole('button', { name: 'Semana' }));
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'santa_ana' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Sede del panel' }), { target: { value: 'santa_ana' } });
     fireEvent.click(screen.getByTitle('Exportar CSV'));
     fireEvent.click(screen.getByTitle('Exportar JSON'));
     expect(createObjectURL).toHaveBeenCalledTimes(2);

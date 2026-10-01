@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { useAutoLogout } from '../hooks/useAutoLogout';
 import { 
-  Utensils, Calendar, MapPin, Clock, Phone, 
+  Utensils, Calendar, MapPin, Clock, Phone, MessageCircle,
   Flame, ChevronRight, ChevronLeft, Award, ShieldCheck, Sparkles,
   AlertTriangle, Ghost, Snowflake, PartyPopper
 } from 'lucide-react';
@@ -674,6 +674,17 @@ export default function Landing() {
           onSuccess={(message) => setToast({ show: true, message, type: 'success' })}
         />
       )}
+
+      <a
+        href="https://wa.me/50622008888"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Contactar a El Cacique por WhatsApp"
+        className="fixed bottom-5 right-5 z-40 inline-flex min-h-14 items-center gap-2 rounded-full border border-white/20 bg-emerald-600 px-5 py-3 font-bold text-white shadow-xl shadow-black/40 transition hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+      >
+        <MessageCircle aria-hidden="true" className="h-5 w-5" />
+        <span className="hidden sm:inline">WhatsApp</span>
+      </a>
 
     </div>
   );

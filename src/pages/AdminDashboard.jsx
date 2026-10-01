@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
+import { useAutoLogout } from '../hooks/useAutoLogout';
+import { useAccessibility } from '../context/AccessibilityContext';
+import FacturacionPanel from '../components/FacturacionPanel';
 import caciqueIcon from '../assets/img/Cacique.svg';
 import officialLogo from '../assets/img/LogoN.svg';
 import { decryptData, encryptData, formatSedeName } from '../services/authSecurity';
@@ -17,11 +20,27 @@ import {
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
+  const { increaseFontSize, decreaseFontSize } = useAccessibility();
   const navigate = useNavigate();
+  const navigateToLogin = useCallback(() => navigate('/login'), [navigate]);
+  const { showWarning: showInactivityWarning, resetTimer: resetInactivityTimer } = useAutoLogout(null, {
+    timeoutMs: 10 * 60 * 1000,
+    warningMs: 9 * 60 * 1000,
+    onTimeout: navigateToLogin
+  });
 
   const [activeSection, setActiveSection] = useState('resumen');
   const [selectedSede, setSelectedSede] = useState('escazu');
   const [timePeriod, setTimePeriod] = useState('dia');
+  const [selectedHistoryMonth, setSelectedHistoryMonth] = useState('');
+  const [historicalData, setHistoricalData] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('cacique_admin_history_2026') || '[]');
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
@@ -39,6 +58,7 @@ export default function AdminDashboard() {
   const branchKeys = ['escazu', 'santa_ana', 'cartago', 'heredia'];
   const branchLabels = { escazu: 'Escazú', santa_ana: 'Santa Ana', cartago: 'Cartago', heredia: 'Heredia' };
   const [newMenuItem, setNewMenuItem] = useState({ nombre: '', categoria: 'Chicharrones & Paila', precio: '', descripcion: '', sedesNoDisponibles: [] });
+  const [editingMenuItemId, setEditingMenuItemId] = useState(null);
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 15);
@@ -79,6 +99,7 @@ export default function AdminDashboard() {
   const [supplierForm, setSupplierForm] = useState({ nombre: '', contacto: '', telefono: '', email: '', insumos: '', sede: 'escazu' });
   const [invoiceForm, setInvoiceForm] = useState({ proveedor: '', monto: '', codigo: '', fecha: '', categoria: 'Insumos', archivoNombre: '' });
   const [emailData, setEmailData] = useState({ tipo: 'INVENTARIO_ALERTA', destinatarioTipo: 'todos_clientes', especifico: '', asunto: '', mensaje: '' });
+  const [emailSelectedRecipients, setEmailSelectedRecipients] = useState([]);
   const [emailContact, setEmailContact] = useState({ nombre: '', correo: '' });
   const [emailContacts, setEmailContacts] = useState(() => {
     const storedContacts = decryptData(localStorage.getItem('cacique_admin_email_contacts'));
@@ -174,9 +195,45 @@ export default function AdminDashboard() {
     cartago: { personal: 10, mesasLibres: 6, mesasTotal: 20 },
     heredia: { personal: 9, mesasLibres: 3, mesasTotal: 16 }
   };
-  const currentMetrics = selectedSede === 'todas'
+  const historicalMonthOptions = [
+    ['2026-01', 'Enero 2026'], ['2026-02', 'Febrero 2026'], ['2026-03', 'Marzo 2026'],
+    ['2026-04', 'Abril 2026'], ['2026-05', 'Mayo 2026'], ['2026-06', 'Junio 2026'],
+    ['2026-07', 'Julio 2026'], ['2026-08', 'Agosto 2026'], ['2026-09', 'Septiembre 2026']
+  ];
+  const loadHistoricalData = () => {
+    const growthFactors = [0.72, 0.76, 0.81, 0.84, 0.88, 0.93, 0.96, 0.98, 1];
+    const generatedHistory = historicalMonthOptions.flatMap(([month], monthIndex) => branchKeys.map((sede, branchIndex) => {
+      const factor = growthFactors[monthIndex] * (1 + branchIndex * 0.015);
+      const base = metricsByPeriod.mes[sede];
+      return {
+        month,
+        sede,
+        ventas: Math.round(base.ventas * factor),
+        comandas: Math.round(base.comandas * factor),
+        clientes: Math.round(base.clientes * factor),
+        insumosConsumidos: Math.round((base.comandas * 0.42 + base.clientes * 0.06) * factor)
+      };
+    }));
+    setHistoricalData(generatedHistory);
+    localStorage.setItem('cacique_admin_history_2026', JSON.stringify(generatedHistory));
+    setSelectedHistoryMonth('2026-09');
+    showToast('Histórico de enero a septiembre de 2026 cargado', 'success');
+  };
+  const selectedHistoricalRows = selectedHistoryMonth
+    ? historicalData.filter(row => row.month === selectedHistoryMonth && (selectedSede === 'todas' || row.sede === selectedSede))
+    : [];
+  const historyScale = timePeriod === 'dia' ? 30 : timePeriod === 'semana' ? 4 : 1;
+  const baseMetrics = selectedSede === 'todas'
     ? { ...branchKeys.reduce((sum, key) => { const metric = metricsByPeriod[timePeriod][key]; return { ventas: sum.ventas + metric.ventas, comandas: sum.comandas + metric.comandas, clientes: sum.clientes + metric.clientes, completados: sum.completados + metric.completados, pendientes: sum.pendientes + metric.pendientes, cancelados: sum.cancelados + metric.cancelados }; }, { ventas: 0, comandas: 0, clientes: 0, completados: 0, pendientes: 0, cancelados: 0 }), coccion: '16 min', mesasTotal: branchKeys.reduce((n, key) => n + branchDetails[key].mesasTotal, 0), mesasLibres: branchKeys.reduce((n, key) => n + branchDetails[key].mesasLibres, 0) }
     : { ...metricsByPeriod[timePeriod][selectedSede], ...branchDetails[selectedSede] };
+  const currentMetrics = selectedHistoricalRows.length
+    ? { ...baseMetrics,
+      ventas: Math.round(selectedHistoricalRows.reduce((total, row) => total + row.ventas, 0) / historyScale),
+      comandas: Math.round(selectedHistoricalRows.reduce((total, row) => total + row.comandas, 0) / historyScale),
+      clientes: Math.round(selectedHistoricalRows.reduce((total, row) => total + row.clientes, 0) / historyScale)
+    }
+    : baseMetrics;
+  const historicalSuppliesConsumed = selectedHistoricalRows.reduce((total, row) => total + row.insumosConsumidos, 0);
   const salesByBranch = branchKeys.map(key => ({ sede: branchLabels[key], ventas: metricsByPeriod[timePeriod][key].ventas, clientes: metricsByPeriod[timePeriod][key].clientes }));
   const averageTicket = currentMetrics.comandas ? Math.round(currentMetrics.ventas / currentMetrics.comandas) : 0;
   const salesTrendByPeriod = {
@@ -185,10 +242,15 @@ export default function AdminDashboard() {
     mes: [48, 62, 74, 68, 88, 100]
   };
   const currentSalesTrend = salesTrendByPeriod[timePeriod];
-  const monthlySalesData = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'].map((mes, index) => ({
-    mes,
-    ventas: Math.round(currentMetrics.ventas * currentSalesTrend[index] / 100)
-  }));
+  const monthlySalesData = historicalData.length
+    ? historicalMonthOptions.map(([month, label]) => ({
+      mes: label.slice(0, 3),
+      ventas: historicalData.filter(row => row.month === month && (selectedSede === 'todas' || row.sede === selectedSede)).reduce((total, row) => total + row.ventas, 0)
+    }))
+    : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'].map((mes, index) => ({
+      mes,
+      ventas: Math.round(currentMetrics.ventas * currentSalesTrend[index] / 100)
+    }));
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -251,7 +313,8 @@ export default function AdminDashboard() {
 
   const handleSendEmail = async (event) => {
     event.preventDefault();
-    if (!emailData.asunto || !emailData.mensaje || (emailData.destinatarioTipo === 'especifico' && !emailData.especifico)) {
+    const requiresSelection = ['clientes_seleccionados', 'proveedores_seleccionados'].includes(emailData.destinatarioTipo);
+    if (!emailData.asunto || !emailData.mensaje || (emailData.destinatarioTipo === 'especifico' && !emailData.especifico) || (requiresSelection && emailSelectedRecipients.length === 0)) {
       showToast('Complete destinatario, asunto y mensaje para enviar el comunicado', 'error');
       return;
     }
@@ -262,11 +325,13 @@ export default function AdminDashboard() {
         ...emailData,
         destinatarios: emailData.destinatarioTipo === 'especifico'
           ? [emailData.especifico]
-          : emailData.destinatarioTipo === 'todos_proveedores'
-            ? suppliers.map(supplier => supplier.email)
-            : emailData.destinatarioTipo === 'personal_meseros'
-              ? employees.map(employee => employee.nombre)
-              : emailContacts.map(contact => contact.correo),
+          : requiresSelection
+            ? emailSelectedRecipients
+            : emailData.destinatarioTipo === 'todos_proveedores'
+              ? suppliers.map(supplier => supplier.email)
+              : emailData.destinatarioTipo === 'personal_meseros'
+                ? employees.map(employee => employee.nombre)
+                : emailContacts.map(contact => contact.correo),
         correoCliente: emailData.destinatarioTipo === 'especifico' ? emailData.especifico : '',
         producto: 'Comunicado Admin',
         sede: formatSedeName(selectedSede) || 'Central',
@@ -280,6 +345,7 @@ export default function AdminDashboard() {
       }
 
       setEmailData({ tipo: 'INVENTARIO_ALERTA', destinatarioTipo: 'todos_clientes', especifico: '', asunto: '', mensaje: '' });
+      setEmailSelectedRecipients([]);
       showToast(`Comunicado procesado (${response.mode === 'n8n_online' ? 'n8n conectado' : 'modo local'})`, 'success');
     } catch {
       setEmailResponse({ success: false, message: 'Error al procesar la solicitud de correo.' });
@@ -365,6 +431,15 @@ export default function AdminDashboard() {
     showToast(`Insumo "${nombre}" eliminado del registro`, 'info');
   };
 
+  const handleRegisterPurchase = ({ insumo, cantidad, sede }) => {
+    setInventory(previous => {
+      const existing = previous.find(item => item.sede === sede && item.nombre.toLocaleLowerCase() === insumo.toLocaleLowerCase());
+      if (existing) return previous.map(item => item.id === existing.id ? { ...item, stock: Number(item.stock) + Number(cantidad) } : item);
+      return [...previous, { id: Date.now(), nombre: insumo, stock: Number(cantidad), minLimit: 0, maxLimit: Number(cantidad), unidad: 'unid', sede }];
+    });
+    showToast(`${insumo}: inventario actualizado en ${formatSedeName(sede)}`, 'success');
+  };
+
   // FILTRADO DE INVENTARIO
   const branchInventory = inventory.filter(i => selectedSede === 'todas' || i.sede === selectedSede);
   const filteredInventory = branchInventory.filter(item => {
@@ -446,9 +521,17 @@ export default function AdminDashboard() {
       showToast('Ingrese el nombre y un precio válido para el platillo', 'error');
       return;
     }
-    setMenuItems(previous => [...previous, { ...newMenuItem, nombre: newMenuItem.nombre.trim(), precio: price, id: Date.now() }]);
+    const savedItem = { ...newMenuItem, nombre: newMenuItem.nombre.trim(), precio: price, id: editingMenuItemId || Date.now() };
+    setMenuItems(previous => editingMenuItemId
+      ? previous.map(item => item.id === editingMenuItemId ? savedItem : item)
+      : [...previous, savedItem]);
     setNewMenuItem({ nombre: '', categoria: menuCategories[0] || '', precio: '', descripcion: '', sedesNoDisponibles: [] });
-    showToast('Platillo agregado al menú', 'success');
+    showToast(editingMenuItemId ? 'Platillo actualizado correctamente' : 'Platillo agregado al menú', 'success');
+    setEditingMenuItemId(null);
+  };
+  const editMenuItem = item => {
+    setEditingMenuItemId(item.id);
+    setNewMenuItem({ nombre: item.nombre, categoria: item.categoria, precio: String(item.precio), descripcion: item.descripcion || '', sedesNoDisponibles: item.sedesNoDisponibles || [] });
   };
   const handleToggleExcludedBranch = sede => {
     setNewMenuItem(previous => ({
@@ -460,31 +543,23 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] font-sans flex flex-col lg:flex-row">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#0A090C] text-[#F8FFE5] font-sans flex flex-col lg:flex-row">
       
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
       )}
 
       {/* SIDEBAR DE NAVEGACIÓN DEDICADO DEL PANEL ADMIN */}
-      <aside className="w-full lg:w-72 bg-[#001812] border-r border-[#659B5E]/30 p-6 flex flex-col justify-between shrink-0 shadow-2xl">
+      <aside className="w-full max-w-full overflow-x-hidden lg:w-72 bg-[#001812] border-r border-[#659B5E]/30 p-4 sm:p-6 flex flex-col justify-between shrink-0 shadow-2xl">
         <div className="space-y-8">
           
-          <div className="flex items-center gap-3 p-3 border-b border-zinc-800/80 mb-4">
+          <div className="flex items-center p-3 border-b border-zinc-800/80 mb-4">
             <img
               src={officialLogo}
               onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = caciqueIcon; }}
               alt="El Cacique Logo"
               className="w-14 h-14 object-contain drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]"
             />
-            <div>
-              <span className="text-amber-400 font-black text-lg tracking-wide block leading-none">
-                EL CACIQUE
-              </span>
-              <span className="text-zinc-400 text-[10px] font-semibold tracking-widest uppercase">
-                Chicharronera Gourmet
-              </span>
-            </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-[#0A090C] border border-[#659B5E]/30 space-y-2">
@@ -496,6 +571,11 @@ export default function AdminDashboard() {
               {user?.nombre || 'Angel Daniela Salazar T.'}
             </p>
             <p className="text-[10px] text-gray-400">admin@elcacique.com</p>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-[#659B5E]/20 bg-black/20 px-3 py-2" aria-label="Tamaño del texto">
+            <span className="text-xs text-zinc-400">Tamaño del texto</span>
+            <div className="flex gap-2"><button type="button" aria-label="Reducir tamaño de letra" onClick={decreaseFontSize} className="min-h-9 min-w-10 rounded-lg border border-white/10 px-2 font-bold hover:border-amber-400">A−</button><button type="button" aria-label="Aumentar tamaño de letra" onClick={increaseFontSize} className="min-h-9 min-w-10 rounded-lg border border-white/10 px-2 font-bold hover:border-amber-400">A+</button></div>
           </div>
 
           <nav className="space-y-1.5 text-xs font-bold uppercase tracking-wider">
@@ -556,9 +636,9 @@ export default function AdminDashboard() {
       </aside>
 
       {/* ÁREA PRINCIPAL */}
-      <main className="grow p-6 sm:p-10 space-y-8 overflow-y-auto">
+      <main className="min-w-0 w-full max-w-full grow overflow-x-hidden p-4 sm:p-6 lg:p-10 space-y-8 overflow-y-auto">
         
-        <header className="bg-linear-to-r from-zinc-900 via-zinc-900/90 to-zinc-950 rounded-3xl border border-zinc-800 p-6 sm:p-8 grid grid-cols-1 2xl:grid-cols-[minmax(16rem,1fr)_auto] items-center gap-6 shadow-2xl">
+        <header className="bg-gradient-to-r from-[#001812] via-zinc-900 to-[#0A090C] rounded-3xl border border-[#659B5E]/30 p-6 sm:p-8 grid grid-cols-1 2xl:grid-cols-[minmax(16rem,1fr)_auto] items-center gap-6 shadow-2xl shadow-black/60">
           <div className="min-w-0 space-y-1">
             <div>
               <span className="inline-flex px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-[11px] uppercase tracking-wider">
@@ -579,9 +659,18 @@ export default function AdminDashboard() {
                 </button>
               ))}
             </div>
+            <label className="sr-only" htmlFor="historical-month">Mes del histórico</label>
+            <select id="historical-month" aria-label="Mes del histórico" value={selectedHistoryMonth} disabled={!historicalData.length} onChange={event => setSelectedHistoryMonth(event.target.value)} className="bg-[#0A090C] border border-[#659B5E]/40 disabled:opacity-50 rounded-2xl px-3 py-3 text-xs font-bold text-[#F8FFE5] cursor-pointer">
+              <option value="">Periodo actual</option>
+              {historicalMonthOptions.map(([month, label]) => <option key={month} value={month}>{label}</option>)}
+            </select>
+            <button type="button" onClick={loadHistoricalData} className="px-3 py-2.5 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 rounded-2xl text-amber-300 text-xs font-extrabold whitespace-nowrap">
+              <Upload className="w-4 h-4 inline-block mr-1.5" />Cargar histórico
+            </button>
             <div className="relative grow sm:grow-0">
               <MapPin className="w-4 h-4 absolute left-3.5 top-3.5 text-[#659B5E]" />
               <select
+                aria-label="Sede del panel"
                 value={selectedSede}
                 onChange={e => {
                   setSelectedSede(e.target.value);
@@ -636,7 +725,7 @@ export default function AdminDashboard() {
         {/* RESUMEN Y MÉTRICAS */}
         {activeSection === 'resumen' && (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5 gap-6">
               <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
                   <span>Ventas ({timePeriod})</span>
@@ -674,6 +763,11 @@ export default function AdminDashboard() {
                 <div className="text-3xl font-black text-[#F8FFE5]">{currentMetrics.coccion}</div>
                 <span className="text-[10px] text-gray-400">Objetivo: &lt; 20 min</span>
               </div>
+              {selectedHistoryMonth && <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
+                <div className="flex justify-between items-center text-xs font-bold text-gray-400"><span>Insumos consumidos · {historicalMonthOptions.find(([month]) => month === selectedHistoryMonth)?.[1]}</span><Package className="w-4 h-4 text-amber-400" /></div>
+                <div className="text-3xl font-black text-amber-400">{Math.round(historicalSuppliesConsumed / historyScale).toLocaleString('es-CR')}</div>
+                <span className="text-[10px] text-gray-400">Unidades estimadas en periodo {timePeriod}</span>
+              </div>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -784,13 +878,18 @@ export default function AdminDashboard() {
         )}
 
         {activeSection === 'menu' && (
-          <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 text-xs shadow-2xl">
-            <div><h3 className="font-extrabold text-lg">Gestión dinámica del menú</h3><p className="text-gray-400 text-[11px]">Agrega categorías y platillos con precio y descripción.</p></div>
-            <form onSubmit={addMenuCategory} className="flex gap-2"><input value={newCategory} onChange={event => setNewCategory(event.target.value)} placeholder="Nueva categoría o sección" className="flex-1 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" /><button className="px-4 py-2.5 rounded-xl bg-[#D16014] text-white font-bold">Crear categoría</button></form>
-            <form onSubmit={addMenuItem} className="grid grid-cols-1 sm:grid-cols-2 gap-3"><input required value={newMenuItem.nombre} onChange={event => setNewMenuItem({ ...newMenuItem, nombre: event.target.value })} placeholder="Nombre del platillo" className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" /><select value={newMenuItem.categoria} onChange={event => setNewMenuItem({ ...newMenuItem, categoria: event.target.value })} className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5">{menuCategories.map(category => <option key={category} value={category}>{category}</option>)}</select><input required type="number" min="1" step="1" value={newMenuItem.precio} onChange={event => setNewMenuItem({ ...newMenuItem, precio: event.target.value })} placeholder="Precio en colones" className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" /><input value={newMenuItem.descripcion} onChange={event => setNewMenuItem({ ...newMenuItem, descripcion: event.target.value })} placeholder="Descripción breve" className="bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
-              <div className="sm:col-span-2 bg-[#0A090C] p-3.5 rounded-xl border border-[#F8FFE5]/15 space-y-2"><label className="text-amber-400 text-xs font-bold block">Restricción de disponibilidad por sede</label><p className="text-[11px] text-gray-400">Marque las sedes donde este platillo no estará disponible:</p><div className="flex flex-wrap gap-4 pt-1">{sedesDisponibles.map(sede => <label key={sede} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer"><input type="checkbox" checked={newMenuItem.sedesNoDisponibles.includes(sede)} onChange={() => handleToggleExcludedBranch(sede)} className="accent-amber-500 rounded" />No disponible en {sede}</label>)}</div></div>
-              <button className="sm:col-span-2 justify-self-end px-5 py-2.5 rounded-xl bg-[#D16014] text-white font-extrabold">Guardar platillo</button></form>
-            <div className="divide-y divide-[#F8FFE5]/10 border-y border-[#F8FFE5]/10">{menuItems.map(item => <div key={item.id} className="flex justify-between items-center gap-4 py-4"><div><strong className="text-white">{item.nombre}</strong><span className="ml-2 text-[#659B5E]">{item.categoria}</span><p className="mt-1 text-gray-400">{item.descripcion}</p>{item.sedesNoDisponibles?.length > 0 && <p className="mt-1 text-amber-300">No disponible en: {item.sedesNoDisponibles.join(', ')}</p>}</div><div className="flex items-center gap-3"><strong className="text-amber-300">₡{item.precio.toLocaleString('es-CR')}</strong><button aria-label={`Eliminar ${item.nombre}`} onClick={() => setMenuItems(previous => previous.filter(current => current.id !== item.id))} className="text-gray-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button></div></div>)}</div>
+          <div className="w-full max-w-full min-w-0 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-gradient-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 shadow-2xl sm:p-6">
+            <div className="mb-5"><h3 className="font-extrabold text-lg">Gestión dinámica del menú</h3><p className="text-gray-400 text-[11px]">Agrega, edita o elimina platillos y disponibilidad por sucursal.</p></div>
+            <form onSubmit={addMenuCategory} className="mb-6 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><input value={newCategory} onChange={event => setNewCategory(event.target.value)} placeholder="Nueva categoría o sección" className="min-w-0 w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" /><button className="min-h-11 px-4 py-2.5 rounded-xl bg-[#D16014] text-white font-bold">Crear categoría</button></form>
+            <form onSubmit={addMenuItem} className="mb-7 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+              <input required value={newMenuItem.nombre} onChange={event => setNewMenuItem({ ...newMenuItem, nombre: event.target.value })} placeholder="Nombre del platillo" className="min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
+              <select aria-label="Categoría del platillo" value={newMenuItem.categoria} onChange={event => setNewMenuItem({ ...newMenuItem, categoria: event.target.value })} className="min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5">{menuCategories.map(category => <option key={category} value={category}>{category}</option>)}</select>
+              <input required type="number" min="1" step="1" value={newMenuItem.precio} onChange={event => setNewMenuItem({ ...newMenuItem, precio: event.target.value })} placeholder="Precio en colones" className="min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
+              <input value={newMenuItem.descripcion} onChange={event => setNewMenuItem({ ...newMenuItem, descripcion: event.target.value })} placeholder="Descripción breve" className="min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
+              <fieldset className="sm:col-span-2 min-w-0 rounded-2xl border border-[#659B5E]/25 bg-black/20 p-4"><legend className="px-2 font-bold text-amber-300">Restricción de disponibilidad por sede</legend><p className="mb-3 text-[11px] text-gray-400">Selecciona las sedes donde este platillo no estará disponible.</p><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">{sedesDisponibles.map(sede => { const excluded = newMenuItem.sedesNoDisponibles.includes(sede); return <label key={sede} className={`flex min-h-12 min-w-0 items-center gap-3 rounded-xl border p-3 text-xs transition-colors ${excluded ? 'border-amber-500/40 bg-amber-500/10 text-amber-200' : 'border-[#659B5E]/20 bg-[#001812]/50 text-zinc-300'}`}><input aria-label={`No disponible en ${sede}`} type="checkbox" checked={excluded} onChange={() => handleToggleExcludedBranch(sede)} className="h-4 w-4 shrink-0 accent-amber-500"/><span className="min-w-0 break-words">No disponible en {sede}</span><span className="ml-auto shrink-0 rounded-full bg-white/5 px-2 py-1 text-[9px] uppercase tracking-wide">{excluded ? 'Excluida' : 'Disponible'}</span></label>; })}</div></fieldset>
+              <div className="sm:col-span-2 flex flex-wrap justify-end gap-2"><button type="submit" className="min-h-11 rounded-xl bg-[#D16014] px-5 py-2.5 font-extrabold text-white">{editingMenuItemId ? 'Guardar cambios del platillo' : 'Guardar platillo'}</button>{editingMenuItemId && <button type="button" onClick={() => { setEditingMenuItemId(null); setNewMenuItem({ nombre: '', categoria: menuCategories[0] || '', precio: '', descripcion: '', sedesNoDisponibles: [] }); }} className="min-h-11 rounded-xl border border-white/15 px-4 py-2.5 font-bold">Cancelar edición</button>}</div>
+            </form>
+            <div className="w-full max-w-full divide-y divide-[#F8FFE5]/10 overflow-hidden border-y border-[#F8FFE5]/10">{menuItems.map(item => <article key={item.id} className="flex min-w-0 flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center"><div className="min-w-0"><strong className="break-words text-white">{item.nombre}</strong><span className="ml-2 text-[#659B5E]">{item.categoria}</span><p className="mt-1 break-words text-gray-400">{item.descripcion}</p>{item.sedesNoDisponibles?.length > 0 && <p className="mt-1 break-words text-amber-300">No disponible en: {item.sedesNoDisponibles.join(', ')}</p>}</div><div className="flex shrink-0 flex-wrap items-center gap-3"><strong className="text-amber-300">₡{item.precio.toLocaleString('es-CR')}</strong><button type="button" aria-label={`Editar ${item.nombre}`} onClick={() => editMenuItem(item)} className="min-h-10 rounded-lg border border-amber-500/20 px-3 text-amber-200 hover:bg-amber-500/10"><Pencil className="h-4 w-4"/></button><button type="button" aria-label={`Eliminar ${item.nombre}`} onClick={() => setMenuItems(previous => previous.filter(current => current.id !== item.id))} className="min-h-10 min-w-10 rounded-lg border border-red-500/20 px-3 text-gray-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button></div></article>)}</div>
           </div>
         )}
 
@@ -807,7 +906,12 @@ export default function AdminDashboard() {
             </section>
             <form onSubmit={handleSendEmail} className="space-y-4 max-w-2xl">
               <label className="block space-y-1"><span className="text-gray-400">Tipo de notificación</span><select value={emailData.tipo} onChange={event => setEmailData({ ...emailData, tipo: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5"><option value="INVENTARIO_ALERTA">Alerta de inventario / proveedores</option><option value="RESERVA_MESA">Confirmación / modificación de reserva</option></select></label>
-              <label className="block space-y-1"><span className="text-gray-400">Audiencia</span><select aria-label="Audiencia" value={emailData.destinatarioTipo} onChange={event => setEmailData({ ...emailData, destinatarioTipo: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5"><option value="todos_clientes">Todos los clientes registrados ({emailContacts.length})</option><option value="todos_proveedores">Todos los proveedores ({suppliers.length})</option><option value="personal_meseros">Personal y cocina ({employees.length})</option><option value="especifico">Correo específico</option></select></label>
+              <label className="block space-y-1"><span className="text-gray-400">Audiencia</span><select aria-label="Audiencia" value={emailData.destinatarioTipo} onChange={event => { setEmailData({ ...emailData, destinatarioTipo: event.target.value }); setEmailSelectedRecipients([]); }} className="w-full min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5"><option value="todos_clientes">Todos los clientes registrados ({emailContacts.length})</option><option value="clientes_seleccionados">Clientes seleccionados</option><option value="todos_proveedores">Todos los proveedores ({suppliers.length})</option><option value="proveedores_seleccionados">Proveedores seleccionados</option><option value="personal_meseros">Personal y cocina ({employees.length})</option><option value="especifico">Correo específico</option></select></label>
+              {['clientes_seleccionados', 'proveedores_seleccionados'].includes(emailData.destinatarioTipo) && <fieldset className="max-h-48 w-full max-w-full space-y-2 overflow-y-auto rounded-xl border border-[#659B5E]/20 bg-[#0A090C] p-3"><legend className="px-1 font-bold text-amber-300">Selecciona uno o varios destinatarios</legend>{(emailData.destinatarioTipo === 'clientes_seleccionados' ? emailContacts : suppliers).map(recipient => {
+                const email = recipient.correo || recipient.email;
+                const label = `${recipient.nombre || recipient.contacto || recipient.empresa || 'Destinatario'} — ${email}`;
+                return <label key={email} className="flex min-w-0 items-start gap-2 rounded-lg px-2 py-2 hover:bg-white/5"><input type="checkbox" aria-label={label} checked={emailSelectedRecipients.includes(email)} onChange={() => setEmailSelectedRecipients(previous => previous.includes(email) ? previous.filter(value => value !== email) : [...previous, email])} className="mt-0.5 shrink-0 accent-amber-500"/><span className="min-w-0 break-all text-zinc-300">{label}</span></label>;
+              })}{(emailData.destinatarioTipo === 'clientes_seleccionados' ? emailContacts : suppliers).length === 0 && <p className="text-zinc-400">No hay destinatarios disponibles.</p>}</fieldset>}
               {emailData.destinatarioTipo === 'especifico' && <input aria-label="Correo del destinatario" type="email" placeholder="destinatario@correo.cr" value={emailData.especifico} onChange={event => setEmailData({ ...emailData, especifico: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />}
               <input type="text" placeholder="Asunto del comunicado" value={emailData.asunto} onChange={event => setEmailData({ ...emailData, asunto: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
               <textarea rows="6" placeholder="Escriba el mensaje..." value={emailData.mensaje} onChange={event => setEmailData({ ...emailData, mensaje: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl p-3" />
@@ -1017,35 +1121,7 @@ export default function AdminDashboard() {
         )}
 
         {/* ARQUEO DE CAJA */}
-        {activeSection === 'arqueo' && (
-          <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 text-xs shadow-2xl">
-            <h3 className="font-extrabold text-base text-[#F8FFE5] flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-[#D16014]" /> Arqueo Financiero Diario de Caja
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono">
-              <div className="p-4 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 space-y-1">
-                <span className="text-gray-400 block text-[10px] uppercase font-bold">Efectivo en Caja:</span>
-                <span className="text-xl font-bold text-[#659B5E]">₡210,500</span>
-              </div>
-              <div className="p-4 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 space-y-1">
-                <span className="text-gray-400 block text-[10px] uppercase font-bold">Tarjetas / POS:</span>
-                <span className="text-xl font-bold text-[#D16014]">₡274,750</span>
-              </div>
-              <div className="p-4 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 space-y-1">
-                <span className="text-gray-400 block text-[10px] uppercase font-bold">Total Reportado:</span>
-                <span className="text-xl font-bold text-[#F8FFE5]">₡485,250</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => showToast('Cierre de caja registrado exitosamente', 'success')}
-              className="px-6 py-3.5 rounded-2xl bg-[#D16014] hover:bg-[#b8510f] text-white font-extrabold flex items-center gap-2 shadow-lg cursor-pointer"
-            >
-              <CheckCircle2 className="w-4 h-4" /> Registrar Cierre Diario de Caja
-            </button>
-          </div>
-        )}
+        {activeSection === 'arqueo' && <FacturacionPanel key={selectedSede} sede={selectedSede === 'todas' ? 'escazu' : selectedSede} sedeNombre={selectedSede === 'todas' ? 'Escazú (sede operativa)' : formatSedeName(selectedSede)} inventory={branchInventory} onPurchase={handleRegisterPurchase} />}
 
         {/* PERSONAL */}
         {activeSection === 'personal' && (
@@ -1206,6 +1282,19 @@ export default function AdminDashboard() {
               <div className="flex gap-3 pt-2"><button type="button" onClick={() => setIsInvoiceModalOpen(false)} className="flex-1 py-2.5 bg-[#0A090C] rounded-xl text-gray-400 font-bold cursor-pointer">Cancelar</button><button type="submit" className="flex-1 py-2.5 bg-[#D16014] rounded-xl text-white font-extrabold cursor-pointer">Registrar Factura</button></div>
             </form>
           </div>
+        </div>
+      )}
+
+      {showInactivityWarning && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <section data-inactivity-dialog="true" role="dialog" aria-modal="true" aria-labelledby="inactivity-title" className="w-full max-w-md rounded-3xl border border-amber-500/40 bg-zinc-950 p-6 sm:p-8 shadow-2xl shadow-black/60 space-y-5">
+            <div className="flex items-center gap-3"><AlertCircle className="w-8 h-8 text-amber-400"/><h2 id="inactivity-title" className="text-lg font-black text-white">Aviso de Inactividad de Sesión</h2></div>
+            <p className="text-sm text-zinc-300">Su sesión administrativa expirará en 60 segundos debido a inactividad por seguridad.</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button type="button" onClick={resetInactivityTimer} className="flex-1 rounded-xl bg-[#659B5E] px-4 py-3 font-extrabold text-white">Mantener Sesión Activa</button>
+              <button type="button" onClick={() => { logout(); navigate('/login'); }} className="flex-1 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 font-extrabold text-red-300">Cerrar Sesión Ahora</button>
+            </div>
+          </section>
         </div>
       )}
 

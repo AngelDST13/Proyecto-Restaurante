@@ -284,7 +284,7 @@ export default function WaiterDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-[#07090E] text-[#F8FFE5] pt-20 pb-12 px-4 sm:px-6 font-sans">
+    <div className="min-h-screen w-full max-w-full min-w-0 overflow-x-hidden bg-[#07090E] text-[#F8FFE5] pt-20 pb-12 px-4 sm:px-6 font-sans">
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
       )}

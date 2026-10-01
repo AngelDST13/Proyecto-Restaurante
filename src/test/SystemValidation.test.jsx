@@ -5,6 +5,7 @@ import Login from '../pages/Login';
 import AdminDashboard from '../pages/AdminDashboard';
 import { AuthProvider } from '../context/AuthContext';
 import { triggerN8nAutomation } from '../services/n8nService';
+import { AccessibilityProvider } from '../context/AccessibilityContext';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -45,11 +46,11 @@ describe('Pruebas de Validación del Sistema El Cacique', () => {
 
   test('El Dashboard de Administración carga correctamente los paneles', () => {
     render(
-      <AuthProvider>
+      <AccessibilityProvider><AuthProvider>
         <MemoryRouter>
           <AdminDashboard />
         </MemoryRouter>
-      </AuthProvider>
+      </AuthProvider></AccessibilityProvider>
     );
 
     const dashboardElements = screen.getAllByText(/(Resumen|Analíticas|Administradora|Inventario|Cacique)/i);

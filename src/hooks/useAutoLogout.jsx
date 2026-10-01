@@ -1,14 +1,15 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export function useAutoLogout(onLogoutNotify) {
+export function useAutoLogout(onLogoutNotify, options = {}) {
   const { user, logout } = useAuth();
   const [showWarning, setShowWarning] = useState(false);
   const startTimersRef = useRef(null);
-
-  // 3 minutos = 180,000 ms. Advertencia a los 2.5 minutos (150,000 ms)
-  const TIMEOUT_MS = 180000;
-  const WARNING_MS = 150000;
+  const onTimeoutRef = useRef(options.onTimeout);
+  onTimeoutRef.current = options.onTimeout;
+  const timeoutMs = options.timeoutMs ?? 180000;
+  const warningMs = options.warningMs ?? timeoutMs - 30000;
+  const onTimeout = options.onTimeout;
 
   const resetTimer = useCallback(() => {
     setShowWarning(false);
@@ -29,20 +30,22 @@ export function useAutoLogout(onLogoutNotify) {
 
       warningTimer = setTimeout(() => {
         setShowWarning(true);
-      }, WARNING_MS);
+      }, warningMs);
 
       logoutTimer = setTimeout(() => {
         setShowWarning(false);
         logout();
+        if (typeof onTimeoutRef.current === 'function') onTimeoutRef.current();
         if (typeof onLogoutNotify === 'function') {
-          onLogoutNotify('Su sesión ha caducado por 3 minutos de inactividad.', 'info');
+          onLogoutNotify(`Su sesión ha caducado por ${Math.round(timeoutMs / 60000)} minutos de inactividad.`, 'info');
         }
-      }, TIMEOUT_MS);
+      }, timeoutMs);
     };
 
     startTimersRef.current = startTimers;
 
-    const handleActivity = () => {
+    const handleActivity = (event) => {
+      if (event.target?.closest?.('[data-inactivity-dialog]')) return;
       setShowWarning(false);
       startTimers();
     };
@@ -58,7 +61,7 @@ export function useAutoLogout(onLogoutNotify) {
       startTimersRef.current = null;
       events.forEach((evt) => window.removeEventListener(evt, handleActivity));
     };
-  }, [user, logout, onLogoutNotify, TIMEOUT_MS, WARNING_MS]);
+    }, [user, logout, onLogoutNotify, timeoutMs, warningMs]);
 
   return { showWarning, resetTimer };
 }
