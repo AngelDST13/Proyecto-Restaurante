@@ -16,6 +16,48 @@ const renderAdmin = () => render(<AccessibilityProvider><AuthProvider><MemoryRou
 const openSection = name => fireEvent.click(screen.getByRole('button', { name: new RegExp(name, 'i') }));
 
 describe('AdminDashboard secondary modules', () => {
+  it('presenta bienvenida, logo, selector multi-sede y gráficos', () => {
+    renderAdmin();
+    expect(screen.getByRole('heading', { name: /(Buenos días|Buenas tardes|Buenas noches), Angel!/i })).toBeInTheDocument();
+    expect(screen.getByAltText('El Cacique Logo')).toHaveAttribute('src', expect.stringContaining('LogoN.svg'));
+    const branchSelect = screen.getAllByRole('combobox')[0];
+    for (const label of ['Todas las Sedes • Consolidado General', 'Sede Escazú • Centro Culinario', 'Sede Santa Ana • Plaza Real', 'Sede Cartago • Paso Ancho', 'Sede Heredia • Vía Central']) {
+      expect(branchSelect).toContainElement(screen.getByRole('option', { name: label }));
+    }
+    fireEvent.change(branchSelect, { target: { value: 'todas' } });
+    expect(screen.getByText(/Consolidado de cuatro sedes/i)).toBeInTheDocument();
+    expect(screen.getByText('Comparativo de Ventas por Sede')).toBeInTheDocument();
+    expect(screen.getByText('Distribución de Clientes por Sucursal')).toBeInTheDocument();
+  });
+
+  it('crea y cancela una reserva guardando el nuevo estado', () => {
+    renderAdmin();
+    openSection('Mesas & Reservaciones');
+    fireEvent.change(screen.getByLabelText('Nombre del Cliente'), { target: { value: 'Reserva QA' } });
+    fireEvent.change(screen.getByLabelText('Fecha'), { target: { value: '2026-10-20' } });
+    fireEvent.change(screen.getByLabelText('Hora'), { target: { value: '19:30' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Crear reserva' }));
+    expect(screen.getByText(/Reserva QA · 2 personas/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.queryByText(/Reserva QA · 2 personas/)).not.toBeInTheDocument();
+  });
+
+  it('descarga un comprobante de proveedor desde la tabla', () => {
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn(() => 'blob:invoice') });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    renderAdmin();
+    openSection('Facturas & Finanzas');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Proveedores' })[1]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Descargar' })[0]);
+    expect(screen.getByText(/Comprobante Factura_Carnes_089.pdf descargado/)).toBeInTheDocument();
+    expect(URL.createObjectURL).toHaveBeenCalledOnce();
+    expect(click).toHaveBeenCalledOnce();
+    delete URL.createObjectURL;
+    delete URL.revokeObjectURL;
+    click.mockRestore();
+  });
+
   it('actualiza métricas por período y sede y exporta reportes', () => {
     const createObjectURL = vi.fn(() => 'blob:qa-report');
     const revokeObjectURL = vi.fn();
@@ -44,7 +86,7 @@ describe('AdminDashboard secondary modules', () => {
       ['Reseñas & Clientes', 'Reseñas y Clientes'],
       ['Arqueo de Caja & POS', 'Arqueo Financiero Diario de Caja'],
       ['Personal & Planilla', 'Personal y planilla'],
-      ['Mesas & Reservaciones', 'Control de Mesas']
+      ['Mesas & Reservaciones', 'Mesas y reservaciones']
     ]) {
       openSection(nav);
       expect(screen.getByText(new RegExp(heading, 'i'))).toBeInTheDocument();
@@ -139,11 +181,11 @@ describe('AdminDashboard secondary modules', () => {
     fireEvent.change(screen.getByLabelText('Salario mensual'), { target: { value: '500000' } });
     fireEvent.change(screen.getByLabelText('Frecuencia de pago'), { target: { value: 'Mensual' } });
     fireEvent.change(screen.getByLabelText('Días de pago'), { target: { value: 'Último día del mes' } });
-    fireEvent.change(screen.getByLabelText('Cuenta IBAN'), { target: { value: 'cr123456789' } });
+    fireEvent.change(screen.getByLabelText('Cuenta IBAN'), { target: { value: 'cr12345678901234567890' } });
     fireEvent.click(screen.getByRole('button', { name: 'Agregar empleado' }));
     expect(screen.getByText('Colaborador QA')).toBeInTheDocument();
     expect(screen.getByText('Mensual: Último día del mes')).toBeInTheDocument();
-    expect(screen.getByText('CR123456789')).toBeInTheDocument();
+    expect(screen.getByText('CR12345678901234567890')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Editar Colaborador QA' }));
     fireEvent.change(screen.getByLabelText('Nombre completo'), { target: { value: 'Colaborador Editado' } });
@@ -151,8 +193,10 @@ describe('AdminDashboard secondary modules', () => {
     expect(screen.getByText('Colaborador Editado')).toBeInTheDocument();
     expect(screen.queryByText('Colaborador QA')).not.toBeInTheDocument();
     expect(decryptData(localStorage.getItem('cacique_admin_payroll'))).toEqual(expect.arrayContaining([
-      expect.objectContaining({ nombre: 'Colaborador Editado', salario: 500000, iban: 'CR123456789' })
+      expect.objectContaining({ nombre: 'Colaborador Editado', salario: 500000, iban: 'CR12345678901234567890' })
     ]));
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar Colaborador Editado' }));
+    expect(screen.queryByText('Colaborador Editado')).not.toBeInTheDocument();
   }, 15000);
 
   it('despacha las audiencias dinámicas de proveedores y personal', async () => {

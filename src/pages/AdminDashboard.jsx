@@ -570,7 +570,7 @@ export default function AdminDashboard() {
             </div>
             <div className="flex items-center gap-3 mt-2"><img src={officialLogo} alt="Logo oficial de El Cacique" className="w-12 h-12 object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]"/><h1 className="text-2xl sm:text-4xl font-black text-[#F8FFE5] leading-tight">{getGreeting()}, {user?.alias || 'Angel'}!</h1></div>
             <p className="text-xs text-gray-400">
-              Aquí está el resumen ejecutivo del rendimiento operacional de hoy.
+              {selectedSede === 'todas' ? 'Consolidado de cuatro sedes' : `Resumen de Sede ${formatSedeName(selectedSede)}`} · resumen ejecutivo del rendimiento operacional.
             </p>
           </div>
 
