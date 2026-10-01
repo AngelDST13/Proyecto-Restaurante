@@ -11,7 +11,7 @@ import {
   ShieldCheck, DollarSign, ShoppingBag, Users, Clock, 
   TrendingUp, AlertTriangle, Plus, Trash2, Pencil, CheckCircle2,
   BarChart3, Package, CreditCard, Calendar, MapPin, LogOut, ExternalLink,
-  Search, Sliders, Flame, AlertCircle, Star, Ticket, MessageSquare,
+  Search, Sliders, AlertCircle, Star, Ticket, MessageSquare,
   Award, ArrowUpRight, Download, Upload, Mail, FileText, Truck, Send, Paperclip
 } from 'lucide-react';
 
@@ -475,13 +475,13 @@ export default function AdminDashboard() {
               src={officialLogo}
               onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = caciqueIcon; }}
               alt="El Cacique Logo"
-              className="w-14 h-14 object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.55)]"
+              className="w-14 h-14 object-contain drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]"
             />
             <div>
-              <span className="text-amber-400 font-extrabold text-base tracking-wide block leading-none">
+              <span className="text-amber-400 font-black text-lg tracking-wide block leading-none">
                 EL CACIQUE
               </span>
-              <span className="text-zinc-500 text-[10px] font-semibold tracking-widest uppercase">
+              <span className="text-zinc-400 text-[10px] font-semibold tracking-widest uppercase">
                 Chicharronera Gourmet
               </span>
             </div>
@@ -556,25 +556,22 @@ export default function AdminDashboard() {
       </aside>
 
       {/* ÁREA PRINCIPAL */}
-      <main className="flex-grow p-6 sm:p-10 space-y-8 overflow-y-auto">
+      <main className="grow p-6 sm:p-10 space-y-8 overflow-y-auto">
         
-        <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 sm:p-8 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6 shadow-2xl">
-          <div className="min-w-0 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-[#D16014] uppercase tracking-widest bg-[#D16014]/20 px-2.5 py-1 rounded-full border border-[#D16014]/40">
+        <header className="bg-linear-to-r from-zinc-900 via-zinc-900/90 to-zinc-950 rounded-3xl border border-zinc-800 p-6 sm:p-8 grid grid-cols-1 2xl:grid-cols-[minmax(16rem,1fr)_auto] items-center gap-6 shadow-2xl">
+          <div className="min-w-0 space-y-1">
+            <div>
+              <span className="inline-flex px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-[11px] uppercase tracking-wider">
                 Dirección General de Operaciones
               </span>
-              <span className="text-[10px] text-[#659B5E] font-bold flex items-center gap-1">
-                <Flame className="w-3.5 h-3.5" /> El Cacique 2026
-              </span>
             </div>
-            <div className="flex items-center gap-3 mt-2"><img src={officialLogo} alt="Logo oficial de El Cacique" className="w-12 h-12 object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]"/><h1 className="text-2xl sm:text-4xl font-black text-[#F8FFE5] leading-tight">{getGreeting()}, {user?.alias || 'Angel'}!</h1></div>
-            <p className="text-xs text-gray-400">
-              {selectedSede === 'todas' ? 'Consolidado de cuatro sedes' : `Resumen de Sede ${formatSedeName(selectedSede)}`} · resumen ejecutivo del rendimiento operacional.
+            <h1 className="text-3xl sm:text-4xl font-black text-white mt-2">¡{getGreeting()}, {user?.alias || 'Angel'}!</h1>
+            <p className="text-xs text-zinc-400 mt-1">
+              {selectedSede === 'todas' ? 'Resumen ejecutivo del rendimiento operativo y consolidado de sedes.' : `Resumen ejecutivo del rendimiento operativo de Sede ${formatSedeName(selectedSede)}.`}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap 2xl:flex-nowrap items-stretch sm:items-center gap-3 w-full 2xl:w-auto">
             <div className="flex bg-[#0A090C] p-1 rounded-2xl border border-[#659B5E]/40 text-xs font-extrabold">
               {['dia', 'semana', 'mes'].map(period => (
                 <button key={period} onClick={() => handlePeriodChange(period)} className={`px-3 py-1.5 rounded-xl cursor-pointer transition-all ${timePeriod === period ? 'bg-[#D16014] text-white' : 'text-gray-400 hover:text-white'}`}>
@@ -582,7 +579,7 @@ export default function AdminDashboard() {
                 </button>
               ))}
             </div>
-            <div className="relative flex-grow md:flex-grow-0">
+            <div className="relative grow sm:grow-0">
               <MapPin className="w-4 h-4 absolute left-3.5 top-3.5 text-[#659B5E]" />
               <select
                 value={selectedSede}
@@ -615,7 +612,7 @@ export default function AdminDashboard() {
               <Download className="w-4 h-4" /> JSON
             </button>
           </div>
-        </div>
+        </header>
 
         {/* ALERTA CRÍTICA */}
         {criticalItemsCount > 0 && (

@@ -20,14 +20,21 @@ describe('AdminDashboard secondary modules', () => {
     renderAdmin();
     expect(screen.getByRole('heading', { name: /(Buenos días|Buenas tardes|Buenas noches), Angel!/i })).toBeInTheDocument();
     expect(screen.getByAltText('El Cacique Logo')).toHaveAttribute('src', expect.stringContaining('LogoN.svg'));
+    expect(screen.queryByAltText('Logo oficial de El Cacique')).not.toBeInTheDocument();
     const branchSelect = screen.getAllByRole('combobox')[0];
     for (const label of ['Todas las Sedes • Consolidado General', 'Sede Escazú • Centro Culinario', 'Sede Santa Ana • Plaza Real', 'Sede Cartago • Paso Ancho', 'Sede Heredia • Vía Central']) {
       expect(branchSelect).toContainElement(screen.getByRole('option', { name: label }));
     }
     fireEvent.change(branchSelect, { target: { value: 'todas' } });
-    expect(screen.getByText(/Consolidado de cuatro sedes/i)).toBeInTheDocument();
+    expect(screen.getByText(/rendimiento operativo y consolidado de sedes/i)).toBeInTheDocument();
+    expect(screen.getByText('Ventas (dia)').parentElement.parentElement).toHaveTextContent(/2[\s,.]421[\s,.]750/);
     expect(screen.getByText('Comparativo de Ventas por Sede')).toBeInTheDocument();
     expect(screen.getByText('Distribución de Clientes por Sucursal')).toBeInTheDocument();
+    openSection('Gestión de Inventario');
+    expect(screen.getByText('Yuca Fresca de Paila')).toBeInTheDocument();
+    fireEvent.change(branchSelect, { target: { value: 'santa_ana' } });
+    expect(screen.getByText('Plátano Verde para Patacones')).toBeInTheDocument();
+    expect(screen.queryByText('Yuca Fresca de Paila')).not.toBeInTheDocument();
   });
 
   it('crea y cancela una reserva guardando el nuevo estado', () => {
