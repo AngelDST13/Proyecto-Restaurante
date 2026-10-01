@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   authenticateCredentials,
   decryptData,
-  encryptData,
   generateJWT,
   generateSessionSignature,
   registerNewClient,
@@ -43,6 +42,9 @@ describe('authSecurity edge cases', () => {
     expect(verifyJWT(token).role).toBe('mesero');
     expect(verifyJWT('')).toBeNull();
     expect(verifyJWT('malformed.token')).toBeNull();
+    const parts = token.split('.');
+    const alteredPayload = btoa(JSON.stringify({ sub: 'attacker@example.com', exp: Math.floor(Date.now() / 1000) + 60 })).replace(/=/g, '');
+    expect(verifyJWT(`${parts[0]}.${alteredPayload}.${parts[2]}`)).toBeNull();
     const expired = btoa(JSON.stringify({ exp: 1 })).replace(/=/g, '');
     expect(verifyJWT(`header.${expired}.signature`)).toBeNull();
   });

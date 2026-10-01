@@ -227,7 +227,7 @@ export default function WaiterDashboard() {
       )
     }));
 
-    showToast(`Comanda #${Math.floor(1000 + Math.random() * 9000)} enviada a Cocina para ${selectedTable.numero}`, 'success');
+    showToast(`Comanda enviada a Cocina para ${selectedTable.numero}`, 'success');
     setOrderItems([]);
     setOrderNote('');
     setSelectedTable(null);

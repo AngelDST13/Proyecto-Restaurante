@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { startTransition, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
@@ -9,6 +9,7 @@ import caciqueIcon from '../assets/img/Cacique.svg';
 import officialLogo from '../assets/img/LogoN.svg';
 import { decryptData, encryptData, formatSedeName } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
+import { createXlsxBlob, downloadBlob, menuCsvHeaders, menuRowsForExport, normalizeMenuRows, parseCsv, parseXlsx, readFileBuffer, readFileText, rowsToCsv, sanitizePlainText } from '../services/spreadsheetService';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { 
   ShieldCheck, DollarSign, ShoppingBag, Users, Clock, 
@@ -48,36 +49,47 @@ export default function AdminDashboard() {
   const [emailResponse, setEmailResponse] = useState(null);
   const [emailLoading, setEmailLoading] = useState(false);
   const [menuCategories, setMenuCategories] = useState(['Chicharrones & Paila', 'Cortes a la Leña', 'Bocas & Ceviches', 'Bebidas', 'Postres']);
-  const [menuItems, setMenuItems] = useState([
-    { id: 1, nombre: 'Chifrijo Especial Cacique', categoria: 'Chicharrones & Paila', precio: 6800, descripcion: 'Chicharrón crujiente, frijoles tiernos y pico de gallo.' },
-    { id: 2, nombre: 'Vigorón Criollo (1kg)', categoria: 'Chicharrones & Paila', precio: 14500, descripcion: 'Chicharrón con yuca al vapor y ensalada de repollo.' },
-    { id: 3, nombre: 'Costilla a la Leña Ahumada', categoria: 'Cortes a la Leña', precio: 9200, descripcion: 'Costilla de cerdo bañada en salsa BBQ artesanal.' }
-  ]);
+  const [menuSearch, setMenuSearch] = useState('');
+  const [menuCategoryFilter, setMenuCategoryFilter] = useState('todas');
+  const [menuItems, setMenuItems] = useState(() => {
+    try {
+      const storedMenu = JSON.parse(localStorage.getItem('cacique_admin_menu') || 'null');
+      if (Array.isArray(storedMenu)) return storedMenu;
+    } catch { /* Restaura el menú inicial cuando los datos locales no son válidos. */ }
+    return [
+      { id: 1, nombre: 'Chifrijo Especial Cacique', categoria: 'Chicharrones & Paila', precio: 6800, descripcion: 'Chicharrón crujiente, frijoles tiernos y pico de gallo.' },
+      { id: 2, nombre: 'Vigorón Criollo (1kg)', categoria: 'Chicharrones & Paila', precio: 14500, descripcion: 'Chicharrón con yuca al vapor y ensalada de repollo.' },
+      { id: 3, nombre: 'Costilla a la Leña Ahumada', categoria: 'Cortes a la Leña', precio: 9200, descripcion: 'Costilla de cerdo bañada en salsa BBQ artesanal.' }
+    ];
+  });
+  useEffect(() => { localStorage.setItem('cacique_admin_menu', JSON.stringify(menuItems)); }, [menuItems]);
   const [newCategory, setNewCategory] = useState('');
   const sedesDisponibles = ['Sede Escazú', 'Sede Santa Ana', 'Sede Cartago', 'Sede Heredia'];
   const branchKeys = ['escazu', 'santa_ana', 'cartago', 'heredia'];
   const branchLabels = { escazu: 'Escazú', santa_ana: 'Santa Ana', cartago: 'Cartago', heredia: 'Heredia' };
   const [newMenuItem, setNewMenuItem] = useState({ nombre: '', categoria: 'Chicharrones & Paila', precio: '', descripcion: '', sedesNoDisponibles: [] });
   const [editingMenuItemId, setEditingMenuItemId] = useState(null);
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 15);
-  const previousMonthDate = `${previousMonth.getFullYear()}-${String(previousMonth.getMonth() + 1).padStart(2, '0')}-15`;
-  const [customerInvoices] = useState([
-    { id: 'FE-001-982143', cliente: 'Corporación El Sol S.A.', cedula: '3101123456', fecha: today, monto: 32500, tipo: 'Factura Electrónica' },
-    { id: 'FE-001-982144', cliente: 'Angel Daniela Salazar T.', cedula: '118230491', fecha: today, monto: 18500, tipo: 'Factura Electrónica' },
-    { id: 'FE-001-881201', cliente: 'Bryan Gómez', cedula: '117450892', fecha: previousMonthDate, monto: 45000, tipo: 'Factura Electrónica' }
-  ]);
+  const [today, setToday] = useState('');
+  const [greeting, setGreeting] = useState('Buenos días');
+  const [customerInvoices, setCustomerInvoices] = useState([]);
+  useEffect(() => {
+    const now = new Date();
+    const formattedToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 15);
+    const monthDate = `${previousMonth.getFullYear()}-${String(previousMonth.getMonth() + 1).padStart(2, '0')}-15`;
+    startTransition(() => {
+      setToday(formattedToday);
+      setGreeting(now.getHours() < 12 ? 'Buenos días' : now.getHours() < 18 ? 'Buenas tardes' : 'Buenas noches');
+      setCustomerInvoices([
+        { id: 'FE-001-982143', cliente: 'Corporación El Sol S.A.', cedula: '3101123456', fecha: formattedToday, monto: 32500, tipo: 'Factura Electrónica' },
+        { id: 'FE-001-982144', cliente: 'Angel Daniela Salazar T.', cedula: '118230491', fecha: formattedToday, monto: 18500, tipo: 'Factura Electrónica' },
+        { id: 'FE-001-881201', cliente: 'Bryan Gómez', cedula: '117450892', fecha: monthDate, monto: 45000, tipo: 'Factura Electrónica' }
+      ]);
+    });
+  }, []);
   const [invoicePeriod, setInvoicePeriod] = useState('dia');
   const [invoiceSearch, setInvoiceSearch] = useState('');
   const [invoiceKind, setInvoiceKind] = useState('clientes');
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Buenos días';
-    if (hour < 18) return 'Buenas tardes';
-    return 'Buenas noches';
-  };
 
   // FILTROS Y BÚSQUEDA DE INVENTARIO
   const [searchInsumo, setSearchInsumo] = useState('');
@@ -265,22 +277,21 @@ export default function AdminDashboard() {
   };
 
   const exportReport = (format) => {
+    const costs = invoices.reduce((total, invoice) => total + Number(invoice.monto || 0), 0);
+    const financeRows = [{ sede: formatSedeName(selectedSede), periodo: timePeriod, ventas: currentMetrics.ventas, costos: costs }];
     const report = {
       restaurante: 'Chicharronera El Cacique',
       sede: formatSedeName(selectedSede),
       periodo: timePeriod,
       fechaGeneracion: new Date().toISOString(),
+      finanzas: financeRows,
       metricas: currentMetrics,
       inventarioCritico: inventory.filter(item => (selectedSede === 'todas' || item.sede === selectedSede) && item.stock <= item.minLimit)
     };
-    const csv = `Métrica,Valor\nVentas,${currentMetrics.ventas}\nComandas,${currentMetrics.comandas}\nClientes,${currentMetrics.clientes}\nTiempo cocción,${currentMetrics.coccion}`;
-    const blob = new Blob([format === 'csv' ? csv : JSON.stringify(report, null, 2)], { type: format === 'csv' ? 'text/csv' : 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Reporte_ElCacique_${selectedSede}_${timePeriod}.${format}`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const blob = format === 'xlsx'
+      ? createXlsxBlob(financeRows, ['sede', 'periodo', 'ventas', 'costos'])
+      : new Blob([format === 'csv' ? rowsToCsv(financeRows, ['sede', 'periodo', 'ventas', 'costos']) : JSON.stringify(report, null, 2)], { type: format === 'csv' ? 'text/csv;charset=utf-8' : 'application/json' });
+    downloadBlob(blob, `Reporte_ElCacique_${selectedSede}_${timePeriod}.${format}`);
     showToast(`Reporte ${format.toUpperCase()} descargado correctamente`, 'success');
   };
 
@@ -290,7 +301,8 @@ export default function AdminDashboard() {
       showToast('Complete nombre, contacto y correo del proveedor', 'error');
       return;
     }
-    setSuppliers(previous => [...previous, { ...supplierForm, id: Date.now(), estado: 'Activo' }]);
+    const supplier = { ...supplierForm, nombre: sanitizePlainText(supplierForm.nombre), contacto: sanitizePlainText(supplierForm.contacto), telefono: sanitizePlainText(supplierForm.telefono), email: supplierForm.email.trim().toLocaleLowerCase(), insumos: sanitizePlainText(supplierForm.insumos), id: crypto.randomUUID(), estado: 'Activo' };
+    setSuppliers(previous => [...previous, supplier]);
     setSupplierForm({ nombre: '', contacto: '', telefono: '', email: '', insumos: '', sede: selectedSede });
     setIsSupplierModalOpen(false);
     showToast('Proveedor registrado correctamente', 'success');
@@ -302,7 +314,8 @@ export default function AdminDashboard() {
       showToast('Complete proveedor, monto y código de factura', 'error');
       return;
     }
-    setInvoices(previous => [{ ...invoiceForm, id: invoiceForm.codigo, monto: Number(invoiceForm.monto), fecha: invoiceForm.fecha || new Date().toISOString().slice(0, 10), estado: 'Pendiente', archivoNombre: invoiceForm.archivoNombre || `Factura_${invoiceForm.codigo}.pdf` }, ...previous]);
+    const invoice = { ...invoiceForm, proveedor: sanitizePlainText(invoiceForm.proveedor), codigo: sanitizePlainText(invoiceForm.codigo), categoria: sanitizePlainText(invoiceForm.categoria), id: sanitizePlainText(invoiceForm.codigo), monto: Number(invoiceForm.monto), fecha: invoiceForm.fecha || new Date().toISOString().slice(0, 10), estado: 'Pendiente', archivoNombre: sanitizePlainText(invoiceForm.archivoNombre) || `Factura_${invoiceForm.codigo}.pdf` };
+    setInvoices(previous => [invoice, ...previous]);
     setInvoiceForm({ proveedor: '', monto: '', codigo: '', fecha: '', categoria: 'Insumos', archivoNombre: '' });
     setIsInvoiceModalOpen(false);
     showToast('Factura registrada correctamente', 'success');
@@ -329,8 +342,9 @@ export default function AdminDashboard() {
     showToast('Enviando comunicado mediante n8n...', 'info');
     setEmailLoading(true);
     try {
+      const safeEmailData = { ...emailData, asunto: sanitizePlainText(emailData.asunto), mensaje: sanitizePlainText(emailData.mensaje) };
       const response = await triggerN8nAutomation(emailData.tipo, {
-        ...emailData,
+        ...safeEmailData,
         destinatarios: emailData.destinatarioTipo === 'especifico'
           ? [emailData.especifico]
           : requiresSelection
@@ -419,8 +433,8 @@ export default function AdminDashboard() {
       showToast(`Insumo "${itemForm.nombre}" actualizado correctamente`, 'success');
     } else {
       const newItem = {
-        id: Date.now(),
-        nombre: itemForm.nombre,
+        id: crypto.randomUUID(),
+        nombre: sanitizePlainText(itemForm.nombre),
         stock: stockNum,
         minLimit: minNum,
         maxLimit: maxNum,
@@ -440,20 +454,22 @@ export default function AdminDashboard() {
   };
 
   const handleRegisterPurchase = ({ insumo, cantidad, sede }) => {
+    const newItemId = crypto.randomUUID();
+    const cleanName = sanitizePlainText(insumo);
     setInventory(previous => {
-      const existing = previous.find(item => item.sede === sede && item.nombre.toLocaleLowerCase() === insumo.toLocaleLowerCase());
+      const existing = previous.find(item => item.sede === sede && item.nombre.toLocaleLowerCase() === cleanName.toLocaleLowerCase());
       if (existing) return previous.map(item => item.id === existing.id ? { ...item, stock: Number(item.stock) + Number(cantidad) } : item);
-      return [...previous, { id: Date.now(), nombre: insumo, stock: Number(cantidad), minLimit: 0, maxLimit: Number(cantidad), unidad: 'unid', sede }];
+      return [...previous, { id: newItemId, nombre: cleanName, stock: Number(cantidad), minLimit: 0, maxLimit: Number(cantidad), unidad: 'unid', sede }];
     });
-    showToast(`${insumo}: inventario actualizado en ${formatSedeName(sede)}`, 'success');
+    showToast(`${cleanName}: inventario actualizado en ${formatSedeName(sede)}`, 'success');
   };
 
   const handleSaveReservation = event => {
     event.preventDefault();
-    const reservation = { ...reservationForm, personas: Number(reservationForm.personas), estado: 'Reservada' };
+    const reservation = { ...reservationForm, cliente: sanitizePlainText(reservationForm.cliente), personas: Number(reservationForm.personas), estado: 'Reservada' };
     const next = editingReservationId
       ? reservations.map(item => item.id === editingReservationId ? { ...reservation, id: editingReservationId } : item)
-      : [...reservations, { ...reservation, id: Date.now() }];
+      : [...reservations, { ...reservation, id: crypto.randomUUID() }];
     setReservations(next);
     localStorage.setItem('cacique_admin_reservations', JSON.stringify(next));
     setReservationForm({ cliente: '', personas: 2, fecha: '', hora: '', sede: selectedSede === 'todas' ? 'escazu' : selectedSede, mesa: '1' });
@@ -485,6 +501,11 @@ export default function AdminDashboard() {
     if (filterState === 'optimo') return matchesSearch && isOptimal;
     return matchesSearch;
   });
+  const visibleMenuItems = menuItems.filter(item => {
+    const search = menuSearch.trim().toLocaleLowerCase();
+    const matchesSearch = `${item.nombre} ${item.categoria} ${item.descripcion}`.toLocaleLowerCase().includes(search);
+    return matchesSearch && (menuCategoryFilter === 'todas' || item.categoria === menuCategoryFilter);
+  });
 
   const criticalItemsCount = branchInventory.filter(i => i.stock <= i.minLimit).length;
   const filteredCustomerInvoices = customerInvoices.filter(invoice => {
@@ -495,7 +516,7 @@ export default function AdminDashboard() {
   });
   const addMenuCategory = event => {
     event.preventDefault();
-    const category = newCategory.trim();
+    const category = sanitizePlainText(newCategory);
     if (!category) return;
     if (menuCategories.some(existing => existing.toLocaleLowerCase() === category.toLocaleLowerCase())) {
       showToast('Esta categoría ya existe', 'error');
@@ -508,7 +529,7 @@ export default function AdminDashboard() {
 
   const handleSaveEmailContact = (event) => {
     event.preventDefault();
-    const nombre = emailContact.nombre.trim();
+    const nombre = sanitizePlainText(emailContact.nombre);
     const correo = emailContact.correo.trim().toLocaleLowerCase();
     if (!nombre || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
       showToast('Ingrese el nombre y un correo válido del cliente', 'error');
@@ -528,16 +549,16 @@ export default function AdminDashboard() {
 
   const handleSaveEmployee = (event) => {
     event.preventDefault();
-    const nombre = employeeForm.nombre.trim();
+    const nombre = sanitizePlainText(employeeForm.nombre);
     const salario = Number(employeeForm.salario);
     if (!nombre || !Number.isFinite(salario) || salario <= 0 || (employeeForm.iban && !/^CR\d{20}$/i.test(employeeForm.iban.replace(/\s/g, '')))) {
       showToast('Ingrese el nombre y un salario mensual válido', 'error');
       return;
     }
-    const employee = { ...employeeForm, nombre, salario };
+    const employee = { ...employeeForm, nombre, puesto: sanitizePlainText(employeeForm.puesto), banco: sanitizePlainText(employeeForm.banco), iban: employeeForm.iban.replace(/\s/g, '').toUpperCase(), salario };
     const updatedEmployees = editingEmployeeId
       ? employees.map(current => current.id === editingEmployeeId ? { ...employee, id: editingEmployeeId } : current)
-      : [...employees, { ...employee, id: Date.now() }];
+      : [...employees, { ...employee, id: crypto.randomUUID() }];
     setEmployees(updatedEmployees);
     if (editingEmployeeId) {
       showToast('Datos del colaborador actualizados', 'success');
@@ -555,13 +576,45 @@ export default function AdminDashboard() {
       showToast('Ingrese el nombre y un precio válido para el platillo', 'error');
       return;
     }
-    const savedItem = { ...newMenuItem, nombre: newMenuItem.nombre.trim(), precio: price, id: editingMenuItemId || Date.now() };
+    const savedItem = { ...newMenuItem, nombre: sanitizePlainText(newMenuItem.nombre), categoria: sanitizePlainText(newMenuItem.categoria), descripcion: sanitizePlainText(newMenuItem.descripcion), precio: price, id: editingMenuItemId || crypto.randomUUID() };
     setMenuItems(previous => editingMenuItemId
       ? previous.map(item => item.id === editingMenuItemId ? savedItem : item)
       : [...previous, savedItem]);
     setNewMenuItem({ nombre: '', categoria: menuCategories[0] || '', precio: '', descripcion: '', sedesNoDisponibles: [] });
     showToast(editingMenuItemId ? 'Platillo actualizado correctamente' : 'Platillo agregado al menú', 'success');
     setEditingMenuItemId(null);
+  };
+  const exportMenu = format => {
+    const rows = menuRowsForExport(menuItems);
+    const blob = format === 'xlsx'
+      ? createXlsxBlob(rows, menuCsvHeaders)
+      : new Blob([format === 'csv' ? rowsToCsv(rows, menuCsvHeaders) : JSON.stringify(rows, null, 2)], { type: format === 'csv' ? 'text/csv;charset=utf-8' : 'application/json' });
+    downloadBlob(blob, `Menu_ElCacique_${selectedSede}.${format}`);
+    showToast(`Menú exportado en ${format.toUpperCase()}`, 'success');
+  };
+
+  const importMenuFile = async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const extension = file.name.split('.').pop().toLocaleLowerCase();
+      let rows;
+      if (extension === 'csv') rows = parseCsv(await readFileText(file));
+      else if (extension === 'json') {
+        let parsed;
+        try { parsed = JSON.parse(await readFileText(file)); }
+        catch { throw new Error('JSON inválido. Verifique la estructura del archivo.'); }
+        rows = Array.isArray(parsed) ? parsed : parsed.menu;
+      } else if (extension === 'xlsx') rows = await parseXlsx(await readFileBuffer(file));
+      else throw new Error('Formato no compatible. Seleccione CSV, XLSX o JSON.');
+      const items = normalizeMenuRows(rows);
+      setMenuItems(items);
+      showToast(`${items.length} platillos importados y validados`, 'success');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'No se pudo importar el menú.', 'error');
+    } finally {
+      event.target.value = '';
+    }
   };
   const editMenuItem = item => {
     setEditingMenuItemId(item.id);
@@ -611,9 +664,13 @@ export default function AdminDashboard() {
             <p className="text-[10px] text-gray-400">admin@elcacique.com</p>
           </div>
 
-          <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-[#659B5E]/20 bg-black/20 px-3 py-2" aria-label="Tamaño del texto">
-            <span className="text-xs text-zinc-400">Tamaño del texto</span>
-            <div className="flex shrink-0 gap-2"><button type="button" aria-label="Reducir tamaño de letra" onClick={decreaseFontSize} className="min-h-9 min-w-9 rounded-lg border border-white/10 px-2 font-bold hover:border-amber-400">A−</button><button type="button" aria-label="Restablecer tamaño de letra" title={`Restablecer tamaño (${100 + fontSizeLevel * 10}%)`} onClick={resetFontSize} className="min-h-9 min-w-9 rounded-lg border border-white/10 px-2 font-bold hover:border-amber-400">↺</button><button type="button" aria-label="Aumentar tamaño de letra" onClick={increaseFontSize} className="min-h-9 min-w-9 rounded-lg border border-white/10 px-2 font-bold hover:border-amber-400">A+</button></div>
+          <div className="flex w-full min-w-0 flex-col items-center gap-2 rounded-xl border border-[#659B5E]/20 bg-black/20 px-3 py-3" aria-label="Tamaño del texto">
+            <span className="text-xs text-zinc-400">Tamaño del texto ({100 + fontSizeLevel * 10}%)</span>
+            <div className="flex w-full items-center justify-center gap-2">
+              <button type="button" aria-label="Reducir tamaño de letra" onClick={decreaseFontSize} className="flex min-h-9 min-w-10 items-center justify-center rounded-lg border border-white/10 px-2 font-bold transition-colors hover:border-amber-400 hover:bg-amber-500/10 active:scale-95">A-</button>
+              <button type="button" aria-label="Restablecer tamaño de letra" title="Restablecer tamaño predeterminado" onClick={resetFontSize} className="flex min-h-9 min-w-10 items-center justify-center rounded-lg border border-white/10 px-2 font-bold transition-colors hover:border-amber-400 hover:bg-amber-500/10 active:scale-95">↺</button>
+              <button type="button" aria-label="Aumentar tamaño de letra" onClick={increaseFontSize} className="flex min-h-9 min-w-10 items-center justify-center rounded-lg border border-white/10 px-2 font-bold transition-colors hover:border-amber-400 hover:bg-amber-500/10 active:scale-95">A+</button>
+            </div>
           </div>
 
           <nav className="space-y-1.5 text-xs font-bold uppercase tracking-wider">
@@ -683,7 +740,7 @@ export default function AdminDashboard() {
                 Dirección General de Operaciones
               </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white mt-2">¡{getGreeting()}, {user?.alias || 'Angel'}!</h1>
+            <h1 className="text-3xl sm:text-4xl font-black text-white mt-2">¡{greeting}, {user?.alias || 'Angel'}!</h1>
             <p className="text-xs text-zinc-400 mt-1">
               {selectedSede === 'todas' ? 'Resumen ejecutivo del rendimiento operativo y consolidado de sedes.' : `Resumen ejecutivo del rendimiento operativo de Sede ${formatSedeName(selectedSede)}.`}
             </p>
@@ -738,6 +795,7 @@ export default function AdminDashboard() {
             >
               <Download className="w-4 h-4" /> JSON
             </button>
+            <button type="button" onClick={() => exportReport('xlsx')} className="flex cursor-pointer items-center gap-1.5 rounded-2xl border border-emerald-600/30 bg-emerald-950/40 px-3 py-2.5 text-xs font-extrabold text-emerald-200" title="Exportar Excel XLSX"><Download className="h-4 w-4" /> XLSX</button>
           </div>
         </header>
 
@@ -917,7 +975,7 @@ export default function AdminDashboard() {
 
         {activeSection === 'menu' && (
           <div className="w-full max-w-full min-w-0 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-gradient-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 shadow-2xl sm:p-6">
-            <div className="mb-5"><h3 className="font-extrabold text-lg">Gestión dinámica del menú</h3><p className="text-gray-400 text-[11px]">Agrega, edita o elimina platillos y disponibilidad por sucursal.</p></div>
+            <div className="mb-5 flex min-w-0 flex-wrap items-start justify-between gap-3"><div><h3 className="font-extrabold text-lg">Gestión dinámica del menú</h3><p className="text-gray-400 text-[11px]">Agrega, edita o elimina platillos y disponibilidad por sucursal.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => exportMenu('csv')} className="min-h-10 rounded-lg border border-white/15 px-3 text-xs font-bold hover:border-emerald-400">Exportar CSV</button><button type="button" onClick={() => exportMenu('xlsx')} className="min-h-10 rounded-lg border border-white/15 px-3 text-xs font-bold hover:border-emerald-400">Exportar Excel</button><button type="button" onClick={() => exportMenu('json')} className="min-h-10 rounded-lg border border-white/15 px-3 text-xs font-bold hover:border-amber-400">Exportar JSON</button><label className="flex min-h-10 cursor-pointer items-center rounded-lg bg-[#D16014] px-3 text-xs font-bold text-white hover:bg-[#b8510f]">Importar menú<input aria-label="Importar archivo de menú" type="file" accept=".csv,.xlsx,.json" onChange={importMenuFile} className="sr-only"/></label></div></div>
             <form onSubmit={addMenuCategory} className="mb-6 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><input value={newCategory} onChange={event => setNewCategory(event.target.value)} placeholder="Nueva categoría o sección" className="min-w-0 w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" /><button className="min-h-11 px-4 py-2.5 rounded-xl bg-[#D16014] text-white font-bold">Crear categoría</button></form>
             <form onSubmit={addMenuItem} className="mb-7 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               <input required value={newMenuItem.nombre} onChange={event => setNewMenuItem({ ...newMenuItem, nombre: event.target.value })} placeholder="Nombre del platillo" className="min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
@@ -927,7 +985,8 @@ export default function AdminDashboard() {
               <fieldset className="sm:col-span-2 min-w-0 rounded-2xl border border-[#659B5E]/25 bg-black/20 p-4"><legend className="px-2 font-bold text-amber-300">Restricción de disponibilidad por sede</legend><p className="mb-3 text-[11px] text-gray-400">Activa una tarjeta para excluir el platillo de esa sede.</p><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">{sedesDisponibles.map(sede => { const excluded = newMenuItem.sedesNoDisponibles.includes(sede); return <label key={sede} className={`relative flex min-h-24 min-w-0 cursor-pointer flex-col justify-between gap-3 rounded-2xl border p-4 text-xs transition-colors focus-within:ring-2 focus-within:ring-amber-400 ${excluded ? 'border-rose-600/40 bg-rose-950/40 text-rose-400' : 'border-emerald-600/40 bg-emerald-950/40 text-emerald-400'}`}><span className="flex min-w-0 items-start justify-between gap-2"><span className="break-words font-bold">{sede}</span><input aria-label={`No disponible en ${sede}`} type="checkbox" checked={excluded} onChange={() => handleToggleExcludedBranch(sede)} className="mt-0.5 h-4 w-4 shrink-0 accent-rose-500"/></span><span className="font-bold uppercase tracking-wider">{excluded ? 'No Disponible' : 'Disponible'}</span></label>; })}</div></fieldset>
               <div className="sm:col-span-2 flex flex-wrap justify-end gap-2"><button type="submit" className="min-h-11 rounded-xl bg-[#D16014] px-5 py-2.5 font-extrabold text-white">{editingMenuItemId ? 'Guardar cambios del platillo' : 'Guardar platillo'}</button>{editingMenuItemId && <button type="button" onClick={() => { setEditingMenuItemId(null); setNewMenuItem({ nombre: '', categoria: menuCategories[0] || '', precio: '', descripcion: '', sedesNoDisponibles: [] }); }} className="min-h-11 rounded-xl border border-white/15 px-4 py-2.5 font-bold">Cancelar edición</button>}</div>
             </form>
-            <div className="w-full max-w-full divide-y divide-[#F8FFE5]/10 overflow-hidden border-y border-[#F8FFE5]/10">{menuItems.map(item => <article key={item.id} className="flex min-w-0 flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center"><div className="min-w-0"><strong className="break-words text-white">{item.nombre}</strong><span className="ml-2 text-[#659B5E]">{item.categoria}</span><p className="mt-1 break-words text-gray-400">{item.descripcion}</p>{item.sedesNoDisponibles?.length > 0 && <p className="mt-1 break-words text-amber-300">No disponible en: {item.sedesNoDisponibles.join(', ')}</p>}</div><div className="flex shrink-0 flex-wrap items-center gap-3"><strong className="text-amber-300">₡{item.precio.toLocaleString('es-CR')}</strong><button type="button" aria-label={`Editar ${item.nombre}`} onClick={() => editMenuItem(item)} className="min-h-10 rounded-lg border border-amber-500/20 px-3 text-amber-200 hover:bg-amber-500/10"><Pencil className="h-4 w-4"/></button><button type="button" aria-label={`Eliminar ${item.nombre}`} onClick={() => setMenuItems(previous => previous.filter(current => current.id !== item.id))} className="min-h-10 min-w-10 rounded-lg border border-red-500/20 px-3 text-gray-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button></div></article>)}</div>
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]"><input aria-label="Buscar platillos" value={menuSearch} onChange={event => setMenuSearch(event.target.value)} placeholder="Buscar platillo, descripción o categoría..." className="min-w-0 rounded-xl border border-white/15 bg-[#0A090C] px-4 py-2.5"/><select aria-label="Filtrar por categoría" value={menuCategoryFilter} onChange={event => setMenuCategoryFilter(event.target.value)} className="min-w-0 rounded-xl border border-white/15 bg-[#0A090C] px-4 py-2.5"><option value="todas">Todas las categorías ({menuItems.length})</option>{menuCategories.map(category => <option key={category} value={category}>{category}</option>)}</select></div>
+            <div className="max-h-[36rem] w-full max-w-full divide-y divide-[#F8FFE5]/10 overflow-x-hidden overflow-y-auto scroll-smooth border-y border-[#F8FFE5]/10">{visibleMenuItems.length ? visibleMenuItems.map(item => <article key={item.id} className="flex min-w-0 flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center"><div className="min-w-0"><strong className="break-words text-white">{item.nombre}</strong><span className="ml-2 text-[#659B5E]">{item.categoria}</span><p className="mt-1 break-words text-gray-400">{item.descripcion}</p>{item.sedesNoDisponibles?.length > 0 && <p className="mt-1 break-words text-amber-300">No disponible en: {item.sedesNoDisponibles.join(', ')}</p>}</div><div className="flex shrink-0 flex-wrap items-center gap-3"><strong className="text-amber-300">₡{item.precio.toLocaleString('es-CR')}</strong><button type="button" aria-label={`Editar ${item.nombre}`} onClick={() => editMenuItem(item)} className="min-h-10 rounded-lg border border-amber-500/20 px-3 text-amber-200 hover:bg-amber-500/10"><Pencil className="h-4 w-4"/></button><button type="button" aria-label={`Eliminar ${item.nombre}`} onClick={() => setMenuItems(previous => previous.filter(current => current.id !== item.id))} className="min-h-10 min-w-10 rounded-lg border border-red-500/20 px-3 text-gray-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button></div></article>) : <p className="p-6 text-center text-zinc-400">No hay platillos que coincidan con los filtros.</p>}</div>
           </div>
         )}
 

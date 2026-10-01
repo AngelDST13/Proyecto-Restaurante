@@ -12,7 +12,7 @@ vi.mock('../services/n8nService', () => ({
   subscribeToLiveEvents: vi.fn(() => () => {})
 }));
 
-const renderAdmin = () => render(<AccessibilityProvider><AuthProvider><MemoryRouter><AdminDashboard /></MemoryRouter></AuthProvider></AccessibilityProvider>);
+const renderAdmin = () => { localStorage.removeItem('cacique_admin_menu'); return render(<AccessibilityProvider><AuthProvider><MemoryRouter><AdminDashboard /></MemoryRouter></AuthProvider></AccessibilityProvider>); };
 const openSection = name => fireEvent.click(screen.getByRole('button', { name: new RegExp(name, 'i') }));
 
 describe('AdminDashboard secondary modules', () => {

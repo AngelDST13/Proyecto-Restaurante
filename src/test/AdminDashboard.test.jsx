@@ -28,7 +28,7 @@ describe('AdminDashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Gestión de Menú/i }));
     fireEvent.change(screen.getByPlaceholderText(/Nueva categoría/i), { target: { value: 'Bebidas de la Casa' } });
     fireEvent.click(screen.getByRole('button', { name: /Crear categoría/i }));
-    expect(screen.getByRole('option', { name: 'Bebidas de la Casa' })).toBeInTheDocument();
+    expect(screen.getAllByRole('option', { name: 'Bebidas de la Casa' })).toHaveLength(2);
 
     fireEvent.change(screen.getByPlaceholderText(/Nombre del platillo/i), { target: { value: 'Chicharrón de prueba' } });
     fireEvent.change(screen.getByPlaceholderText(/Precio en colones/i), { target: { value: '6800' } });

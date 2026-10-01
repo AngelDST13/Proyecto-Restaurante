@@ -11,7 +11,7 @@ export default function ReservationModal({
   initialEventType = 'General', 
   onSuccess 
 }) {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const [todayStr, setTodayStr] = useState('');
 
   const mapInitialTipo = (type) => {
     if (!type) return 'Mesa Regular';
@@ -25,7 +25,7 @@ export default function ReservationModal({
   const [formData, setFormData] = useState({
     sede: 'Escazú',
     tipo: mapInitialTipo(initialEventType),
-    fecha: todayStr,
+    fecha: '',
     hora: '12:00',
     personas: 2,
     nombre: '',
@@ -36,6 +36,9 @@ export default function ReservationModal({
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    const currentDay = new Date().toISOString().split('T')[0];
+    setTodayStr(currentDay);
+    setFormData(previous => previous.fecha ? previous : { ...previous, fecha: currentDay });
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && onClose) {
         onClose();

@@ -1,7 +1,7 @@
 import CryptoJS from 'crypto-js';
+import { encryptData as encryptStoredData, decryptData as decryptStoredData } from './cryptoService';
 
 const JWT_SECRET = 'CACIQUE_SECRET_2026_CR_PROTECTED_SESSION';
-const ENCRYPTION_KEY = 'GourmetSyncAESKey2026!#SecureStorage';
 const SESSION_SECRET = 'GourmetSyncSecretKey2026!';
 
 export function sanitizeInput(input = '') {
@@ -102,22 +102,11 @@ export function sanitizeUserForSession(userObj) {
 }
 
 export function encryptData(data) {
-  try {
-    return CryptoJS.AES.encrypt(JSON.stringify(data), ENCRYPTION_KEY).toString();
-  } catch {
-    return null;
-  }
+  return encryptStoredData(data);
 }
 
 export function decryptData(cipherText) {
-  try {
-    if (!cipherText) return null;
-    const bytes = CryptoJS.AES.decrypt(cipherText, ENCRYPTION_KEY);
-    const decryptedText = bytes.toString(CryptoJS.enc.Utf8);
-    return decryptedText ? JSON.parse(decryptedText) : null;
-  } catch {
-    return null;
-  }
+  return decryptStoredData(cipherText);
 }
 
 export function generateSessionSignature(userObj) {
@@ -131,6 +120,27 @@ export function verifySessionIntegrity(userObj, signature) {
   return generateSessionSignature(userObj) === signature;
 }
 
+function encodeBase64Url(value) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+
+function decodeBase64Url(value) {
+  const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = base64.padEnd(base64.length + ((4 - base64.length % 4) % 4), '=');
+  const binary = atob(padded);
+  return new TextDecoder().decode(Uint8Array.from(binary, character => character.charCodeAt(0)));
+}
+
+function timingSafeEqual(left, right) {
+  if (left.length !== right.length) return false;
+  let mismatch = 0;
+  for (let index = 0; index < left.length; index += 1) mismatch |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  return mismatch === 0;
+}
+
 export function generateJWT(userData) {
   const header = { alg: 'HS256', typ: 'JWT' };
   const payload = {
@@ -142,23 +152,29 @@ export function generateJWT(userData) {
     exp: Math.floor(Date.now() / 1000) + (userData.rol === 'cliente' ? 180 : 86400)
   };
 
-  const encodedHeader = btoa(JSON.stringify(header)).replace(/=/g, '');
-  const encodedPayload = btoa(JSON.stringify(payload)).replace(/=/g, '');
-  const signature = btoa(`${encodedHeader}.${encodedPayload}.${JWT_SECRET}`).replace(/=/g, '');
+  const encodedHeader = encodeBase64Url(JSON.stringify(header));
+  const encodedPayload = encodeBase64Url(JSON.stringify(payload));
+  const signingInput = `${encodedHeader}.${encodedPayload}`;
+  const signature = CryptoJS.HmacSHA256(signingInput, JWT_SECRET).toString(CryptoJS.enc.Base64)
+    .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
+  return `${signingInput}.${signature}`;
 }
 
 export function verifyJWT(token) {
   try {
-    if (!token) return null;
+    if (typeof token !== 'string' || !token) return null;
     const parts = token.split('.');
     if (parts.length !== 3) return null;
 
-    const payload = JSON.parse(atob(parts[1]));
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      return null;
-    }
+    const header = JSON.parse(decodeBase64Url(parts[0]));
+    if (header.alg !== 'HS256' || header.typ !== 'JWT') return null;
+    const expectedSignature = CryptoJS.HmacSHA256(`${parts[0]}.${parts[1]}`, JWT_SECRET).toString(CryptoJS.enc.Base64)
+      .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    if (!timingSafeEqual(parts[2], expectedSignature)) return null;
+
+    const payload = JSON.parse(decodeBase64Url(parts[1]));
+    if (!Number.isFinite(payload.exp) || payload.exp <= Math.floor(Date.now() / 1000)) return null;
     return payload;
   } catch {
     return null;

@@ -5,8 +5,6 @@ export function useAutoLogout(onLogoutNotify, options = {}) {
   const { user, logout } = useAuth();
   const [showWarning, setShowWarning] = useState(false);
   const startTimersRef = useRef(null);
-  const onTimeoutRef = useRef(options.onTimeout);
-  onTimeoutRef.current = options.onTimeout;
   const timeoutMs = options.timeoutMs ?? 180000;
   const warningMs = options.warningMs ?? timeoutMs - 30000;
   const onTimeout = options.onTimeout;
@@ -35,7 +33,7 @@ export function useAutoLogout(onLogoutNotify, options = {}) {
       logoutTimer = setTimeout(() => {
         setShowWarning(false);
         logout();
-        if (typeof onTimeoutRef.current === 'function') onTimeoutRef.current();
+        if (typeof onTimeout === 'function') onTimeout();
         if (typeof onLogoutNotify === 'function') {
           onLogoutNotify(`Su sesión ha caducado por ${Math.round(timeoutMs / 60000)} minutos de inactividad.`, 'info');
         }
@@ -61,7 +59,7 @@ export function useAutoLogout(onLogoutNotify, options = {}) {
       startTimersRef.current = null;
       events.forEach((evt) => window.removeEventListener(evt, handleActivity));
     };
-    }, [user, logout, onLogoutNotify, timeoutMs, warningMs]);
+    }, [user, logout, onLogoutNotify, onTimeout, timeoutMs, warningMs]);
 
   return { showWarning, resetTimer };
 }

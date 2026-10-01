@@ -1,20 +1,19 @@
-// Servicio de Cifrado y Seguridad de Datos para El Cacique
-const SECRET_KEY = 'CACIQUE_SECURE_TOKEN_2026_PROD';
+import CryptoJS from 'crypto-js';
+
+// Se cifra con AES. El prefijo permite leer valores XOR antiguos durante la migración.
+const SECRET_KEY = 'Cacique:LocalStorage:AES:2026:RotateOnBackend';
+const LEGACY_KEY = 'CACIQUE_SECURE_TOKEN_2026_PROD';
+const LEGACY_AUTH_AES_KEY = 'GourmetSyncAESKey2026!#SecureStorage';
 
 /**
  * Cifra un objeto o cadena de texto
  */
 export const encryptData = (data) => {
   try {
-    if (!data) return null;
+    if (data == null) return null;
     const jsonString = typeof data === 'string' ? data : JSON.stringify(data);
-    let result = '';
-    for (let i = 0; i < jsonString.length; i++) {
-      result += String.fromCharCode(jsonString.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length));
-    }
-    return btoa(result);
-  } catch (error) {
-    console.error('Error al cifrar información:', error);
+    return `aes2:${CryptoJS.AES.encrypt(jsonString, SECRET_KEY).toString()}`;
+  } catch {
     return null;
   }
 };
@@ -25,14 +24,21 @@ export const encryptData = (data) => {
 export const decryptData = (cipherText) => {
   try {
     if (!cipherText) return null;
-    const raw = atob(cipherText);
-    let result = '';
-    for (let i = 0; i < raw.length; i++) {
-      result += String.fromCharCode(raw.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length));
+    if (cipherText.startsWith('aes2:')) {
+      const bytes = CryptoJS.AES.decrypt(cipherText.slice(5), SECRET_KEY);
+      const clearText = bytes.toString(CryptoJS.enc.Utf8);
+      return clearText ? JSON.parse(clearText) : null;
     }
-    return JSON.parse(result);
-  } catch (error) {
-    console.error('Error al descifrar información:', error);
+    try {
+      const legacyAesClearText = CryptoJS.AES.decrypt(cipherText, LEGACY_AUTH_AES_KEY).toString(CryptoJS.enc.Utf8);
+      if (legacyAesClearText) return JSON.parse(legacyAesClearText);
+    } catch {
+      // Continúa con XOR cuando el contenido heredado no es un cifrado AES válido.
+    }
+    const raw = atob(cipherText);
+    const legacyText = Array.from(raw, (char, index) => String.fromCharCode(char.charCodeAt(0) ^ LEGACY_KEY.charCodeAt(index % LEGACY_KEY.length))).join('');
+    return JSON.parse(legacyText);
+  } catch {
     return null;
   }
 };

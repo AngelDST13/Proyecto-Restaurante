@@ -10,9 +10,10 @@ vi.mock('../services/n8nService', () => ({
   subscribeToLiveEvents: vi.fn(() => () => {})
 }));
 
-const renderAdmin = () => render(
-  <AccessibilityProvider><AuthProvider><MemoryRouter><AdminDashboard /></MemoryRouter></AuthProvider></AccessibilityProvider>
-);
+const renderAdmin = () => {
+  localStorage.removeItem('cacique_admin_menu');
+  return render(<AccessibilityProvider><AuthProvider><MemoryRouter><AdminDashboard /></MemoryRouter></AuthProvider></AccessibilityProvider>);
+};
 const open = label => fireEvent.click(screen.getByRole('button', { name: new RegExp(label, 'i') }));
 
 describe('AdminDashboard: menú e invoices con interacciones del DOM real', () => {
@@ -46,7 +47,7 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
     expect(screen.getByText('Esta categoría ya existe')).toBeInTheDocument();
     fireEvent.change(category, { target: { value: 'Especiales QA' } });
     fireEvent.click(screen.getByRole('button', { name: 'Crear categoría' }));
-    expect(screen.getByRole('option', { name: 'Especiales QA' })).toBeInTheDocument();
+    expect(screen.getAllByRole('option', { name: 'Especiales QA' })).toHaveLength(2);
 
     open('Facturas & Finanzas');
     expect(screen.getAllByText(/FE-001/).length).toBe(2);

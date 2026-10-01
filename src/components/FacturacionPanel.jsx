@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { PackagePlus, Printer, Receipt, Wallet } from 'lucide-react';
+import { PackagePlus, Printer, Receipt, Upload, Wallet } from 'lucide-react';
 import officialLogo from '../assets/img/LogoN.svg';
+import { createXlsxBlob, downloadBlob, parseCsv, parseXlsx, readFileBuffer, readFileText, rowsToCsv, sanitizeImportedValue, sanitizePlainText } from '../services/spreadsheetService';
 
 const WHATSAPP = 'https://wa.me/50622008888';
 const STORAGE_PREFIX = 'cacique_cashier_';
@@ -17,6 +18,7 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
   const [sales, setSales] = useState(savedState.sales || []);
   const [movements, setMovements] = useState(savedState.movements || []);
   const [expenses, setExpenses] = useState(savedState.expenses || []);
+  const [financeImports, setFinanceImports] = useState(savedState.financeImports || []);
   const [lastInvoice, setLastInvoice] = useState(null);
   const [saleForm, setSaleForm] = useState({ cliente: '', cedula: '', descripcion: '', subtotal: '', pago: 'Efectivo' });
   const [movementForm, setMovementForm] = useState({ tipo: 'Entrada', monto: '', nota: '' });
@@ -33,12 +35,13 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
   const invoiceTotal = invoiceSubtotal + invoiceIva;
 
   const updatePersistedState = (updates) => {
-    const next = { openingAmount, cashOpen, sales, movements, expenses, ...updates };
+    const next = { openingAmount, cashOpen, sales, movements, expenses, financeImports, ...updates };
     setOpeningAmount(String(next.openingAmount ?? ''));
     setCashOpen(Boolean(next.cashOpen));
     setSales(next.sales);
     setMovements(next.movements);
     setExpenses(next.expenses);
+    setFinanceImports(next.financeImports);
     persist(next);
   };
 
@@ -57,12 +60,13 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
     const total = subtotal + iva;
     if (!cashOpen) { setError('Abra la caja antes de registrar ventas.'); return; }
     if (!saleForm.cliente.trim() || !saleForm.cedula.trim() || !saleForm.descripcion.trim() || !Number.isFinite(subtotal) || subtotal <= 0) { setError('Complete cliente, cédula, detalle y subtotal válido.'); return; }
-    const sale = { id: Date.now(), cliente: saleForm.cliente.trim(), cedula: saleForm.cedula.trim(), descripcion: saleForm.descripcion.trim(), subtotal, iva, total, pago: saleForm.pago, fecha: new Date().toISOString() };
+    const issuedAt = new Date();
+    const sale = { id: Date.now(), cliente: sanitizePlainText(saleForm.cliente), cedula: sanitizePlainText(saleForm.cedula), descripcion: sanitizePlainText(saleForm.descripcion), subtotal, iva, total, pago: saleForm.pago, fecha: issuedAt.toISOString() };
     const nextSales = [sale, ...sales];
     updatePersistedState({ sales: nextSales });
-    const consecutive = `FE-${new Date().getFullYear()}-${String(nextSales.length).padStart(6, '0')}`;
+    const consecutive = `FE-${issuedAt.getFullYear()}-${String(nextSales.length).padStart(6, '0')}`;
     const numericKey = Array.from({ length: 50 }, () => Math.floor(Math.random() * 10)).join('');
-    setLastInvoice({ ...sale, consecutive, key: numericKey });
+    setLastInvoice({ ...sale, consecutive, key: numericKey, issuedAtLabel: issuedAt.toLocaleString('es-CR') });
     setSaleForm({ cliente: '', cedula: '', descripcion: '', subtotal: '', pago: 'Efectivo' });
     setError('');
   };
@@ -71,7 +75,7 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
     event.preventDefault();
     const monto = Number(movementForm.monto);
     if (!cashOpen || !Number.isFinite(monto) || monto <= 0 || !movementForm.nota.trim()) { setError('Abra la caja y complete monto y motivo del movimiento.'); return; }
-    updatePersistedState({ movements: [{ ...movementForm, monto, id: Date.now() }, ...movements] });
+    updatePersistedState({ movements: [{ ...movementForm, nota: sanitizePlainText(movementForm.nota), monto, id: Date.now() }, ...movements] });
     setMovementForm({ tipo: 'Entrada', monto: '', nota: '' });
     setError('');
   };
@@ -81,7 +85,7 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
     const cantidad = Number(purchaseForm.cantidad);
     const costo = Number(purchaseForm.costo);
     if (!purchaseForm.insumo.trim() || cantidad <= 0 || costo <= 0) { setError('Complete insumo, cantidad y costo de compra.'); return; }
-    const expense = { id: Date.now(), insumo: purchaseForm.insumo.trim(), cantidad, costo, pagadoEfectivo: cashOpen, fecha: new Date().toISOString() };
+    const expense = { id: Date.now(), insumo: sanitizePlainText(purchaseForm.insumo), cantidad, costo, pagadoEfectivo: cashOpen, fecha: new Date().toISOString() };
     updatePersistedState({ expenses: [expense, ...expenses] });
     onPurchase({ ...expense, sede });
     setPurchaseForm({ insumo: '', cantidad: '', costo: '' });
@@ -92,6 +96,51 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
     if (!cashOpen) { setError('La caja ya está cerrada.'); return; }
     updatePersistedState({ cashOpen: false });
     setError(`Cierre registrado. Arqueo final: ₡${cashBalance.toLocaleString('es-CR')}`);
+  };
+
+  const exportCashReport = format => {
+    const rows = [
+      ...sales.map(sale => ({ sede: sedeNombre, periodo: sale.fecha.slice(0, 7), fecha: sale.fecha, tipo: 'Venta', ventas: sale.total, costos: 0, pago: sale.pago, detalle: sale.descripcion })),
+      ...expenses.map(expense => ({ sede: sedeNombre, periodo: expense.fecha.slice(0, 7), fecha: expense.fecha, tipo: 'Compra / costo', ventas: 0, costos: expense.costo, pago: expense.pagadoEfectivo ? 'Efectivo' : 'Otro', detalle: expense.insumo })),
+      ...financeImports.map(row => ({ ...row, fecha: '', tipo: 'Importación', pago: '', detalle: '' }))
+    ];
+    const headers = ['sede', 'periodo', 'fecha', 'tipo', 'ventas', 'costos', 'pago', 'detalle'];
+    const blob = format === 'xlsx'
+      ? createXlsxBlob(rows.length ? rows : [Object.fromEntries(headers.map(header => [header, '']))], headers)
+      : new Blob([format === 'csv' ? rowsToCsv(rows, headers) : JSON.stringify({ sede, periodo: 'todos', ventas: rows.filter(row => row.tipo === 'Venta').reduce((sum, row) => sum + row.ventas, 0), costos: rows.reduce((sum, row) => sum + row.costos, 0), movimientos: rows }, null, 2)], { type: format === 'csv' ? 'text/csv;charset=utf-8' : 'application/json' });
+    downloadBlob(blob, `Caja_${sede}_${format}.${format}`);
+  };
+
+  const importCashReport = async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      if (file.size > 5 * 1024 * 1024) throw new Error('El archivo supera el límite de 5 MB.');
+      const extension = file.name.split('.').pop().toLocaleLowerCase();
+      const rows = extension === 'csv'
+        ? parseCsv(await readFileText(file))
+        : extension === 'xlsx'
+          ? await parseXlsx(await readFileBuffer(file))
+          : (() => { throw new Error('Formato no compatible. Seleccione CSV o XLSX.'); })();
+      if (rows.length > 5000) throw new Error('El archivo supera el límite de 5.000 filas.');
+      const normalized = rows.map((row, index) => {
+        const values = Object.fromEntries(Object.entries(row).map(([key, value]) => [key.trim().toLocaleLowerCase(), value]));
+        const branch = sanitizePlainText(values.sede);
+        const period = sanitizeImportedValue(values.periodo);
+        const salesTotal = Number(sanitizeImportedValue(values.ventas));
+        const costTotal = Number(sanitizeImportedValue(values.costos));
+        if (!branch || !/^\d{4}-(0[1-9]|1[0-2])$/.test(period) || !Number.isFinite(salesTotal) || salesTotal < 0 || !Number.isFinite(costTotal) || costTotal < 0) {
+          throw new Error(`Fila ${index + 2}: sede, periodo, ventas o costos no válidos.`);
+        }
+        return { sede: branch, periodo: period, ventas: salesTotal, costos: costTotal };
+      });
+      updatePersistedState({ financeImports: [...financeImports, ...normalized] });
+      setError(`${normalized.length} registros financieros importados y validados.`);
+    } catch (importError) {
+      setError(importError instanceof Error ? importError.message : 'No se pudo importar el archivo financiero.');
+    } finally {
+      event.target.value = '';
+    }
   };
 
   const fieldClass = 'min-w-0 w-full rounded-xl border border-[#659B5E]/25 bg-[#0A090C] px-3 py-2.5 text-[#F8FFE5] placeholder:text-zinc-500 focus:border-amber-500 focus:outline-none';
@@ -142,11 +191,12 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
       </div>
 
       {error && <p role="status" className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm text-amber-200">{error}</p>}
-      <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="font-bold text-white">Ventas recientes ({sales.length})</h3>{cashOpen && <button type="button" onClick={closeCash} className="min-h-11 rounded-xl border border-red-400/30 px-4 py-2 font-bold text-red-300 hover:bg-red-500/10">Cerrar caja y registrar arqueo</button>}</div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-bold text-white">Ventas recientes ({sales.length})</h3><p className="mt-1 text-xs text-zinc-400">Registros financieros importados: {financeImports.length}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => exportCashReport('csv')} className="min-h-10 rounded-lg border border-white/15 px-3 font-bold text-zinc-200">Exportar CSV</button><button type="button" onClick={() => exportCashReport('xlsx')} className="min-h-10 rounded-lg border border-white/15 px-3 font-bold text-emerald-200">Exportar Excel</button><button type="button" onClick={() => exportCashReport('json')} className="min-h-10 rounded-lg border border-white/15 px-3 font-bold text-amber-200">Exportar JSON</button><label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-amber-500/25 px-3 font-bold text-amber-200 hover:bg-amber-500/10"><Upload className="h-4 w-4"/>Importar CSV / Excel<input aria-label="Importar archivo financiero" type="file" accept=".csv,.xlsx" onChange={importCashReport} className="sr-only"/></label>{cashOpen && <button type="button" onClick={closeCash} className="min-h-11 rounded-xl border border-red-400/30 px-4 py-2 font-bold text-red-300 hover:bg-red-500/10">Cerrar caja y registrar arqueo</button>}</div></div>
       <div className="w-full max-w-full overflow-x-auto rounded-xl border border-[#659B5E]/20"><table className="w-full min-w-[600px] text-left text-sm"><thead className="bg-black/30 text-zinc-300"><tr><th className="p-3">Cliente</th><th className="p-3">Detalle</th><th className="p-3">Pago</th><th className="p-3 text-right">Total</th></tr></thead><tbody className="divide-y divide-white/5">{sales.map(sale => <tr key={sale.id}><td className="p-3">{sale.cliente}</td><td className="p-3">{sale.descripcion}</td><td className="p-3">{sale.pago}</td><td className="p-3 text-right">₡{sale.total.toLocaleString('es-CR')}</td></tr>)}</tbody></table></div>
+      {financeImports.length > 0 && <div className="w-full max-w-full overflow-x-auto rounded-xl border border-[#659B5E]/20"><table className="w-full min-w-[520px] text-left text-sm"><caption className="p-3 text-left font-bold text-zinc-200">Histórico financiero importado</caption><thead className="bg-black/30 text-zinc-300"><tr><th className="p-3">Sede</th><th className="p-3">Período</th><th className="p-3 text-right">Ventas</th><th className="p-3 text-right">Costos</th></tr></thead><tbody className="divide-y divide-white/5">{financeImports.map((row, index) => <tr key={`${row.sede}-${row.periodo}-${index}`}><td className="p-3">{row.sede}</td><td className="p-3">{row.periodo}</td><td className="p-3 text-right">₡{row.ventas.toLocaleString('es-CR')}</td><td className="p-3 text-right">₡{row.costos.toLocaleString('es-CR')}</td></tr>)}</tbody></table></div>}
 
       {lastInvoice && <article className="mx-auto w-full max-w-3xl space-y-4 rounded-2xl bg-white p-5 text-zinc-900 sm:p-8" aria-label="Factura emitida">
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-200 pb-4"><div className="flex items-center gap-3"><img src={officialLogo} alt="Logo El Cacique" className="h-16 w-16 object-contain"/><div><strong className="text-lg">CHICHARRONERA EL CACIQUE</strong><p className="text-sm text-zinc-500">Factura electrónica · {sedeNombre}</p></div></div><div className="text-right"><strong>{lastInvoice.consecutive}</strong><p className="text-xs text-zinc-500">{new Date(lastInvoice.fecha).toLocaleString('es-CR')}</p></div></div>
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-200 pb-4"><div className="flex items-center gap-3"><img src={officialLogo} alt="Logo El Cacique" className="h-16 w-16 object-contain"/><div><strong className="text-lg">CHICHARRONERA EL CACIQUE</strong><p className="text-sm text-zinc-500">Factura electrónica · {sedeNombre}</p></div></div><div className="text-right"><strong>{lastInvoice.consecutive}</strong><p className="text-xs text-zinc-500">{lastInvoice.issuedAtLabel}</p></div></div>
         <p><strong>Cliente:</strong> {lastInvoice.cliente} · <strong>Cédula:</strong> {lastInvoice.cedula}</p><p className="whitespace-pre-line"><strong>Detalle:</strong> {lastInvoice.descripcion}</p><p className="break-all text-xs"><strong>Clave numérica simulada:</strong> {lastInvoice.key}</p>
         <div className="flex flex-wrap items-end justify-between gap-5 border-t border-zinc-200 pt-4"><div className="space-y-1 text-sm"><p>Subtotal: ₡{lastInvoice.subtotal.toLocaleString('es-CR')}</p><p>IVA 13%: ₡{lastInvoice.iva.toLocaleString('es-CR')}</p><strong className="text-base">Total: ₡{lastInvoice.total.toLocaleString('es-CR')}</strong></div><div className="text-center"><img className="h-28 w-28" alt="Código QR para soporte por WhatsApp" src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(WHATSAPP)}`}/><a className="text-xs text-emerald-700 underline" href={WHATSAPP} target="_blank" rel="noreferrer">Soporte WhatsApp</a></div></div>
         <p className="border-t border-dashed border-zinc-300 pt-3 text-center text-[10px] text-zinc-500">Representación simulada para demostración; no sustituye el comprobante electrónico autorizado por Hacienda.</p>
