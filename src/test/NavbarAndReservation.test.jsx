@@ -8,7 +8,7 @@ import { AuthProvider, useAuth } from '../context/AuthContext';
 
 function UserControls() {
   const { login } = useAuth();
-  return <div>{['administrador', 'mesero', 'cocina', 'cliente'].map(role => <button key={role} onClick={() => login({ email: 'staff@example.com', nombre: 'Admin', rol: role, sede: 'escazu' })}>Simular {role}</button>)}</div>;
+  return <div>{['administrador', 'mesero', 'cajero', 'cocina', 'cliente'].map(role => <button key={role} onClick={() => login({ email: 'staff@example.com', nombre: 'Admin', rol: role, sede: 'escazu' })}>Simular {role}</button>)}</div>;
 }
 function RouteProbe() { return <output data-testid="nav-path">{useLocation().pathname}</output>; }
 
@@ -36,7 +36,7 @@ describe('Navbar y reservas', () => {
 
   it('elige el panel dinámico para cada rol soportado', () => {
     render(<AuthProvider><AccessibilityProvider><MemoryRouter><UserControls /><Navbar /></MemoryRouter></AccessibilityProvider></AuthProvider>);
-    for (const [role, panel] of [['administrador', 'Panel Admin'], ['mesero', 'Panel Mesero POS'], ['cocina', 'Panel Cocina KDS']]) {
+    for (const [role, panel] of [['administrador', 'Panel Admin'], ['mesero', 'Panel Mesero POS'], ['cajero', 'Panel Caja'], ['cocina', 'Panel Cocina KDS']]) {
       fireEvent.click(screen.getByRole('button', { name: `Simular ${role}` }));
       expect(screen.getByRole('link', { name: panel })).toBeInTheDocument();
     }
@@ -104,5 +104,34 @@ describe('Navbar y reservas', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Disminuir personas' }));
     expect(screen.getByText('1')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Disminuir personas' })).toBeDisabled();
+  });
+
+  it.each([
+    ['evento empresarial', 'Evento Empresarial'],
+    ['banquete familiar', 'Banquete Familiar'],
+    ['', 'Mesa Regular']
+  ])('mapea tipo de evento %s a %s', (initialEventType, expectedType) => {
+    render(<ReservationModal initialEventType={initialEventType} />);
+    expect(screen.getByLabelText('Tipo de Celebración')).toHaveValue(expectedType);
+  });
+
+  it('valida fecha faltante y permite confirmar con alert cuando no hay callbacks', () => {
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const { rerender } = render(<ReservationModal onClose={undefined} onSuccess={undefined} />);
+    fireEvent.change(screen.getByPlaceholderText(/Angel Salazar/i), { target: { value: 'Ana Pérez' } });
+    fireEvent.change(screen.getByPlaceholderText(/8888-8888/i), { target: { value: '88881234' } });
+    fireEvent.change(screen.getByLabelText('Fecha'), { target: { value: '' } });
+    fireEvent.submit(screen.getByRole('button', { name: /CONFIRMAR RESERVACIÓN/i }).closest('form'));
+    expect(screen.getByText('Seleccione una fecha.')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Fecha'), { target: { value: '2026-10-15' } });
+    fireEvent.submit(screen.getByRole('button', { name: /CONFIRMAR RESERVACIÓN/i }).closest('form'));
+    expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Ana Pérez'));
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.getByRole('heading', { name: /Agendar Mesa o Evento/i })).toBeInTheDocument();
+
+    rerender(<ReservationModal isOpen={false} onClose={undefined} onSuccess={undefined} />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    alertSpy.mockRestore();
   });
 });

@@ -47,6 +47,34 @@ export const VALID_ACCOUNTS = {
     rol: 'mesero',
     sede: 'heredia'
   },
+  'cajero.escazu@elcacique.com': {
+    password: 'CajaEscazu2026!',
+    nombre: 'Cajero Escazú',
+    alias: 'Caja Escazú',
+    rol: 'cajero',
+    sede: 'escazu'
+  },
+  'cajero.santaana@elcacique.com': {
+    password: 'CajaSantaAna2026!',
+    nombre: 'Cajero Santa Ana',
+    alias: 'Caja Santa Ana',
+    rol: 'cajero',
+    sede: 'santa_ana'
+  },
+  'cajero.cartago@elcacique.com': {
+    password: 'CajaCartago2026!',
+    nombre: 'Cajero Cartago',
+    alias: 'Caja Cartago',
+    rol: 'cajero',
+    sede: 'cartago'
+  },
+  'cajero.heredia@elcacique.com': {
+    password: 'CajaHeredia2026!',
+    nombre: 'Cajero Heredia',
+    alias: 'Caja Heredia',
+    rol: 'cajero',
+    sede: 'heredia'
+  },
   'cocina.escazu@elcacique.com': {
     password: 'CocinaEscazu2026!',
     nombre: 'Cocina Escazú',
@@ -92,7 +120,7 @@ export const TEST_ACCESS_CREDENTIALS = Object.entries(VALID_ACCOUNTS).map(([emai
   email,
   password: account.password,
   sede: account.rol === 'administrador' ? 'Todas las sedes' : formatSedeName(account.sede),
-  rol: account.rol === 'administrador' ? 'Administrador' : account.rol === 'cocina' ? 'Cocina KDS' : 'Cajero / Mesero'
+  rol: account.rol === 'administrador' ? 'Administrador' : account.rol === 'cocina' ? 'Cocina KDS' : account.rol === 'cajero' ? 'Cajero' : 'Cajero / Mesero'
 }));
 
 export function sanitizeUserForSession(userObj) {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { decryptData, formatSedeName } from '../services/authSecurity';
 import { subscribeToLiveEvents } from '../services/n8nService';
-import { recordCashierSale } from '../services/cashierService';
+import { enqueueCashierOrder } from '../services/cashierService';
 import Toast from '../components/Toast';
 import { 
   Utensils, LogOut, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, Scissors, CreditCard, User,
@@ -276,40 +276,35 @@ export default function WaiterDashboard() {
     showToast(`${isElectronicInvoice ? 'Borrador de factura' : 'Pre-cuenta'} generado para ${mesa.numero}`, 'info');
   };
 
-  const handleChargeReceipt = () => {
+  const handleSendReceiptToCashier = () => {
     if (!precuentaTable) return;
-    const saleSubtotal = Number(precuentaTable.subtotal ?? precuentaTable.total ?? 0);
-    const saleIva = Number(precuentaTable.iva ?? Math.round(saleSubtotal * 0.13));
-    const saleService = Number(precuentaTable.servicio ?? Math.round(saleSubtotal * 0.1));
-    const result = recordCashierSale({
+    const result = enqueueCashierOrder({
       sede: user?.sede || 'escazu',
+      tableId: precuentaTable.id,
+      mesa: precuentaTable.numero,
       cliente: precuentaTable.clienteNombre || precuentaTable.clienteCorreo || 'Cliente de mesa',
       cedula: precuentaTable.cedulaCliente || '',
       descripcion: (precuentaTable.items || []).map(item => `${item.cantidad} x ${item.nombre}`).join(', '),
-      subtotal: saleSubtotal,
-      iva: saleIva,
-      total: saleSubtotal + saleIva + saleService,
+      items: precuentaTable.items || [],
+      subtotal: Number(precuentaTable.subtotal ?? precuentaTable.total ?? 0),
+      iva: Number(precuentaTable.iva || 0),
+      servicio: Number(precuentaTable.servicio || 0),
+      total: Number(precuentaTable.subtotal ?? precuentaTable.total ?? 0) + Number(precuentaTable.iva || 0) + Number(precuentaTable.servicio || 0),
       pago: precuentaTable.metodoPago === 'Sinpe Móvil' ? 'SINPE Móvil' : precuentaTable.metodoPago,
-      fecha: new Date().toISOString()
+      tipoComprobante: precuentaTable.tipoComprobante,
+      clienteCorreo: precuentaTable.clienteCorreo,
+      razonSocial: precuentaTable.razonSocial,
+      codigoActividad: precuentaTable.codigoActividad
     });
     if (!result.success) {
       showToast(result.message, 'error');
       return;
     }
 
-    setTables(previous => ({
-      ...previous,
-      [selectedFloor]: previous[selectedFloor].map(table => table.id === precuentaTable.id
-        ? { ...table, estado: 'Libre', total: 0, subtotal: 0, iva: 0, servicio: 0, items: [] }
-        : table)
-    }));
     setPrecuentaTable(null);
     setSelectedTable(null);
     setOrderItems([]);
-    setCustomerName('');
-    setCustomerEmail('');
-    setCustomerId('');
-    showToast(`Cobro registrado en caja ${formatSedeName(user?.sede || 'escazu')}`, 'success');
+    showToast(`Cuenta enviada a caja ${formatSedeName(user?.sede || 'escazu')}`, 'success');
   };
 
   const formatCurrency = (amount) => `₡${amount.toLocaleString('es-CR')}`;
@@ -408,10 +403,10 @@ export default function WaiterDashboard() {
               </button>
               <button
                 type="button"
-                onClick={handleChargeReceipt}
+                onClick={handleSendReceiptToCashier}
                 className="mt-2 w-full rounded-xl bg-[#D16014] py-3 text-xs font-bold text-white transition-colors hover:bg-[#b8510f] print:hidden"
               >
-                Cobrar y cerrar cuenta
+                Enviar cuenta a caja
               </button>
               <style>{`@media print { body * { visibility: hidden !important; } #precuenta-print, #precuenta-print * { visibility: visible !important; } #precuenta-print { position: fixed; inset: 0; width: 100%; max-width: none; border: 0; box-shadow: none; background: white; color: black; } #precuenta-print p, #precuenta-print span, #precuenta-print h2 { color: black !important; } }`}</style>
             </section>

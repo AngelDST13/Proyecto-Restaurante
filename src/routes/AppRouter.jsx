@@ -7,6 +7,7 @@ import Login from '../pages/Login';
 import Menu from '../pages/Menu';
 import AdminDashboard from '../pages/AdminDashboard';
 import WaiterDashboard from '../pages/WaiterDashboard';
+import CashierDashboard from '../pages/CashierDashboard';
 import KitchenDashboard from '../pages/KitchenDashboard';
 import OrderStatusBoard from '../pages/OrderStatusBoard';
 import Unauthorized from '../pages/Unauthorized';
@@ -33,7 +34,9 @@ function URLNormalizer({ children }) {
       '/cocina': '/kitchen',
       '/waiterdashboard': '/waiter',
       '/waiter': '/waiter',
-      '/mesero': '/waiter'
+      '/mesero': '/waiter',
+      '/cashierdashboard': '/cashier',
+      '/cashier': '/cashier'
     };
     const canonicalPath = canonicalRoutes[cleanPath] || cleanPath;
 
@@ -51,7 +54,7 @@ export function AppRouter() {
 
   // Control de vistas administrativas o paneles donde no se debe mostrar Navbar/Footer de cliente
   const normalizedPath = location.pathname.toLowerCase().replace(/[./]+$/, '') || '/';
-  const isAdminRoute = normalizedPath === '/admin';
+  const isStaffRoute = normalizedPath === '/admin' || normalizedPath === '/cashier';
   
 
   return (
@@ -68,7 +71,7 @@ export function AppRouter() {
         )}
 
         {/* Muestra el Navbar en Landing, Menú y Login, pero lo oculta en el Dashboard de Admin */}
-        {!isAdminRoute && <Navbar />}
+        {!isStaffRoute && <Navbar />}
 
         <div className="grow">
           <Routes>
@@ -92,11 +95,13 @@ export function AppRouter() {
             <Route 
               path="/waiter" 
               element={
-                <PrivateRoute allowedRoles={['mesero', 'administrador', 'admin']}>
+                <PrivateRoute allowedRoles={['mesero']}>
                   <WaiterDashboard />
                 </PrivateRoute>
               } 
             />
+
+            <Route path="/cashier" element={<PrivateRoute allowedRoles={['cajero']}><CashierDashboard /></PrivateRoute>} />
 
             {/* RUTA COCINA (KDS) */}
             <Route 
@@ -124,7 +129,7 @@ export function AppRouter() {
         </div>
 
         {/* Footer global (oculto solo en Admin Dashboard) */}
-        {!isAdminRoute && <Footer />}
+        {!isStaffRoute && <Footer />}
 
         {/* Asistente disponible en todas las rutas */}
         <AiAgentWidget />

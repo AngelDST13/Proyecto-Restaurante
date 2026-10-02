@@ -1,10 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { afterEach, describe, expect, it, vi, beforeEach } from 'vitest';
 import { AccessibilityProvider } from '../context/AccessibilityContext';
 import { AuthProvider } from '../context/AuthContext';
 import AdminDashboard from '../pages/AdminDashboard';
-import { createXlsxBlob, menuCsvHeaders, normalizeMenuRows, parseCsv, parseXlsx, rowsToCsv, sanitizeImportedValue } from '../services/spreadsheetService';
+import { createXlsxBlob, menuCsvHeaders, normalizeMenuRows, parseCsv, parseXlsx, readFileBuffer, readFileText, rowsToCsv, sanitizeImportedValue, sanitizePlainText } from '../services/spreadsheetService';
 
 vi.mock('../services/n8nService', () => ({
   triggerN8nAutomation: vi.fn(() => Promise.resolve({ success: true })),
@@ -20,6 +20,7 @@ const readBlob = blob => new Promise((resolve, reject) => {
 
 describe('Procesamiento Excel y CSV seguro', () => {
   beforeEach(() => localStorage.removeItem('cacique_admin_menu'));
+  afterEach(() => vi.restoreAllMocks());
 
   it('escapa celdas de fórmula y conserva comas, comillas y saltos en CSV', () => {
     expect(sanitizeImportedValue('=HYPERLINK("https://x")')).toBe('\'=HYPERLINK("https://x")');
@@ -40,6 +41,42 @@ describe('Procesamiento Excel y CSV seguro', () => {
     expect(parsed[0]).toMatchObject({ nombre: 'Chifrijo', categoria: 'Bocas', precio: '6300' });
     expect(parsed[0].descripcion).toBe('Tradicional');
     await expect(parseXlsx(new ArrayBuffer(12))).rejects.toThrow(/XLSX válido/i);
+  });
+
+  it('normaliza contenido opcional y rechaza estructuras de menú que no sean válidas', () => {
+    expect(sanitizePlainText('<script>alert(1)</script><b>Chifrijo</b>\u0001')).toBe('Chifrijo');
+    expect(normalizeMenuRows([{ nombre: '<b>Chifrijo</b>', precio: '6400', sedesNoDisponibles: null }], () => 'generated-id')).toEqual([
+      { id: 'generated-id', nombre: 'Chifrijo', categoria: 'Sin categoría', precio: 6400, descripcion: '', sedesNoDisponibles: [] }
+    ]);
+    expect(() => normalizeMenuRows({ nombre: 'incorrecto' })).toThrow(/No hay platillos/i);
+    expect(() => normalizeMenuRows([{ nombre: 'Platillo', precio: 10, sedesNoDisponibles: 12 }])).toThrow(/sedes restringidas no válidas/i);
+  });
+
+  it('lee archivos de texto y buffer y propaga errores de FileReader', async () => {
+    const file = new File(['contenido QA'], 'datos.csv', { type: 'text/csv' });
+    expect(await readFileText(file)).toBe('contenido QA');
+    expect(await readFileBuffer(file)).toBeInstanceOf(ArrayBuffer);
+
+    const textReader = vi.spyOn(FileReader.prototype, 'readAsText').mockImplementation(function () { this.onerror?.(new ProgressEvent('error')); });
+    await expect(readFileText(file)).rejects.toThrow(/No se pudo leer el archivo/i);
+    textReader.mockRestore();
+    vi.spyOn(FileReader.prototype, 'readAsArrayBuffer').mockImplementation(function () { this.onerror?.(new ProgressEvent('error')); });
+    await expect(readFileBuffer(file)).rejects.toThrow(/No se pudo leer el archivo/i);
+  });
+
+  it('rechaza archivos XLSX cuyo método de compresión no es compatible', async () => {
+    const workbook = await readBlob(createXlsxBlob([{ nombre: 'Falla compresión' }], ['nombre']));
+    const bytes = new Uint8Array(workbook);
+    const view = new DataView(workbook);
+    let centralOffset = -1;
+    for (let index = 0; index <= bytes.length - 4; index += 1) {
+      if (view.getUint32(index, true) === 0x02014b50) { centralOffset = index; break; }
+    }
+    const localOffset = view.getUint32(centralOffset + 42, true);
+    view.setUint16(centralOffset + 10, 8, true);
+    view.setUint16(localOffset + 8, 8, true);
+    vi.stubGlobal('DecompressionStream', undefined);
+    await expect(parseXlsx(workbook)).rejects.toThrow(/compresión no compatible/i);
   });
 
   it('importa platillos desde CSV y reporta errores de formato sin romper el panel', async () => {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAccessibility } from '../context/AccessibilityContext';
-import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, RotateCcw, ShoppingBag } from 'lucide-react';
+import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, CreditCard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, RotateCcw, ShoppingBag } from 'lucide-react';
 import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Navbar({ onOpenReservation }) {
@@ -21,6 +21,9 @@ export default function Navbar({ onOpenReservation }) {
     }
     if (['mesero', 'waiter', 'pos'].includes(role)) {
       return { label: 'Panel Mesero POS', path: '/waiter', icon: UtensilsCrossed };
+    }
+    if (role === 'cajero') {
+      return { label: 'Panel Caja', path: '/cashier', icon: CreditCard };
     }
     if (['cocina', 'kitchen', 'kds'].includes(role)) {
       return { label: 'Panel Cocina KDS', path: '/kitchen', icon: ChefHat };

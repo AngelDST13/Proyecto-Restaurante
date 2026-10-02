@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../context/AuthContext';
@@ -58,9 +58,26 @@ describe('Login: validaciones, errores y redirección por rol', () => {
     expect(screen.getByTestId('current-path')).toHaveTextContent(expectedPath);
   });
 
+  it.each([
+    ['cajero.escazu@elcacique.com', 'CajaEscazu2026!'],
+    ['cajero.santaana@elcacique.com', 'CajaSantaAna2026!'],
+    ['cajero.cartago@elcacique.com', 'CajaCartago2026!'],
+    ['cajero.heredia@elcacique.com', 'CajaHeredia2026!']
+  ])('autentica y dirige al panel de caja la cuenta %s', async (emailValue, passwordValue) => {
+    vi.useFakeTimers();
+    renderLogin();
+    fireEvent.change(screen.getByPlaceholderText(/admin@elcacique.com/i), { target: { value: emailValue } });
+    fireEvent.change(screen.getByPlaceholderText('••••••••••••'), { target: { value: passwordValue } });
+    fireEvent.click(screen.getAllByRole('button', { name: /Iniciar Sesión/i }).find(button => button.type === 'submit'));
+    await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+    expect(screen.getByTestId('current-path')).toHaveTextContent('/cashier');
+  });
+
   it('carga las credenciales seleccionadas en el formulario sin enviarlo', () => {
     renderLogin();
-    fireEvent.click(screen.getByRole('button', { name: 'Cargar credenciales Cocina KDS Escazú' }));
+    fireEvent.click(screen.getByRole('button', { name: /Accesos Rápidos de Prueba/i }));
+    const credentialCard = screen.getByText('cocina.escazu@elcacique.com').closest('article');
+    fireEvent.click(within(credentialCard).getByRole('button', { name: 'Autocompletar' }));
     expect(screen.getByPlaceholderText(/admin@elcacique.com/i)).toHaveValue('cocina.escazu@elcacique.com');
     expect(screen.getByPlaceholderText('••••••••••••')).toHaveValue('CocinaEscazu2026!');
     expect(screen.getByTestId('current-path')).toHaveTextContent('/login');

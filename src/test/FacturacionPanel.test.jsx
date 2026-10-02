@@ -64,6 +64,32 @@ describe('FacturacionPanel: caja, ventas e inventario', () => {
     expect(JSON.parse(localStorage.getItem('cacique_cashier_escazu')).movements[0]).toMatchObject({ tipo: 'Salida', monto: 250, nota: 'Compra de hielo' });
   });
 
+  it('exige responsable, exporta formatos vacíos y aplica límites de importación', async () => {
+    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test');
+    const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    render(<FacturacionPanel sede="santa_ana" />);
+
+    fireEvent.change(screen.getByLabelText('Responsable de caja'), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir caja' }));
+    expect(screen.getByRole('status')).toHaveTextContent('Ingrese el nombre de la persona responsable de la caja.');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar CSV' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar Excel' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar JSON' }));
+    expect(createObjectUrl).toHaveBeenCalledTimes(3);
+    expect(revokeObjectUrl).toHaveBeenCalledTimes(3);
+    expect(anchorClick).toHaveBeenCalledTimes(3);
+
+    const input = screen.getByLabelText('Importar archivo financiero');
+    fireEvent.change(input, { target: { files: [new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'too-large.csv')] } });
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('El archivo supera el límite de 5 MB.'));
+
+    const manyRows = `sede,periodo,ventas,costos\n${Array.from({ length: 5001 }, () => 'Santa Ana,2026-09,1,1').join('\n')}`;
+    fireEvent.change(input, { target: { files: [new File([manyRows], 'too-many-rows.csv')] } });
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('El archivo supera el límite de 5.000 filas.'));
+  });
+
   it('importa reportes financieros CSV validados y rechaza fórmulas o datos incompletos', async () => {
     render(<FacturacionPanel sede="heredia" sedeNombre="Heredia" />);
     const input = screen.getByLabelText('Importar archivo financiero');

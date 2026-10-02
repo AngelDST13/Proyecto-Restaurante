@@ -3,7 +3,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import WaiterDashboard from '../pages/WaiterDashboard';
-import { recordCashierSale } from '../services/cashierService';
+import { CASHIER_ORDERS_STORAGE_KEY, recordCashierSale } from '../services/cashierService';
 
 const saleDetails = {
   sede: 'cartago',
@@ -46,25 +46,24 @@ describe('Cobros POS por sede', () => {
     fireEvent.click(screen.getByRole('button', { name: /Generar Pre-cuenta/i }));
   };
 
-  it('guarda el cobro del mesero y libera la mesa únicamente con caja abierta', () => {
-    localStorage.setItem('cacique_cashier_escazu', JSON.stringify({ cashOpen: true, openingAmount: 5000, sales: [] }));
+  it('envía la cuenta del mesero a la cola de caja sin registrar un cobro', () => {
     openTableReceipt();
-    fireEvent.click(screen.getByRole('button', { name: 'Cobrar y cerrar cuenta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar cuenta a caja' }));
 
-    const cashier = JSON.parse(localStorage.getItem('cacique_cashier_escazu'));
-    expect(cashier.sales).toHaveLength(1);
-    expect(cashier.sales[0]).toMatchObject({ pago: 'Tarjeta', cliente: 'Cliente de mesa' });
-    expect(cashier.sales[0].total).toBeGreaterThan(0);
-    expect(screen.getByText('Cobro registrado en caja Escazú')).toBeInTheDocument();
+    const orders = JSON.parse(localStorage.getItem(CASHIER_ORDERS_STORAGE_KEY));
+    expect(orders).toHaveLength(1);
+    expect(orders[0]).toMatchObject({ sede: 'escazu', tableId: 2, mesa: 'Mesa 02', pago: 'Tarjeta', status: 'pending' });
+    expect(orders[0].total).toBeGreaterThan(0);
+    expect(localStorage.getItem('cacique_cashier_escazu')).toBeNull();
+    expect(screen.getByText('Cuenta enviada a caja Escazú')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('conserva la mesa y el comprobante si la caja de la sede está cerrada', () => {
+  it('permite encolar cuentas aunque la caja esté cerrada para que el cajero las liquide después', () => {
     openTableReceipt();
-    fireEvent.click(screen.getByRole('button', { name: 'Cobrar y cerrar cuenta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar cuenta a caja' }));
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('La caja de esta sede está cerrada.')).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem(CASHIER_ORDERS_STORAGE_KEY))).toHaveLength(1);
     expect(localStorage.getItem('cacique_cashier_escazu')).toBeNull();
   });
 });

@@ -172,6 +172,7 @@ export default function ReservationModal({
                 <label className="block text-xs font-bold text-gray-300 mb-1.5">Tipo de Celebración</label>
                 <select
                   name="tipo"
+                  aria-label="Tipo de Celebración"
                   value={formData.tipo}
                   onChange={handleChange}
                   className="w-full bg-[#0A090C] border border-[#659B5E]/40 rounded-xl py-3 px-4 text-xs font-bold text-white focus:outline-none focus:border-[#D16014] cursor-pointer"
@@ -194,6 +195,7 @@ export default function ReservationModal({
                   <Calendar className="absolute left-3.5 top-3.5 w-4 h-4 text-[#D16014]" />
                   <input
                     type="date"
+                    aria-label="Fecha"
                     name="fecha"
                     min={todayStr}
                     value={formData.fecha}
@@ -211,6 +213,7 @@ export default function ReservationModal({
                   <Clock className="absolute left-3.5 top-3.5 w-4 h-4 text-[#D16014]" />
                   <input
                     type="time"
+                    aria-label="Hora"
                     name="hora"
                     value={formData.hora}
                     onChange={handleChange}

@@ -14,6 +14,11 @@ describe('Pruebas de Componentes Interactivos', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it('usa el icono informativo por defecto ante un tipo de Toast desconocido', () => {
+    render(<Toast message="Tipo desconocido" type="warning" onClose={vi.fn()} />);
+    expect(screen.getByText('Tipo desconocido').parentElement.querySelector('svg')).toHaveClass('lucide-info');
+  });
+
   it('cierra la notificación al vencer su duración', () => {
     vi.useFakeTimers();
     const onClose = vi.fn();
