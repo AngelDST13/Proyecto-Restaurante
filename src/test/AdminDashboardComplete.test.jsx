@@ -147,6 +147,11 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
     localStorage.removeItem('cacique_cashier_escazu');
     renderAdmin();
     const logo = screen.getByAltText('El Cacique Logo');
+    expect(logo).toHaveAttribute('src', expect.stringContaining('Cacique.svg'));
+    expect(logo).toHaveClass('w-14', 'h-14');
+    expect(logo.className).toContain('drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]');
+    expect(logo.closest('div').parentElement).toHaveTextContent('EL CACIQUE');
+    expect(logo.closest('div').parentElement).toHaveTextContent('Chicharronera Gourmet');
     fireEvent.error(logo);
     expect(logo).toHaveAttribute('src', expect.stringContaining('LogoN.svg'));
 

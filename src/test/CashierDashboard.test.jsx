@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import AppRouter from '../routes/AppRouter';
 import PublicRoute from '../routes/PublicRoute';
@@ -24,6 +24,15 @@ vi.mock('../services/n8nService', () => ({
   subscribeToLiveEvents: vi.fn(() => () => {})
 }));
 
+const cashierMocks = vi.hoisted(() => ({ failQueueSync: false }));
+vi.mock('../services/cashierService', async importOriginal => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    removeCashierOrder: (...args) => (cashierMocks.failQueueSync ? false : actual.removeCashierOrder(...args))
+  };
+});
+
 function CurrentPath() {
   return <span data-testid="current-cashier-path">{useLocation().pathname}</span>;
 }
@@ -38,10 +47,9 @@ const createMemoryStorage = (initialValue = null, failures = {}) => {
 };
 
 describe('CashierDashboard y acceso por roles', () => {
-  afterEach(() => vi.restoreAllMocks());
-
   beforeEach(() => {
     localStorage.clear();
+    cashierMocks.failQueueSync = false;
     authContext.logout.mockClear();
     authContext.user = { email: 'cajero.escazu@elcacique.com', nombre: 'Cajero QA', rol: 'cajero', sede: 'escazu' };
   });
@@ -56,22 +64,32 @@ describe('CashierDashboard y acceso por roles', () => {
     renderApp();
 
     expect(screen.getByRole('heading', { name: 'Panel de Cajero' })).toBeInTheDocument();
-    expect(screen.getByText('Comandas listas para cobrar')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Mapa de Mesas y Cuentas Activas' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Dibujo ilustrado del Cacique' })).toHaveAttribute('src', expect.stringContaining('Cacique.svg'));
+    expect(screen.getByRole('button', { name: 'Mesa 02: Disponible' })).toHaveClass('bg-emerald-950/30');
+    fireEvent.click(screen.getByRole('button', { name: 'Mesa 02: Disponible' }));
+    expect(screen.getByText('Mesa 02 está disponible.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mesa 07: Pidiendo Cuenta' })).toHaveClass('bg-amber-500/20');
+    fireEvent.click(screen.getByRole('button', { name: 'Mesa 07: Pidiendo Cuenta' }));
+    expect(screen.getByRole('region', { name: 'Comanda activa Mesa 07' })).toHaveTextContent('1 × Chifrijo QA');
+    expect(screen.getByText(/Servicio 10%/)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Monto inicial'), { target: { value: '10000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Abrir caja' }));
-    fireEvent.change(screen.getByLabelText('Forma de pago Mesa 07'), { target: { value: 'SINPE Móvil' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Cobrar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Mesa 07: Pidiendo Cuenta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cobrar Efectivo' }));
 
     const invoice = await screen.findByRole('article', { name: 'Factura electrónica de demostración' });
     expect(within(invoice).getByText('Cliente: Cliente QA')).toBeInTheDocument();
-    expect(within(invoice).getByText('Forma de pago: SINPE Móvil')).toBeInTheDocument();
+    expect(within(invoice).getByText('Forma de pago: Efectivo')).toBeInTheDocument();
     expect(within(invoice).getByText(/Clave de Hacienda de demostración/).parentElement).toHaveTextContent(/\d{50}/);
     expect(within(invoice).getByRole('link', { name: 'Abrir soporte WhatsApp de la factura' })).toHaveAttribute('href', expect.stringContaining('wa.me'));
     expect(JSON.parse(localStorage.getItem('cacique_cashier_escazu')).sales).toEqual(expect.arrayContaining([
-      expect.objectContaining({ orderId: 'order-qa-1', total: 12300, pago: 'SINPE Móvil' })
+      expect.objectContaining({ orderId: 'order-qa-1', total: 12300, pago: 'Efectivo' })
     ]));
     expect(JSON.parse(localStorage.getItem(CASHIER_ORDERS_STORAGE_KEY))).toEqual([]);
-    expect(JSON.parse(localStorage.getItem('cacique_cashier_escazu')).sales[0].pago).toBe('SINPE Móvil');
+    expect(JSON.parse(localStorage.getItem('cacique_cashier_escazu')).sales[0].pago).toBe('Efectivo');
+    expect(screen.getByRole('button', { name: 'Mesa 07: Disponible' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Comanda activa Mesa 07' })).not.toBeInTheDocument();
 
     fireEvent.click(within(invoice).getByRole('button', { name: 'Imprimir factura' }));
     expect(printInvoice).toHaveBeenCalledOnce();
@@ -142,8 +160,9 @@ describe('CashierDashboard y acceso por roles', () => {
       subtotal: 1000, iva: 130, servicio: 100, total: 1230, pago: 'Efectivo', status: 'pending'
     }]));
     window.dispatchEvent(new Event('cacique-cashier-orders-updated'));
-    await screen.findByRole('button', { name: 'Cobrar' });
-    fireEvent.click(screen.getByRole('button', { name: 'Cobrar' }));
+    await screen.findByRole('button', { name: 'Mesa 03: Pidiendo Cuenta' });
+    fireEvent.click(screen.getByRole('button', { name: 'Mesa 03: Pidiendo Cuenta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cobrar Efectivo' }));
 
     expect(screen.getByText('La caja de esta sede está cerrada.')).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem(CASHIER_ORDERS_STORAGE_KEY))).toHaveLength(1);
@@ -164,6 +183,26 @@ describe('CashierDashboard y acceso por roles', () => {
     expect(await screen.findByText('Mesa 04')).toBeInTheDocument();
   });
 
+  it('muestra el cajero de turno por defecto, etiqueta mesas numeradas y avisa si la cola no se sincroniza', () => {
+    authContext.user = { rol: 'cajero', sede: 'heredia' };
+    localStorage.setItem('cacique_cashier_heredia', JSON.stringify({ cashOpen: true, openingAmount: 0, sales: [] }));
+    localStorage.setItem(CASHIER_ORDERS_STORAGE_KEY, JSON.stringify([
+      { id: 'order-mesa', sede: 'heredia', tableId: 2, mesa: 'Mesa 02', total: 900, status: 'pending' },
+      { id: 'order-sin-nombre', sede: 'heredia', tableId: 6, total: 650, subtotal: 500, iva: 65, servicio: 50, status: 'pending' }
+    ]));
+    renderApp();
+
+    expect(screen.getByText('Turno de Cajero de turno')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Mesa 02: Pidiendo Cuenta' }));
+    expect(screen.getByRole('region', { name: /Comanda activa Mesa 02/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Mesa 06: Pidiendo Cuenta' }));
+    expect(screen.getByRole('region', { name: /Comanda activa Mesa 06/ })).toBeInTheDocument();
+
+    cashierMocks.failQueueSync = true;
+    fireEvent.click(screen.getByRole('button', { name: 'Cobrar Efectivo' }));
+    expect(screen.getByText(/actualice la cola para sincronizar la cuenta/i)).toBeInTheDocument();
+  });
+
   it('rechaza un método de pago ajeno a las opciones del POS', () => {
     localStorage.setItem('cacique_cashier_escazu', JSON.stringify({ cashOpen: true, openingAmount: 5000, sales: [] }));
     localStorage.setItem(CASHIER_ORDERS_STORAGE_KEY, JSON.stringify([{
@@ -171,7 +210,8 @@ describe('CashierDashboard y acceso por roles', () => {
       subtotal: 1000, iva: 130, servicio: 100, total: 1230, pago: 'Criptomoneda', status: 'pending'
     }]));
     renderApp();
-    fireEvent.click(screen.getByRole('button', { name: 'Cobrar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Mesa 05: Pidiendo Cuenta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir Factura Electrónica' }));
     expect(screen.getByText('Seleccione un método de pago válido.')).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem('cacique_cashier_escazu'))).toMatchObject({ cashOpen: true, sales: [] });
   });

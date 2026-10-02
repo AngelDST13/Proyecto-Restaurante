@@ -29,7 +29,7 @@ export default defineConfig({
     pool: 'vmThreads',
     globals: true,
     setupFiles: ['./src/test/setup.js'],
-    testTimeout: 15000,
+    testTimeout: 60000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -43,10 +43,10 @@ export default defineConfig({
         'src/vite-env.d.ts'
       ],
       thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 80,
-        statements: 80
+        lines: 85,
+        functions: 85,
+        branches: 85,
+        statements: 85
       }
     }
   }

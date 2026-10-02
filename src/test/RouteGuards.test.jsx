@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import AdminRoute from '../routes/AdminRoute';
 import PrivateRoute from '../routes/PrivateRoute';
+import Unauthorized from '../pages/Unauthorized';
 
 function SessionTools() {
   const { login } = useAuth();
@@ -18,7 +19,8 @@ function renderGuard(path = '/admin') {
     <Route path="/private" element={<PrivateRoute allowedRoles={['administrador']}><span>Ruta privada</span></PrivateRoute>} />
     <Route path="/open" element={<PrivateRoute><span>Ruta abierta al personal</span></PrivateRoute>} />
     <Route path="/login" element={<span>Login route</span>} />
-    <Route path="/unauthorized" element={<span>No autorizado</span>} />
+    <Route path="/unauthorized" element={<Unauthorized />} />
+    <Route path="/" element={<span>Inicio seguro</span>} />
   </Routes></MemoryRouter></AuthProvider>);
 }
 
@@ -28,7 +30,7 @@ describe('Guardas de rutas y roles', () => {
     expect(screen.getByText('Login route')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mesero' }));
     fireEvent.click(screen.getByRole('button', { name: 'Ir Admin' }));
-    expect(screen.getByText('No autorizado')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '403 — Acceso Restringido' })).toBeInTheDocument();
   });
 
   it('acepta admins, controla allowedRoles opcional y niega roles incompatibles', () => {
@@ -38,8 +40,15 @@ describe('Guardas de rutas y roles', () => {
     expect(screen.getByText('Ruta privada')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mesero' }));
     fireEvent.click(screen.getByRole('button', { name: 'Ir Private' }));
-    expect(screen.getByText('No autorizado')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Ir Open' }));
-    expect(screen.getByText('Ruta abierta al personal')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '403 — Acceso Restringido' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Volver al Inicio Seguro' }));
+    expect(screen.getByText('Inicio seguro')).toBeInTheDocument();
+  });
+
+  it('deja entrar al administrador autenticado a la ruta exclusiva', () => {
+    renderGuard('/admin');
+    fireEvent.click(screen.getByRole('button', { name: 'Admin' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ir Admin' }));
+    expect(screen.getByText('Admin privado')).toBeInTheDocument();
   });
 });

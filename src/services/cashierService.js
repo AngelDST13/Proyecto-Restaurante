@@ -2,10 +2,23 @@ import { sanitizePlainText } from './spreadsheetService';
 
 const CASHIER_STORAGE_PREFIX = 'cacique_cashier_';
 export const CASHIER_ORDERS_STORAGE_KEY = 'cacique_cashier_orders';
+export const CASHIER_TABLE_COUNTS = { escazu: 24, santa_ana: 18, cartago: 20, heredia: 16 };
 const PAYMENT_METHODS = new Set(['Efectivo', 'Tarjeta', 'SINPE Móvil']);
 
 function notifyCashierOrderChange() {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('cacique-cashier-orders-updated'));
+}
+
+function notifyCashierStateChange() {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cacique-cashier-state-updated'));
+}
+
+export function getCashierState(sede, storage = localStorage) {
+  try {
+    return JSON.parse(storage.getItem(`${CASHIER_STORAGE_PREFIX}${sede}`) || 'null');
+  } catch {
+    return null;
+  }
 }
 
 export function getCashierOrders(sede, storage = localStorage) {
@@ -98,6 +111,7 @@ export function recordCashierSale({ sede, cliente, cedula, descripcion, subtotal
 
   try {
     storage.setItem(storageKey, JSON.stringify(nextState));
+    if (storage === localStorage) notifyCashierStateChange();
     return { success: true, sale };
   } catch {
     return { success: false, message: 'No se pudo guardar el cobro en la caja.' };
