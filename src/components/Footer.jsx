@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Phone, Clock, Mail, MessageSquare, ShieldCheck, Store } from 'lucide-react';
-import caciqueIcon from '../assets/img/Cacique.svg';
+import { caciqueAsset as caciqueIcon } from '../assets/img';
 
 export default function Footer() {
   return (
@@ -97,3 +97,4 @@ export default function Footer() {
     </footer>
   );
 }
+

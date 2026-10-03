@@ -413,18 +413,18 @@ describe('TalkBackService (Web Speech Synthesis)', () => {
       window.localStorage.setItem('cacique_talkback_enabled', 'true');
       render(withTalkBack(<SpeakablePage />));
 
+      expect(window.speechSynthesis.pause).not.toHaveBeenCalled();
+      fireEvent.pointerDown(document.body);
+
+      // El desbloqueo inicializa el canal de audio sin emitir locucion alguna,
+      // para no pisar la lectura real del usuario.
+      expect(window.speechSynthesis.pause).toHaveBeenCalledTimes(1);
+      expect(window.speechSynthesis.resume).toHaveBeenCalledTimes(1);
       expect(window.speechSynthesis.speak).not.toHaveBeenCalled();
-      fireEvent.pointerDown(document.body);
 
-      // La locucion de calentamiento se emite y se cancela de inmediato.
-      const warmup = window.speechSynthesis.speak.mock.calls[0][0];
-      expect(warmup.volume).toBe(0);
-      expect(warmup.lang).toBe('es-ES');
-      expect(window.speechSynthesis.cancel).toHaveBeenCalled();
-
-      const callsAfterUnlock = window.speechSynthesis.speak.mock.calls.length;
+      const pauseCalls = window.speechSynthesis.pause.mock.calls.length;
       fireEvent.pointerDown(document.body);
-      expect(window.speechSynthesis.speak.mock.calls.length).toBe(callsAfterUnlock);
+      expect(window.speechSynthesis.pause.mock.calls.length).toBe(pauseCalls);
     });
 
     it('tolera motores que rechazan la locucion de calentamiento', () => {

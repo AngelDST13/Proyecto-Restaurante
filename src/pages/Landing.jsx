@@ -8,7 +8,7 @@ import {
   Flame, ChevronRight, ChevronLeft, Award, ShieldCheck, Sparkles,
   AlertTriangle, Ghost, Snowflake, PartyPopper
 } from 'lucide-react';
-import caciqueIcon from '../assets/img/Cacique.svg';
+import { caciqueAsset as caciqueIcon } from '../assets/img';
 
 function getSeasonForDate(now) {
   const month = now.getMonth() + 1;
@@ -681,3 +681,4 @@ export default function Landing() {
     </div>
   );
 }
+

@@ -42,6 +42,7 @@ export default function StatusBadge({ status = 'disponible', label, className = 
     >
       <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <span>{text}</span>
+      {text !== config.label && <span className="sr-only">{config.label}</span>}
     </span>
   );
 }

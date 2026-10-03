@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAccessibility } from '../context/AccessibilityContext';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, CreditCard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, ShoppingBag } from 'lucide-react';
-import caciqueIcon from '../assets/img/Cacique.svg';
+import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, CreditCard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, ShoppingBag, Sun, Moon } from 'lucide-react';
+import { caciqueAsset as caciqueIcon } from '../assets/img';
 
 export default function Navbar({ onOpenReservation }) {
   const { user, logout } = useAuth();
+  const { isLightTheme, toggleTheme } = useAccessibility();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -90,7 +92,7 @@ export default function Navbar({ onOpenReservation }) {
             <img
               src={caciqueIcon}
               alt="Logo El Cacique"
-              className="cacique-logo relative z-10 h-full w-full object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] transition-transform duration-300 group-hover:scale-105"
+              className="cacique-logo relative z-10 h-full w-full object-contain drop-shadow-[0_0_12px_rgba(0,0,0,0.9)] transition-transform duration-300 group-hover:scale-105"
             />
           </div>
           <div className="min-w-0 shrink">
@@ -104,7 +106,7 @@ export default function Navbar({ onOpenReservation }) {
         </Link>
 
         {/* MENÚ DESKTOP */}
-        <nav className="hidden xl:flex flex-1 items-center justify-center gap-5 xl:gap-8 text-xs xl:text-sm font-extrabold tracking-wide">
+        <nav className="hidden xl:flex flex-1 items-center justify-center gap-4 xl:gap-6 text-xs xl:text-sm font-extrabold tracking-wide">
           <button
             type="button"
             onClick={handleLandingClick}
@@ -139,12 +141,24 @@ export default function Navbar({ onOpenReservation }) {
         </nav>
 
         {/* CONTROLES DE ACCESIBILIDAD Y SESIÓN */}
-        <div className="hidden 2xl:flex shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-full bg-(--cacique-surface) border border-(--cacique-border)/20 text-[10px] text-(--cacique-accent-alt) font-bold whitespace-nowrap">
+        <div className="hidden min-[1800px]:flex shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-full bg-(--cacique-surface) border border-(--cacique-border)/20 text-[10px] text-(--cacique-accent-alt) font-bold whitespace-nowrap">
           <ShoppingBag className="w-3.5 h-3.5 text-[#D16014]" />
           <span>Servicio en Mesa &amp; Express / Recoger en Local</span>
         </div>
 
-        <div className="hidden xl:flex shrink-0 items-center gap-2">
+        <div className="hidden xl:flex shrink-0 items-center gap-2 pl-2">
+          {/* Conmutador rapido de tema: un solo clic alterna Claro / Oscuro. */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-pressed={isLightTheme}
+            aria-label={isLightTheme ? 'Activar modo oscuro' : 'Activar modo claro'}
+            title={isLightTheme ? 'Activar modo oscuro' : 'Activar modo claro'}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-(--cacique-border)/30 bg-(--cacique-card) text-(--cacique-accent-alt) shadow-sm transition-colors cursor-pointer hover:border-(--cacique-accent) hover:text-(--cacique-accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--cacique-accent)"
+          >
+            {isLightTheme ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          </button>
+
           <button
             type="button"
             onClick={handleReservationClick}
@@ -262,6 +276,19 @@ export default function Navbar({ onOpenReservation }) {
           </button>
 
           <div className="pt-3 border-t border-[#F8FFE5]/10">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-pressed={isLightTheme}
+            aria-label={isLightTheme ? 'Activar modo oscuro' : 'Activar modo claro'}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#659B5E]/40 px-3 py-2.5 text-xs font-bold text-[#F8FFE5] transition-colors cursor-pointer"
+          >
+            {isLightTheme ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            <span>{isLightTheme ? 'Modo oscuro' : 'Modo claro'}</span>
+          </button>
+        </div>
+
+        <div className="pt-3 border-t border-[#F8FFE5]/10">
             {user ? (
               <button 
                 type="button"
@@ -286,4 +313,5 @@ export default function Navbar({ onOpenReservation }) {
     </header>
   );
 }
+
 

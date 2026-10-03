@@ -12,21 +12,22 @@
     --color-orange: #D16014;
     --color-glass: #001812;
 
-    /* Paleta oficial Modo Claro Gourmet (artesanal / gourmet) */
-    --cacique-canvas: #F4F0EA;
-    --cacique-surface: #FDFBF7;
-    --cacique-card: #062319;
-    --cacique-border: #2D5A27;
-    --cacique-heading: #0A2E20;
-    --cacique-text: #0A2E20;
-    --cacique-muted: #4A5A50;
-    --cacique-on-card: #F4F0EA;
-    --cacique-on-card-muted: #C7D6C2;
-    --cacique-accent: #D97706;
+    /* Paleta oficial Modo Claro Artesanal (Beige / Cafe / Ambar) */
+    --cacique-canvas: #F5EFE6;
+    --cacique-surface: #E8DFD8;
+    --cacique-card: #FFFFFF;
+    --cacique-border: #4A3525;
+    --cacique-heading: #2C1A0E;
+    --cacique-text: #2C1A0E;
+    --cacique-forest: #0A2E20;
+    --cacique-muted: #5C4636;
+    --cacique-on-card: #2C1A0E;
+    --cacique-on-card-muted: #5C4636;
+    --cacique-accent: #C86D12;
     --cacique-accent-alt: #D97706;
-    --cacique-border-alpha: #2D5A2733;
-    --cacique-accent-alpha: #D9770626;
-    --cacique-logo-glow: drop-shadow(0px 0px 8px rgba(0, 0, 0, 0.6));
+    --cacique-border-alpha: #4A352533;
+    --cacique-accent-alpha: #C86D1226;
+    --cacique-logo-glow: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85));
   }
 
   html,
@@ -95,7 +96,7 @@ html,
    ========================================================================== */
 
 html.theme-light .cacique-logo {
-  filter: drop-shadow(0px 0px 8px rgba(0, 0, 0, 0.6))
+  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85))
     drop-shadow(0 0 12px rgba(255, 255, 255, 0.9));
 }
 
@@ -104,22 +105,16 @@ html.theme-dark .cacique-logo {
 }
 
 /* ==========================================================
-   Modo Claro Gourmet: tarjetas verde esmeralda profundo con
-   tipografia clara, y superficies blancas para zonas de lectura
-   extensa (tablas, formularios, listados).
+   Modo Claro Artesanal: tarjetas y superficies blancas o crema
+   tostado con bordes en cafe artesanal y sombras de profundidad.
    ========================================================== */
 
-html.theme-light .glass-card {
-  background: rgba(6, 35, 25, 0.96);
-  border: 1px solid rgba(45, 90, 39, 0.55);
-  color: var(--cacique-on-card);
-  box-shadow: 0 10px 30px -14px rgba(10, 46, 32, 0.45);
-}
-
+html.theme-light .glass-card,
 html.theme-light .cacique-card {
-  background-color: var(--cacique-card);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(74, 53, 37, 0.2);
   color: var(--cacique-on-card);
-  border-color: rgba(45, 90, 39, 0.55);
+  box-shadow: 0 10px 30px -14px rgba(44, 26, 14, 0.28);
 }
 
 html.theme-light .cacique-surface {
@@ -145,18 +140,47 @@ html.theme-light .cacique-surface {
     filter: url(#cb-filter-tritanopia);
   }
 
+  /* Acromatopsia: escala de grises pura con texto siempre legible. */
   html.cb-acromatopsia #cacique-app-root {
-    filter: url(#cb-filter-acromatopsia) contrast(1.2);
+    filter: url(#cb-filter-acromatopsia) contrast(1.35);
   }
 
+  html.cb-acromatopsia #cacique-app-root :is(button, a, span, p, td, th, label) {
+    text-shadow: 0 0 1px currentColor;
+  }
+
+  /* Contraste superior a 7:1 (WCAG AAA): fondo casi negro, texto casi blanco
+     y bordes amarillo fluorescente de alta visibilidad. */
   html.cb-alto-contraste #cacique-app-root {
-    filter: url(#cb-filter-alto-contraste) contrast(1.35);
+    filter: url(#cb-filter-alto-contraste) contrast(1.6);
+    background-color: #000000;
+    color: #ffffff;
   }
 
   html.cb-alto-contraste .cb-hc-outline,
   html.cb-alto-contraste button,
-  html.cb-alto-contraste a {
-    border-color: #ffd400 !important;
+  html.cb-alto-contraste a,
+  html.cb-alto-contraste input,
+  html.cb-alto-contraste select,
+  html.cb-alto-contraste textarea {
+    border: 2px solid #ffd400 !important;
+    color: #ffffff !important;
+    background-color: #000000 !important;
+  }
+
+  html.cb-alto-contraste button:hover,
+  html.cb-alto-contraste a:hover {
+    background-color: #ffd400 !important;
+    color: #000000 !important;
+  }
+
+  html.cb-alto-contraste p,
+  html.cb-alto-contraste span,
+  html.cb-alto-contraste td,
+  html.cb-alto-contraste th,
+  html.cb-alto-contraste label,
+  html.cb-alto-contraste option {
+    color: #ffffff !important;
   }
 
   html.cb-alto-contraste :focus-visible {

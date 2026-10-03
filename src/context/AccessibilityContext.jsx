@@ -21,19 +21,20 @@ export const FONT_SIZE_MAP = {
   2: '120%',
 };
 
-/** Paleta oficial del Modo Claro (artesanal / gourmet). */
+/** Paleta oficial del Modo Claro Artesanal (Beige / Cafe / Ambar). */
 // eslint-disable-next-line react-refresh/only-export-components
 export const LIGHT_PALETTE = {
-  canvas: '#F4F0EA',
-  surface: '#FDFBF7',
-  card: '#062319',
-  border: '#2D5A27',
-  heading: '#0A2E20',
-  text: '#0A2E20',
-  muted: '#4A5A50',
-  onCard: '#F4F0EA',
-  onCardMuted: '#C7D6C2',
-  accent: '#D97706',
+  canvas: '#F5EFE6',
+  surface: '#E8DFD8',
+  card: '#FFFFFF',
+  border: '#4A3525',
+  heading: '#2C1A0E',
+  text: '#2C1A0E',
+  forest: '#0A2E20',
+  muted: '#5C4636',
+  onCard: '#2C1A0E',
+  onCardMuted: '#5C4636',
+  accent: '#C86D12',
   accentAlt: '#D97706',
 };
 
@@ -51,6 +52,7 @@ export const DARK_PALETTE = {
   onCardMuted: '#C7D6C2',
   accent: '#D16014',
   accentAlt: '#D97706',
+  forest: '#659B5E',
 };
 
 /**
@@ -184,12 +186,13 @@ export function AccessibilityProvider({ children }) {
     root.style.setProperty('--cacique-on-card', palette.onCard);
     root.style.setProperty('--cacique-on-card-muted', palette.onCardMuted);
     root.style.setProperty('--cacique-muted', palette.muted);
+    root.style.setProperty('--cacique-forest', palette.forest ?? DARK_PALETTE.forest);
     root.style.setProperty('--cacique-border-alpha', `${palette.border}33`);
     root.style.setProperty('--cacique-accent-alpha', `${palette.accent}26`);
     root.style.setProperty(
       '--cacique-logo-glow',
       theme === 'light'
-        ? 'drop-shadow(0px 0px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))'
+        ? 'drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))'
         : 'drop-shadow(0 0 12px rgba(245, 158, 11, 0.4))',
     );
 

@@ -71,13 +71,14 @@ describe('ThemeAndLightMode', () => {
     expect(root.style.getPropertyValue('--cacique-accent-alt')).toBe(LIGHT_PALETTE.accentAlt);
   });
 
-  it('usa la paleta clara Gourmet con contraste legible: crema, esmeralda y ambar', () => {
-    expect(LIGHT_PALETTE.canvas).toBe('#F4F0EA');
-    expect(LIGHT_PALETTE.surface).toBe('#FDFBF7');
-    expect(LIGHT_PALETTE.card).toBe('#062319');
-    expect(LIGHT_PALETTE.border).toBe('#2D5A27');
-    expect(LIGHT_PALETTE.heading).toBe('#0A2E20');
-    expect(LIGHT_PALETTE.accent).toBe('#D97706');
+  it('usa la paleta artesanal clara con contraste alto: beige, cafe y ambar', () => {
+    expect(LIGHT_PALETTE.canvas).toBe('#F5EFE6');
+    expect(LIGHT_PALETTE.surface).toBe('#E8DFD8');
+    expect(LIGHT_PALETTE.card).toBe('#FFFFFF');
+    expect(LIGHT_PALETTE.border).toBe('#4A3525');
+    expect(LIGHT_PALETTE.heading).toBe('#2C1A0E');
+    expect(LIGHT_PALETTE.forest).toBe('#0A2E20');
+    expect(LIGHT_PALETTE.accent).toBe('#C86D12');
     expect(LIGHT_PALETTE.accentAlt).toBe('#D97706');
   });
 
@@ -184,7 +185,7 @@ describe('ThemeAndLightMode', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alternar tema' }));
 
     const lightGlow = document.documentElement.style.getPropertyValue('--cacique-logo-glow');
-    expect(lightGlow).toContain('rgba(0, 0, 0, 0.6)');
+    expect(lightGlow).toContain('rgba(0, 0, 0, 0.85)');
     expect(lightGlow).toContain('rgba(255, 255, 255, 0.9)');
   });
 

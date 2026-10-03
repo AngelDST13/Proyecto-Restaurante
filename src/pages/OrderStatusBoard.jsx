@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Flame, CheckCircle2, Clock, Volume2, Sparkles } from 'lucide-react';
-import caciqueIcon from '../assets/img/Cacique.svg';
+import { caciqueAsset as caciqueIcon } from '../assets/img';
 
 export default function OrderStatusBoard() {
   const [orders, setOrders] = useState([
@@ -119,3 +119,4 @@ export default function OrderStatusBoard() {
     </div>
   );
 }
+

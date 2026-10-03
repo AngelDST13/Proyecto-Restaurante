@@ -6,7 +6,7 @@ import Toast from '../components/Toast';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { TEST_ACCESS_CREDENTIALS } from '../services/authSecurity';
 import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket, Store, KeyRound } from 'lucide-react';
-import caciqueIcon from '../assets/img/Cacique.svg';
+import { caciqueAsset as caciqueIcon } from '../assets/img';
 
 export default function Login() {
   const { loginWithCredentials, registerClient } = useAuth();
@@ -217,6 +217,8 @@ export default function Login() {
               <button 
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                aria-pressed={showPassword}
                 className="absolute right-3.5 top-3 text-gray-400 hover:text-white cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -275,3 +277,4 @@ function CredentialOption({ credential, onAutofill, onClose }) {
     <button type="button" onClick={() => { onAutofill(credential); onClose(); }} className="min-h-9 shrink-0 rounded-md border border-amber-500/30 px-3 text-xs font-bold text-amber-200 hover:bg-amber-500/10">Autocompletar</button>
   </article>;
 }
+

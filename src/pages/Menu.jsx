@@ -234,6 +234,8 @@ export default function Menu() {
                 setIsCartOpen(true);
                 window.dispatchEvent(new Event('cart-opened'));
               }}
+              aria-label="Ver pedido actual"
+              aria-haspopup="dialog"
               className="px-6 py-3.5 rounded-2xl bg-[#D16014] text-white font-extrabold text-xs flex items-center gap-3 shadow-2xl hover:scale-105 transition-transform cursor-pointer"
             >
               <ShoppingBag className="w-5 h-5" />

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { PackagePlus, Printer, Receipt, Upload, Wallet } from 'lucide-react';
-import officialLogo from '../assets/img/LogoN.svg';
+import { logoDarkVariant as officialLogo } from '../assets/img';
 import { createXlsxBlob, downloadBlob, parseCsv, parseXlsx, readFileBuffer, readFileText, rowsToCsv, sanitizeImportedValue, sanitizePlainText } from '../services/spreadsheetService';
 
 const WHATSAPP = 'https://wa.me/50622008888';
@@ -232,3 +232,4 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz√
 function Metric({ label, amount }) {
   return <div className="min-w-0 rounded-2xl border border-[#659B5E]/20 bg-black/20 p-4"><span className="text-xs text-zinc-400">{label}</span><strong className="mt-1 block wrap-break-word text-xl font-black text-amber-300">‚Ç°{amount.toLocaleString('es-CR')}</strong></div>;
 }
+

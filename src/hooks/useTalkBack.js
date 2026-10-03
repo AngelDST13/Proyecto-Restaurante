@@ -54,6 +54,14 @@ export const sanitizeSpeechText = (text) => {
   return result.replace(/\s+/g, ' ').trim();
 };
 
+/** Teclas que disparan lectura explicita sobre el elemento enfocado. */
+export const ACTIVATION_KEYS = [' ', 'Spacebar', 'Enter'];
+
+/** Milisegundos máximos entre dos toques para considerarlos doble toque. */
+export const DOUBLE_TAP_WINDOW_MS = 320;
+
+export const isActivationKey = (key) => ACTIVATION_KEYS.includes(key);
+
 export const getSpeechSynthesis = () => {
   if (typeof window === 'undefined') return null;
   return window.speechSynthesis ?? null;
@@ -111,6 +119,7 @@ export function useTalkBackEngine({ lang = DEFAULT_TALKBACK_LANG } = {}) {
   const [isSupported] = useState(isSpeechSynthesisAvailable);
   const lastAnnouncementRef = useRef('');
   const lastHoveredRef = useRef(null);
+  const lastTapRef = useRef({ time: 0, target: null });
 
   const cancel = useCallback(() => {
     getSpeechSynthesis()?.cancel();
@@ -237,13 +246,64 @@ export function useTalkBackEngine({ lang = DEFAULT_TALKBACK_LANG } = {}) {
       describe(event);
     };
 
+    /** Espacio o Enter sobre el elemento enfocado repiten la lectura. */
+    const onKeyDown = (event) => {
+      if (!isActivationKey(event.key)) return;
+      const active = document.activeElement;
+      if (!active || active === document.body) return;
+      const label = extractSpeechLabel(active);
+      if (!label) return;
+      event.preventDefault();
+      speak(label, { rate });
+    };
+
     document.addEventListener('focusin', onFocusIn, true);
     document.addEventListener('mouseover', onPointerOver, true);
+    document.addEventListener('keydown', onKeyDown, true);
 
     return () => {
       document.removeEventListener('focusin', onFocusIn, true);
       document.removeEventListener('mouseover', onPointerOver, true);
+      document.removeEventListener('keydown', onKeyDown, true);
       lastHoveredRef.current = null;
+    };
+  }, [isEnabled, rate, speak]);
+
+  /**
+   * Gestos tactiles: un toque lee el elemento; dos toques consecutivos sobre
+   * el mismo elemento leen ademas el bloque de texto que lo contiene
+   * (tarjeta de menu, estado de mesa o alerta de stock).
+   */
+  useEffect(() => {
+    if (!isEnabled) return undefined;
+
+    const onTouchEnd = (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const label = extractSpeechLabel(target);
+      if (!label) return;
+
+      const now = Date.now();
+      const { time, target: previous } = lastTapRef.current;
+      const isDoubleTap = previous === target && now - time <= DOUBLE_TAP_WINDOW_MS;
+
+      lastTapRef.current = { time: isDoubleTap ? 0 : now, target: isDoubleTap ? null : target };
+
+      if (isDoubleTap) {
+        const block = target.closest('article, li, section, tr, [data-spoken-block]');
+        const blockLabel = block ? extractSpeechLabel(block) : '';
+        speak(blockLabel || label, { rate });
+        return;
+      }
+
+      speak(label, { rate });
+    };
+
+    document.addEventListener('touchend', onTouchEnd, true);
+    return () => {
+      document.removeEventListener('touchend', onTouchEnd, true);
+      lastTapRef.current = { time: 0, target: null };
     };
   }, [isEnabled, rate, speak]);
 
@@ -256,18 +316,17 @@ export function useTalkBackEngine({ lang = DEFAULT_TALKBACK_LANG } = {}) {
     if (!isEnabled) return undefined;
 
     const unlock = () => {
-      const synthesis = getSpeechSynthesis();
-      if (!synthesis) return;
+        const synthesis = getSpeechSynthesis();
+        if (!synthesis) return;
 
-      try {
-        const warmup = new window.SpeechSynthesisUtterance(' ');
-        warmup.volume = 0;
-        warmup.lang = lang;
-        synthesis.speak(warmup);
-        synthesis.cancel();
-      } catch {
-        // Algunos motores no aceptan la locucion de calentamiento: se ignora.
-      }
+        try {
+          // Se 'resume' y se 'pause' para forzar al motor a inicializar su canal de
+          // audio sin emitir ninguna locucion que pise la lectura real del usuario.
+          synthesis.pause();
+          synthesis.resume();
+        } catch {
+          // Algunos motores no aceptan esta secuencia: se ignora.
+        }
 
       document.removeEventListener('pointerdown', unlock, true);
       document.removeEventListener('keydown', unlock, true);
