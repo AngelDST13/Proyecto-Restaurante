@@ -4,9 +4,10 @@ import { decryptData, formatSedeName } from '../services/authSecurity';
 import { subscribeToLiveEvents } from '../services/n8nService';
 import { enqueueCashierOrder } from '../services/cashierService';
 import Toast from '../components/Toast';
-import { 
+import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import {
   Utensils, LogOut, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, Scissors, CreditCard, User,
-  ShieldCheck, CheckCircle2, Search, AlertCircle, FileText, Send, Trash2, 
+  ShieldCheck, CheckCircle2, Search, AlertCircle, FileText, Send, Trash2,
   Sparkles, Coffee, BellRing
 } from 'lucide-react';
 
@@ -34,8 +35,10 @@ export default function WaiterDashboard() {
   const [orderNote, setOrderNote] = useState('');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [readyNotifications, setReadyNotifications] = useState([]);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const handleLogout = () => {
+    setIsLogoutModalOpen(false);
     logout();
   };
 
@@ -209,10 +212,10 @@ export default function WaiterDashboard() {
 
   const handleSendToKitchen = () => {
     if (!selectedTable || orderItems.length === 0) return;
-    
+
     setTables(prev => ({
       ...prev,
-      [selectedFloor]: prev[selectedFloor].map(t => 
+      [selectedFloor]: prev[selectedFloor].map(t =>
         t.id === selectedTable.id
           ? {
               ...t,
@@ -269,7 +272,7 @@ export default function WaiterDashboard() {
     }
     setTables(prev => ({
       ...prev,
-      [selectedFloor]: prev[selectedFloor].map(t => 
+      [selectedFloor]: prev[selectedFloor].map(t =>
         t.id === mesa.id ? { ...t, estado: 'Cuenta' } : t
       )
     }));
@@ -448,7 +451,7 @@ export default function WaiterDashboard() {
       )}
 
       <div className="max-w-7xl mx-auto space-y-6">
-        
+
         {/* ENCABEZADO TIPO TERMINAL POS EJECUTIVO */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-[#0A110D] p-5 rounded-2xl border border-[#659B5E]/30 shadow-2xl">
           <div className="flex items-center gap-3">
@@ -478,7 +481,7 @@ export default function WaiterDashboard() {
               <span>Turno Activo: 11:00 AM - 8:00 PM</span>
             </div>
 
-            <button onClick={handleLogout} title="Cerrar Sesión" className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
+            <button onClick={() => setIsLogoutModalOpen(true)} title="Cerrar Sesión" className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
               <LogOut className="w-5 h-5" />
             </button>
           </div>
@@ -877,8 +880,14 @@ export default function WaiterDashboard() {
           </div>
 
         </div>
-
       </div>
+
+    <LogoutConfirmModal
+      isOpen={isLogoutModalOpen}
+      description="Se finalizará la sesión activa del punto de salón."
+      onCancel={() => setIsLogoutModalOpen(false)}
+      onConfirm={handleLogout}
+    />
     </div>
   );
 }

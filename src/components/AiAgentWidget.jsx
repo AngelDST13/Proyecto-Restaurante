@@ -1,5 +1,5 @@
 import { startTransition, useEffect, useRef, useState } from 'react';
-import { Bot, X, Send, Minus, Sparkles, ShieldCheck, EyeOff, MessageSquare } from 'lucide-react';
+import { Bot, X, Send, Minus, Sparkles, ShieldCheck } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { triggerN8nAutomation } from '../services/n8nService';
@@ -20,7 +20,6 @@ export default function AiAgentWidget() {
   const moduloIA = isStaffContext ? 'AGENTE_IA_INTERNO' : 'AGENTE_IA_CONSULTA';
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([
     {
@@ -137,49 +136,27 @@ export default function AiAgentWidget() {
         .cacique-sparkle { animation: caciqueSparkle 2.4s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .cacique-bot-float, .cacique-chat-enter, .cacique-sparkle, .cacique-bot-bounce { animation: none !important; } }
       `}</style>
-      {!isHidden && (!isOpen || isMinimized) && (
-        <div className={`cacique-bot-float cacique-bot-bounce fixed ${positionClasses} z-40 flex items-center gap-1.5`}>
+      // El launcher circular es un unico boton permanente: alterna el chat abierto/cerrado.
+      <div className={`cacique-bot-float cacique-bot-bounce fixed ${positionClasses} z-40 flex items-center justify-center`}>
           <button
             type="button"
             onClick={() => { setIsOpen((previous) => !previous); setIsMinimized(false); }}
             aria-expanded={isOpen}
             aria-controls="cacique-chat-panel"
             aria-label={isOpen ? 'Cerrar asistente virtual' : 'Abrir asistente virtual'}
-            className="group relative flex h-14 w-14 items-center justify-center rounded-full border border-amber-400/50 bg-amber-600 text-white shadow-[0_0_20px_rgba(217,119,6,0.5)] transition-all duration-300 hover:scale-105 hover:bg-amber-500 hover:shadow-[0_0_30px_rgba(217,119,6,0.8)] active:scale-95"
+            className="group relative flex w-14 h-14 items-center justify-center rounded-full shadow-lg bg-amber-600 text-white transition-all duration-300 hover:scale-105 hover:bg-amber-500 active:scale-95"
           >
-            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
-            <Bot className="h-6 w-6 text-white animate-bounce transition-transform duration-300 group-hover:rotate-12" />
+            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" aria-hidden="true" />
+            <Bot className="h-6 w-6 text-white transition-transform duration-300 group-hover:rotate-12" aria-hidden="true" />
             <span className="sr-only">
               {isStaffContext ? 'IA Operativa Staff' : 'Asistente Virtual'}
             </span>
           </button>
-          <button
-            type="button"
-            onClick={() => { setIsHidden(true); setIsOpen(false); setIsMinimized(false); }}
-            title="Ocultar asistente"
-            aria-label="Ocultar asistente"
-            className="rounded-full border border-zinc-700 bg-zinc-900/90 p-2 text-zinc-400 shadow-md transition-colors hover:bg-zinc-800 hover:text-white"
-          >
-            <EyeOff className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
+      </div>
 
-      {isHidden && (
-        <button
-          type="button"
-          onClick={() => setIsHidden(false)}
-          title="Mostrar asistente virtual"
-          aria-label="Mostrar asistente virtual"
-          className={`fixed ${positionClasses} z-40 rounded-full border border-amber-500/40 bg-zinc-900 p-2.5 text-amber-400 opacity-90 shadow-lg transition-all hover:scale-110 hover:opacity-100`}
-        >
-          <MessageSquare className="h-5 w-5" />
-        </button>
-      )}
-
-      {!isHidden && isOpen && !isMinimized && (
-        <div ref={containerRef} className={`cacique-chat-enter fixed ${positionClasses} z-50 flex w-[calc(100vw-2rem)] sm:w-96 flex-col overflow-hidden rounded-3xl border border-amber-500/40 bg-zinc-950/98 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl`}>
-          <div id="cacique-chat-panel" className="flex h-120 max-h-[82vh] min-h-0 flex-col">
+      {isOpen && !isMinimized && (
+        <div ref={containerRef} className={`cacique-chat-enter fixed ${positionClasses} bottom-44 z-50 flex w-[calc(100vw-2rem)] sm:w-96 flex-col overflow-hidden rounded-3xl border border-amber-500/40 bg-zinc-950/98 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl`}>
+          <div id="cacique-chat-panel" className="pointer-events-auto flex h-120 max-h-[82vh] min-h-0 flex-col">
           <div className="p-4 bg-amber-600 border-b border-amber-500/30 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg border border-white/20 bg-black/20 text-white">
@@ -196,10 +173,10 @@ export default function AiAgentWidget() {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => setIsMinimized(true)} title="Minimizar" aria-label="Minimizar asistente" className="rounded-lg p-1 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
+              <button type="button" onClick={() => setIsMinimized(true)} title="Minimizar" aria-label="Minimizar asistente" className="rounded-lg p-1 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
                 <Minus className="w-4 h-4" />
               </button>
-              <button onClick={() => { setIsOpen(false); setIsMinimized(false); }} title="Cerrar" aria-label="Cerrar asistente" className="rounded-lg p-1 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
+              <button type="button" onClick={() => { setIsOpen(false); setIsMinimized(false); }} title="Cerrar" aria-label="Cerrar asistente" className="rounded-lg p-1 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>

@@ -83,17 +83,12 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
     expect(screen.getByText(/₡7.?900/)).toBeInTheDocument();
   });
 
-  it('sincroniza A-, reinicio y A+ con el AccessibilityContext', () => {
+  it('elimina el control de fuente del Sidebar: solo queda en el Dock de Accesibilidad', () => {
     renderAdmin();
-    const root = document.documentElement;
-    fireEvent.click(screen.getAllByRole('button', { name: 'Aumentar tamaño de letra' })[0]);
-    expect(root.style.fontSize).toBe('110%');
-    fireEvent.click(screen.getByRole('button', { name: 'Reducir tamaño de letra' }));
-    expect(root.style.fontSize).toBe('100%');
-    fireEvent.click(screen.getAllByRole('button', { name: 'Aumentar tamaño de letra' })[0]);
-    fireEvent.click(screen.getAllByRole('button', { name: 'Aumentar tamaño de letra' })[0]);
-    fireEvent.click(screen.getByRole('button', { name: 'Restablecer tamaño de letra' }));
-    expect(root.style.fontSize).toBe('100%');
+    expect(screen.queryByRole('button', { name: 'Aumentar tamaño de letra' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reducir tamaño de letra' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Tamaño del texto')).not.toBeInTheDocument();
+    expect(document.documentElement.style.fontSize).toBe('100%');
   });
 
   it('actualiza y persiste el stock de la sede cuando registra una compra en caja', () => {

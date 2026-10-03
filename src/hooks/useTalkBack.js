@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 export const TALKBACK_RATES = [0.8, 1, 1.2];
 export const DEFAULT_TALKBACK_LANG = 'es-ES';
 const STORAGE_KEY = 'cacique_talkback_enabled';
+const RATE_STORAGE_KEY = 'cacique_talkback_rate';
 
 // Elimina emojis, simbolos y marcas de formato del texto a leer.
 // Se recorre por code points (no por regex) para evitar clases de caracteres
@@ -115,7 +116,14 @@ export function useTalkBackEngine({ lang = DEFAULT_TALKBACK_LANG } = {}) {
   });
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [rate, setRate] = useState(1);
+  const [rate, setRate] = useState(() => {
+    try {
+      const stored = Number.parseFloat(window.localStorage.getItem(RATE_STORAGE_KEY) ?? '');
+      return TALKBACK_RATES.includes(stored) ? stored : 1;
+    } catch {
+      return 1;
+    }
+  });
   const [isSupported] = useState(isSpeechSynthesisAvailable);
   const lastAnnouncementRef = useRef('');
   const lastHoveredRef = useRef(null);
@@ -189,6 +197,11 @@ export function useTalkBackEngine({ lang = DEFAULT_TALKBACK_LANG } = {}) {
   const changeRate = useCallback((nextRate) => {
     const safeRate = TALKBACK_RATES.includes(nextRate) ? nextRate : 1;
     setRate(safeRate);
+    try {
+      window.localStorage.setItem(RATE_STORAGE_KEY, String(safeRate));
+    } catch {
+      // Modo privado: la preferencia solo dura la sesion.
+    }
     return safeRate;
   }, []);
 

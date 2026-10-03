@@ -6,6 +6,7 @@ import { caciqueAsset as caciqueIcon, logoDarkVariant as officialLogo } from '..
 import { formatSedeName } from '../services/authSecurity';
 import { CASHIER_TABLE_COUNTS, getCashierOrders, getCashierState, recordCashierSale, removeCashierOrder } from '../services/cashierService';
 import { CreditCard, LogOut, Receipt } from 'lucide-react';
+import LogoutConfirmModal from '../components/LogoutConfirmModal';
 
 const PAYMENT_METHODS = ['Efectivo', 'Tarjeta', 'SINPE Móvil'];
 const formatCurrency = amount => `₡${Number(amount || 0).toLocaleString('es-CR')}`;
@@ -19,6 +20,7 @@ export default function CashierDashboard() {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [receipt, setReceipt] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     const refreshCashierData = () => {
@@ -111,7 +113,7 @@ export default function CashierDashboard() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className={`inline-flex min-h-9 items-center rounded-full border px-3 text-xs font-bold ${cashierState?.cashOpen ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-300'}`}>{cashierState?.cashOpen ? 'Caja Abierta' : 'Caja Cerrada'}</span>
-            <button type="button" onClick={logout} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-bold text-zinc-200 hover:border-rose-400/50 hover:text-rose-200"><LogOut className="h-4 w-4" /> Cerrar sesión</button>
+            <button type="button" onClick={() => setIsLogoutModalOpen(true)} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-bold text-zinc-200 hover:border-rose-400/50 hover:text-rose-200"><LogOut className="h-4 w-4" /> Cerrar sesión</button>
           </div>
         </header>
 
@@ -175,6 +177,13 @@ export default function CashierDashboard() {
           <FacturacionPanel key={sede} sede={sede} sedeNombre={sedeNombre} responsable={user?.nombre || 'Cajero de turno'} />
         </section>
       </div>
+
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        description="Se finalizará la sesión activa del panel de caja."
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => { setIsLogoutModalOpen(false); logout(); }}
+      />
     </main>
   );
 }

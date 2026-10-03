@@ -234,15 +234,18 @@ describe('Asistente IA', () => {
     );
   });
 
-  it('permite ocultar el asistente de forma permanente', () => {
+  it('minimiza el asistente al hacer clic fuera del widget', () => {
     render(
       <Providers>
         <AiAgentWidget />
       </Providers>,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ocultar asistente' }));
-    expect(screen.queryByRole('button', { name: 'Abrir asistente virtual' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir asistente virtual' }));
+    fireEvent.mouseDown(document.body);
+
+    expect(screen.queryByRole('button', { name: 'Cerrar asistente' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Abrir asistente virtual' })).toBeInTheDocument();
   });
 });
 
@@ -299,6 +302,6 @@ describe('Selector de daltonismo en Alto Contraste', () => {
   it('el modo claro declara el fondo blanco con verde oscuro', () => {
     // Las reglas de `index.css` fijan `bg-white text-emerald-950` en tema claro.
     expect(LIGHT_PALETTE.card).toBe('#FFFFFF');
-    expect(LIGHT_PALETTE.forest).toBe('#0A2E20');
+    expect(LIGHT_PALETTE.forest).toBe('#0F291E');
   });
 });

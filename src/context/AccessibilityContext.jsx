@@ -25,12 +25,12 @@ export const FONT_SIZE_MAP = {
 // eslint-disable-next-line react-refresh/only-export-components
 export const LIGHT_PALETTE = {
   canvas: '#F5EFE6',
-  surface: '#E8DFD8',
+  surface: '#E8F5E9',
   card: '#FFFFFF',
   border: '#4A3525',
   heading: '#2C1A0E',
   text: '#2C1A0E',
-  forest: '#0A2E20',
+  forest: '#0F291E',
   muted: '#5C4636',
   onCard: '#2C1A0E',
   onCardMuted: '#5C4636',
@@ -109,6 +109,7 @@ export const COLOR_BLIND_MODES = [
 
 const COLOR_BLIND_STORAGE_KEY = 'cacique_color_blind_mode';
 const THEME_STORAGE_KEY = 'cacique_theme';
+const FONT_SIZE_STORAGE_KEY = 'cacique_font_scale';
 
 const isValidColorBlindMode = (value) => COLOR_BLIND_MODES.some((mode) => mode.id === value);
 
@@ -129,8 +130,13 @@ const writeStoredValue = (key, value) => {
   }
 };
 
+const isValidFontSizeLevel = (value) => Number.isInteger(value) && value >= -1 && value <= 2;
+
 export function AccessibilityProvider({ children }) {
-  const [fontSizeLevel, setFontSizeLevel] = useState(0);
+  const [fontSizeLevel, setFontSizeLevel] = useState(() => {
+    const stored = Number.parseInt(readStoredValue(FONT_SIZE_STORAGE_KEY, '0'), 10);
+    return isValidFontSizeLevel(stored) ? stored : 0;
+  });
   const [theme, setThemeState] = useState(() => {
     const stored = readStoredValue(THEME_STORAGE_KEY, 'dark');
     return stored === 'light' ? 'light' : 'dark';
@@ -163,6 +169,7 @@ export function AccessibilityProvider({ children }) {
   // Escala tipográfica sobre el elemento raíz.
   useEffect(() => {
     document.documentElement.style.fontSize = FONT_SIZE_MAP[String(fontSizeLevel)] ?? '100%';
+    writeStoredValue(FONT_SIZE_STORAGE_KEY, String(fontSizeLevel));
   }, [fontSizeLevel]);
 
   // Tema: clase, atributo y variables CSS de la paleta oficial.
@@ -189,11 +196,11 @@ export function AccessibilityProvider({ children }) {
     root.style.setProperty('--cacique-forest', palette.forest ?? DARK_PALETTE.forest);
     root.style.setProperty('--cacique-border-alpha', `${palette.border}33`);
     root.style.setProperty('--cacique-accent-alpha', `${palette.accent}26`);
+    // Sombra perimetral difuminada oscura: el vector del Cacique mantiene su
+    // definicion y contraste tanto en Modo Claro (fondo beige) como en Modo Oscuro.
     root.style.setProperty(
       '--cacique-logo-glow',
-      theme === 'light'
-        ? 'drop-shadow(0px 0px 12px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))'
-        : 'drop-shadow(0 0 12px rgba(245, 158, 11, 0.4))',
+      'drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85))',
     );
 
     writeStoredValue(THEME_STORAGE_KEY, theme);

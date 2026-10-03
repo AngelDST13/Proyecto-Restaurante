@@ -73,11 +73,11 @@ describe('ThemeAndLightMode', () => {
 
   it('usa la paleta artesanal clara con contraste alto: beige, cafe y ambar', () => {
     expect(LIGHT_PALETTE.canvas).toBe('#F5EFE6');
-    expect(LIGHT_PALETTE.surface).toBe('#E8DFD8');
+    expect(LIGHT_PALETTE.surface).toBe('#E8F5E9');
     expect(LIGHT_PALETTE.card).toBe('#FFFFFF');
     expect(LIGHT_PALETTE.border).toBe('#4A3525');
     expect(LIGHT_PALETTE.heading).toBe('#2C1A0E');
-    expect(LIGHT_PALETTE.forest).toBe('#0A2E20');
+    expect(LIGHT_PALETTE.forest).toBe('#0F291E');
     expect(LIGHT_PALETTE.accent).toBe('#C86D12');
     expect(LIGHT_PALETTE.accentAlt).toBe('#D97706');
   });
@@ -176,17 +176,17 @@ describe('ThemeAndLightMode', () => {
     expect(screen.getByRole('button', { name: 'Activar modo oscuro' })).toBeInTheDocument();
   });
 
-  it('expone el resplandor claro y ambar del logo Cacique.svg', () => {
+  it('expone la sombra perimetral difuminada oscura del logo Cacique.svg', () => {
     renderWithProviders(<ThemeControls />);
 
     const darkGlow = document.documentElement.style.getPropertyValue('--cacique-logo-glow');
-    expect(darkGlow).toContain('rgba(245, 158, 11, 0.4)');
+    expect(darkGlow).toContain('drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85))');
 
     fireEvent.click(screen.getByRole('button', { name: 'Alternar tema' }));
 
     const lightGlow = document.documentElement.style.getPropertyValue('--cacique-logo-glow');
-    expect(lightGlow).toContain('rgba(0, 0, 0, 0.85)');
-    expect(lightGlow).toContain('rgba(255, 255, 255, 0.9)');
+    expect(lightGlow).toContain('drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85))');
+    expect(lightGlow).not.toContain('rgba(255, 255, 255, 0.9)');
   });
 
   it('renderiza el logo Cacique.svg con la clase de resplandor en el Navbar', () => {

@@ -19,13 +19,13 @@ afterEach(() => {
 });
 
 describe('Widget del agente IA', () => {
-  it('se posiciona a la izquierda en vistas públicas y puede ocultarse y mostrarse', () => {
+  it('se posiciona a la izquierda en vistas públicas y alterna el chat con un unico boton', () => {
     const { container } = renderWidget('/menu');
     expect(container.querySelector('.cacique-bot-float')).toHaveClass('left-4');
     expect(container.querySelector('.cacique-bot-float')).toHaveClass('cacique-bot-bounce');
-    fireEvent.click(screen.getByRole('button', { name: 'Ocultar asistente' }));
-    expect(screen.getByRole('button', { name: 'Mostrar asistente virtual' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Mostrar asistente virtual' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir asistente virtual' }));
+    expect(screen.getByRole('button', { name: 'Cerrar asistente virtual' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar asistente virtual' }));
     expect(screen.getByRole('button', { name: 'Abrir asistente virtual' })).toBeInTheDocument();
   });
 

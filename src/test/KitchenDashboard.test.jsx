@@ -44,8 +44,8 @@ describe('KitchenDashboard KDS', () => {
     fireEvent.click(within(order).getByRole('button', { name: /Notificar Listo a Mesero/i }));
     expect(JSON.parse(localStorage.getItem('cacique_ready_order_notifications'))).toHaveLength(1);
     fireEvent.click(screen.getByTitle('Cerrar Sesión'));
-    expect(screen.getByText(/¿Cerrar Sesión de Cocina/i)).toBeInTheDocument();
+    expect(screen.getByText(/¿Desea cerrar la sesión activa\?/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
-    expect(screen.queryByText(/¿Cerrar Sesión de Cocina/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/¿Desea cerrar la sesión activa\?/i)).not.toBeInTheDocument();
   });
 });

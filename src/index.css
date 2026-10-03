@@ -14,12 +14,12 @@
 
     /* Paleta oficial Modo Claro Artesanal (Beige / Cafe / Ambar) */
     --cacique-canvas: #F5EFE6;
-    --cacique-surface: #E8DFD8;
+    --cacique-surface: #E8F5E9;
     --cacique-card: #FFFFFF;
     --cacique-border: #4A3525;
     --cacique-heading: #2C1A0E;
     --cacique-text: #2C1A0E;
-    --cacique-forest: #0A2E20;
+    --cacique-forest: #0F291E;
     --cacique-muted: #5C4636;
     --cacique-on-card: #2C1A0E;
     --cacique-on-card-muted: #5C4636;
@@ -27,7 +27,7 @@
     --cacique-accent-alt: #D97706;
     --cacique-border-alpha: #4A352533;
     --cacique-accent-alpha: #C86D1226;
-    --cacique-logo-glow: drop-shadow(0px 0px 12px rgba(0, 0, 0, 0.85));
+    --cacique-logo-glow: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85));
   }
 
   html,
@@ -95,13 +95,12 @@ html,
    para que el vector resalte nitidamente sobre fondos claros.
    ========================================================================== */
 
-html.theme-light .cacique-logo {
-  filter: drop-shadow(0px 0px 12px rgba(0, 0, 0, 0.85))
-    drop-shadow(0 0 12px rgba(255, 255, 255, 0.9));
-}
-
-html.theme-dark .cacique-logo {
-  filter: var(--cacique-logo-glow);
+/* Sombra perimetral difuminada oscura para la ilustracion vectorial del Cacique:
+   garantiza definicion en Modo Claro (fondo beige) y en Modo Oscuro. */
+html.theme-light .cacique-logo,
+html.theme-dark .cacique-logo,
+.cacique-logo {
+  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85));
 }
 
 /* ==========================================================
@@ -115,6 +114,12 @@ html.theme-light .cacique-card {
   border: 1px solid rgba(74, 53, 37, 0.2);
   color: var(--cacique-on-card);
   box-shadow: 0 10px 30px -14px rgba(44, 26, 14, 0.28);
+}
+
+/* Tarjetas y secciones en Verde Menta claro suave con borde Cafe Tostado. */
+html.theme-light .cacique-surface {
+  background: var(--cacique-surface);
+  border-color: rgba(74, 53, 37, 0.2);
 }
 
 html.theme-light .cacique-surface {
@@ -203,8 +208,8 @@ html.theme-light .cacique-surface {
 
   html.theme-light .glass-card {
   background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(45, 90, 39, 0.2);
-  box-shadow: 0 8px 24px -12px rgba(15, 41, 30, 0.25);
+  border: 1px solid rgba(74, 53, 37, 0.2);
+  box-shadow: 0 8px 24px -12px rgba(44, 26, 14, 0.25);
 }
 
   .cacique-surface {
@@ -255,6 +260,24 @@ html.theme-light .cacique-surface {
   html.theme-light [class*='text-[#D16014]'] {
     color: var(--cacique-accent);
   }
+
+  /* Modo Claro: los grises y blancos neutros se remapean a la paleta
+     Cafe/Verde Bosque para mantener contraste WCAG AAA en todas las vistas
+     (Login, Footer, Paneles) sin reescribir cada componente. */
+  html.theme-light .text-white {
+    color: var(--cacique-on-card);
+  }
+
+  html.theme-light [class*='text-gray-300'],
+  html.theme-light [class*='text-gray-400'],
+  html.theme-light [class*='text-zinc-400'],
+  html.theme-light [class*='text-zinc-300'] {
+    color: var(--cacique-muted);
+  }
+
+  html.theme-light [class*='bg-[#00241B]'] {
+    background-color: var(--cacique-surface);
+  }
 }
 
 /* ==========================================================================
@@ -295,6 +318,21 @@ html.theme-light .cacique-select option {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--cacique-accent);
+}
+
+/* ==========================================================================
+   Interactividad sin bloqueos
+   Ningun overlay global captura el puntero: el dock de accesibilidad y el chat
+   de la IA limitan `pointer-events` a su propio panel activo.
+   ========================================================================== */
+
+body,
+#root {
+  pointer-events: auto;
+}
+
+html.theme-light {
+  --cacique-hard-black-surface: var(--cacique-surface);
 }
 
 @keyframes pulse-subtle {

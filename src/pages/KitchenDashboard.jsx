@@ -525,7 +525,7 @@ export default function KitchenDashboard() {
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-lg font-black text-white">¿Cerrar Sesión de Cocina?</h3>
+              <h3 className="text-lg font-black text-white">¿Desea cerrar la sesión activa?</h3>
               <p className="text-gray-400">Saldrás del panel operativo KDS.</p>
             </div>
 

@@ -3,15 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import { useAutoLogout } from '../hooks/useAutoLogout';
-import { useAccessibility } from '../context/AccessibilityContext';
+
 import FacturacionPanel from '../components/FacturacionPanel';
+import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { caciqueAsset as caciqueIcon, logoDarkVariant as officialLogo } from '../assets/img';
 import { decryptData, encryptData, formatSedeName, TEST_ACCESS_CREDENTIALS } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { createXlsxBlob, downloadBlob, menuCsvHeaders, menuRowsForExport, normalizeMenuRows, parseCsv, parseXlsx, readFileBuffer, readFileText, rowsToCsv, sanitizePlainText } from '../services/spreadsheetService';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
-import { 
-  ShieldCheck, DollarSign, ShoppingBag, Users, Clock, 
+import {
+  ShieldCheck, DollarSign, ShoppingBag, Users, Clock,
   TrendingUp, AlertTriangle, Plus, Trash2, Pencil, CheckCircle2, XCircle,
   BarChart3, Package, CreditCard, Calendar, MapPin, LogOut, ExternalLink,
   Search, Sliders, AlertCircle, Star, Ticket, MessageSquare,
@@ -20,7 +21,7 @@ import {
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
-  const { increaseFontSize, decreaseFontSize, resetFontSize, fontSizeLevel } = useAccessibility();
+
   const navigate = useNavigate();
   const navigateToLogin = useCallback(() => navigate('/login'), [navigate]);
   const { showWarning: showInactivityWarning, resetTimer: resetInactivityTimer } = useAutoLogout(null, {
@@ -639,7 +640,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#0A090C] text-[#F8FFE5] font-sans flex flex-col lg:flex-row">
-      
+
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
       )}
@@ -647,7 +648,7 @@ export default function AdminDashboard() {
       {/* SIDEBAR DE NAVEGACIÓN DEDICADO DEL PANEL ADMIN */}
       <aside className="w-full max-w-full overflow-x-hidden lg:w-72 bg-[#001812] border-r border-[#659B5E]/30 p-4 sm:p-6 flex flex-col justify-between shrink-0 shadow-2xl">
         <div className="space-y-8">
-          
+
           <div className="flex min-w-0 items-center gap-3 p-3 border-b border-zinc-800/80 mb-4">
             <img
               src={caciqueIcon}
@@ -670,15 +671,6 @@ export default function AdminDashboard() {
               {user?.nombre || 'Angel Daniela Salazar T.'}
             </p>
             <p className="text-[10px] text-gray-400">admin@elcacique.com</p>
-          </div>
-
-          <div className="flex w-full min-w-0 flex-col items-center gap-2 rounded-xl border border-[#659B5E]/20 bg-black/20 px-3 py-3" aria-label="Tamaño del texto">
-            <span className="text-xs text-zinc-400">Tamaño del texto ({100 + fontSizeLevel * 10}%)</span>
-            <div className="flex w-full items-center justify-center gap-2">
-              <button type="button" aria-label="Reducir tamaño de letra" onClick={decreaseFontSize} className="flex min-h-9 min-w-10 items-center justify-center rounded-lg border border-white/10 px-2 font-bold transition-colors hover:border-amber-400 hover:bg-amber-500/10 active:scale-95">A-</button>
-              <button type="button" aria-label="Restablecer tamaño de letra" title="Restablecer tamaño predeterminado" onClick={resetFontSize} className="flex min-h-9 min-w-10 items-center justify-center rounded-lg border border-white/10 px-2 font-bold transition-colors hover:border-amber-400 hover:bg-amber-500/10 active:scale-95">↺</button>
-              <button type="button" aria-label="Aumentar tamaño de letra" onClick={increaseFontSize} className="flex min-h-9 min-w-10 items-center justify-center rounded-lg border border-white/10 px-2 font-bold transition-colors hover:border-amber-400 hover:bg-amber-500/10 active:scale-95">A+</button>
-            </div>
           </div>
 
           <details className="rounded-xl border border-[#659B5E]/20 bg-black/20 px-3 py-2 text-xs">
@@ -715,8 +707,8 @@ export default function AdminDashboard() {
                   key={item.id}
                   onClick={() => setActiveSection(item.id)}
                   className={`w-full p-3.5 rounded-2xl flex items-center justify-between transition-all cursor-pointer ${
-                    activeSection === item.id 
-                      ? 'bg-[#D16014] text-white shadow-lg shadow-[#D16014]/30' 
+                    activeSection === item.id
+                      ? 'bg-[#D16014] text-white shadow-lg shadow-[#D16014]/30'
                       : 'text-gray-400 hover:text-white hover:bg-[#0A090C]'
                   }`}
                 >
@@ -754,7 +746,7 @@ export default function AdminDashboard() {
 
       {/* ÁREA PRINCIPAL */}
       <main className="min-w-0 w-full max-w-full grow overflow-x-hidden p-4 sm:p-6 lg:p-10 space-y-8 overflow-y-auto">
-        
+
         <header className="bg-linear-to-r from-[#001812] via-zinc-900 to-[#0A090C] rounded-3xl border border-[#659B5E]/30 p-6 sm:p-8 grid grid-cols-1 2xl:grid-cols-[minmax(16rem,1fr)_auto] items-center gap-6 shadow-2xl shadow-black/60">
           <div className="min-w-0 space-y-1">
             <div>
@@ -831,7 +823,7 @@ export default function AdminDashboard() {
                 <span>Hay {criticalItemsCount} insumo(s) en Sede {formatSedeName(selectedSede)} por debajo de su Límite Mínimo.</span>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => setActiveSection('inventario')}
               className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-black rounded-xl text-[11px] cursor-pointer"
             >
@@ -1447,39 +1439,16 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {isLogoutModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-sm bg-[#001812] border border-red-500/40 rounded-3xl p-6 space-y-5 text-center shadow-2xl text-xs text-[#F8FFE5]">
-            <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center mx-auto text-red-400">
-              <AlertCircle className="w-6 h-6" />
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-lg font-black text-white">¿Cerrar Sesión Operativa?</h3>
-              <p className="text-gray-400">Se finalizará la sesión activa de administración general.</p>
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => setIsLogoutModalOpen(false)}
-                className="flex-1 py-3 rounded-xl bg-[#0A090C] border border-[#F8FFE5]/15 text-gray-300 font-bold hover:text-white cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  setIsLogoutModalOpen(false);
-                  logout();
-                  navigate('/login');
-                }}
-                className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-extrabold shadow-lg cursor-pointer"
-              >
-                Sí, Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        description="Se finalizará la sesión activa de administración general."
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          setIsLogoutModalOpen(false);
+          logout();
+          navigate('/login');
+        }}
+      />
 
     </div>
   );
