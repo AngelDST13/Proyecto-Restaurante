@@ -1,7 +1,6 @@
 import { startTransition, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReservationModal from '../components/ReservationModal';
-import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
 import { useAutoLogout } from '../hooks/useAutoLogout';
 import { 
@@ -141,9 +140,9 @@ export default function Landing() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A090C] text-[#F8FFE5] font-sans selection:bg-[#D16014] selection:text-white overflow-x-hidden">
-      
-      <Navbar onOpenReservation={() => setIsReservationOpen(true)} />
+    <div className="min-h-screen w-full max-w-full min-w-0 overflow-x-hidden bg-(--cacique-canvas) text-(--cacique-text) font-sans selection:bg-[#D16014] selection:text-white">
+
+      {/* El Navbar global se renderiza en AppRouter para evitar duplicados. */}
 
       {toast.show && (
         <Toast

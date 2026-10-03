@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import Navbar from '../components/Navbar';
 import ReservationModal from '../components/ReservationModal';
 import { AccessibilityProvider } from '../context/AccessibilityContext';
+import { TalkBackProvider } from '../context/TalkBackContext';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 
 function UserControls() {
@@ -14,7 +15,7 @@ function RouteProbe() { return <output data-testid="nav-path">{useLocation().pat
 
 describe('Navbar y reservas', () => {
   it('muestra las opciones de sesión, navega por roles, y controla el menú móvil y tamaño de fuente', () => {
-    render(<AuthProvider><AccessibilityProvider><MemoryRouter initialEntries={['/menu']}><UserControls /><Navbar /><RouteProbe /></MemoryRouter></AccessibilityProvider></AuthProvider>);
+    render(<AuthProvider><TalkBackProvider><AccessibilityProvider><MemoryRouter initialEntries={['/menu']}><UserControls /><Navbar /><RouteProbe /></MemoryRouter></AccessibilityProvider></TalkBackProvider></AuthProvider>);
     expect(screen.getByRole('link', { name: /Iniciar Sesión/i })).toHaveAttribute('href', '/login');
     fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
     fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
@@ -35,7 +36,7 @@ describe('Navbar y reservas', () => {
   });
 
   it('elige el panel dinámico para cada rol soportado', () => {
-    render(<AuthProvider><AccessibilityProvider><MemoryRouter><UserControls /><Navbar /></MemoryRouter></AccessibilityProvider></AuthProvider>);
+    render(<AuthProvider><TalkBackProvider><AccessibilityProvider><MemoryRouter><UserControls /><Navbar /></MemoryRouter></AccessibilityProvider></TalkBackProvider></AuthProvider>);
     for (const [role, panel] of [['administrador', 'Panel Admin'], ['mesero', 'Panel Mesero POS'], ['cajero', 'Panel Caja'], ['cocina', 'Panel Cocina KDS']]) {
       fireEvent.click(screen.getByRole('button', { name: `Simular ${role}` }));
       expect(screen.getByRole('link', { name: panel })).toBeInTheDocument();
@@ -48,7 +49,7 @@ describe('Navbar y reservas', () => {
     const onOpenReservation = vi.fn();
     Object.defineProperty(window, 'scrollTo', { configurable: true, value: vi.fn() });
     Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() });
-    render(<AuthProvider><AccessibilityProvider><MemoryRouter initialEntries={['/menu']}><Navbar onOpenReservation={onOpenReservation} /><RouteProbe /><div id="nosotros" /></MemoryRouter></AccessibilityProvider></AuthProvider>);
+    render(<AuthProvider><TalkBackProvider><AccessibilityProvider><MemoryRouter initialEntries={['/menu']}><Navbar onOpenReservation={onOpenReservation} /><RouteProbe /><div id="nosotros" /></MemoryRouter></AccessibilityProvider></TalkBackProvider></AuthProvider>);
     fireEvent.click(screen.getByRole('button', { name: 'AGENDAR RESERVA' }));
     expect(onOpenReservation).toHaveBeenCalledOnce();
     fireEvent.click(screen.getAllByRole('button', { name: 'Nosotros' })[0]);
@@ -60,7 +61,7 @@ describe('Navbar y reservas', () => {
   it('activa enlaces móviles, secciones, logo y reserva sin callback externo', () => {
     const scrollIntoView = vi.fn();
     Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: scrollIntoView });
-    render(<AuthProvider><AccessibilityProvider><MemoryRouter initialEntries={['/']}><Navbar /><div id="nosotros" /><div id="eventos" /></MemoryRouter></AccessibilityProvider></AuthProvider>);
+    render(<AuthProvider><TalkBackProvider><AccessibilityProvider><MemoryRouter initialEntries={['/']}><Navbar /><div id="nosotros" /><div id="eventos" /></MemoryRouter></AccessibilityProvider></TalkBackProvider></AuthProvider>);
     fireEvent.click(screen.getByRole('link', { name: 'Ir al inicio de El Cacique' }));
     fireEvent.click(screen.getByRole('button', { name: 'Alternar menú de navegación' }));
     fireEvent.click(screen.getAllByRole('button', { name: 'Nosotros' }).at(-1));
@@ -135,3 +136,5 @@ describe('Navbar y reservas', () => {
     alertSpy.mockRestore();
   });
 });
+
+

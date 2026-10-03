@@ -59,21 +59,21 @@ export function AppRouter() {
 
   return (
     <URLNormalizer>
-      <div className="flex flex-col min-h-screen bg-[#0A090C] text-[#F8FFE5]">
-        
+      <div className="flex min-h-screen w-full max-w-full min-w-0 flex-col overflow-x-hidden bg-(--cacique-canvas) text-(--cacique-text)">
+
         {/* Notificación Toast por inactividad */}
         {inactivityToast && (
-          <Toast 
-            message="Su sesión se ha cerrado automáticamente por inactividad." 
-            type="info" 
-            onClose={() => setInactivityToast(false)} 
+          <Toast
+            message="Su sesión se ha cerrado automáticamente por inactividad."
+            type="info"
+            onClose={() => setInactivityToast(false)}
           />
         )}
 
         {/* Muestra el Navbar en Landing, Menú y Login, pero lo oculta en el Dashboard de Admin */}
         {!isStaffRoute && <Navbar />}
 
-        <div className="grow">
+        <div className="w-full max-w-full min-w-0 grow">
           <Routes>
             {/* VISTAS PÚBLICAS */}
             <Route path="/" element={<Landing />} />

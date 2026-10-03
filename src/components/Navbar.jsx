@@ -2,12 +2,21 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAccessibility } from '../context/AccessibilityContext';
-import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, CreditCard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, RotateCcw, ShoppingBag } from 'lucide-react';
+import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, CreditCard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, RotateCcw, ShoppingBag, Sun, Moon, Volume2, VolumeX, Eye } from 'lucide-react';
 import caciqueIcon from '../assets/img/Cacique.svg';
+import { useTalkBack } from '../context/TalkBackContext';
 
 export default function Navbar({ onOpenReservation }) {
   const { user, logout } = useAuth();
-  const { fontSizeLevel, increaseFontSize, decreaseFontSize, resetFontSize } = useAccessibility();
+  const { fontSizeLevel, increaseFontSize, decreaseFontSize, resetFontSize, isLightTheme, toggleTheme, colorBlindMode, colorBlindModes, setColorBlindMode } = useAccessibility();
+  const { isEnabled: isTalkBackEnabled, toggleTalkBack, announce } = useTalkBack();
+
+  /** Aplica un filtro visual y lo anuncia en voz alta. */
+  const handleColorBlindChange = (modeId) => {
+    setColorBlindMode(modeId);
+    const mode = colorBlindModes.find((item) => item.id === modeId);
+    if (mode) announce(`Filtro visual activado: ${mode.label}. ${mode.description}`);
+  };
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -77,9 +86,9 @@ export default function Navbar({ onOpenReservation }) {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A090C]/95 backdrop-blur-md border-b border-[#659B5E]/30 text-[#F8FFE5] shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-3 xl:gap-6">
-        
+    <header className="fixed inset-x-0 top-0 z-50 w-full max-w-full overflow-x-hidden border-b border-(--cacique-border)/20 bg-(--cacique-canvas)/95 backdrop-blur-md text-(--cacique-text) shadow-xl">
+      <div className="mx-auto flex h-20 w-full max-w-7xl min-w-0 items-center justify-between gap-2 overflow-x-auto px-4 sm:px-6 xl:gap-4">
+
         {/* LOGO ORGANICO CON CACIQUE.SVG */}
         <Link
           to="/"
@@ -92,14 +101,14 @@ export default function Navbar({ onOpenReservation }) {
             <img
               src={caciqueIcon}
               alt="Logo El Cacique"
-              className="w-full h-full object-contain relative z-10 filter drop-shadow-[0_0_12px_rgba(245,158,11,0.4)] group-hover:scale-105 transition-transform duration-300"
+              className="cacique-logo w-full h-full object-contain relative z-10 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)] group-hover:scale-105 transition-transform duration-300"
             />
           </div>
           <div>
-            <span className="font-extrabold text-lg text-white tracking-wide block leading-none group-hover:text-[#D16014] transition-colors">
+            <span className="font-extrabold text-lg text-(--cacique-heading) tracking-wide block leading-none group-hover:text-(--cacique-accent) transition-colors">
               EL CACIQUE
             </span>
-            <span className="text-[10px] font-bold text-[#659B5E] tracking-widest uppercase mt-0.5 block">
+            <span className="text-[10px] font-bold text-(--cacique-accent-alt) tracking-widest uppercase mt-0.5 block">
               CHICHARRONERA GOURMET
             </span>
           </div>
@@ -107,7 +116,7 @@ export default function Navbar({ onOpenReservation }) {
 
         {/* MENÚ DESKTOP */}
         <nav className="hidden xl:flex flex-1 items-center justify-center gap-5 xl:gap-8 text-xs xl:text-sm font-extrabold tracking-wide">
-          <button 
+          <button
             type="button"
             onClick={handleLandingClick}
             className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -115,24 +124,24 @@ export default function Navbar({ onOpenReservation }) {
             <Home className="w-3.5 h-3.5 text-[#D16014]" />
             <span>Inicio</span>
           </button>
-          
+
           <Link to="/menu" className="hover:text-[#D16014] transition-colors flex items-center gap-1.5">
             <Utensils className="w-3.5 h-3.5 text-[#659B5E]" />
             <span>Menú</span>
           </Link>
 
-          <button 
+          <button
             type="button"
-            onClick={() => handleSectionClick('nosotros')} 
+            onClick={() => handleSectionClick('nosotros')}
             className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Info className="w-3.5 h-3.5 text-amber-400" />
             <span>Nosotros</span>
           </button>
 
-          <button 
+          <button
             type="button"
-            onClick={() => handleSectionClick('eventos')} 
+            onClick={() => handleSectionClick('eventos')}
             className="hover:text-[#D16014] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Calendar className="w-3.5 h-3.5 text-[#D16014]" />
@@ -141,12 +150,12 @@ export default function Navbar({ onOpenReservation }) {
         </nav>
 
         {/* CONTROLES DE ACCESIBILIDAD Y SESIÓN */}
-        <div className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#001812] border border-[#659B5E]/40 text-[10px] text-[#659B5E] font-bold whitespace-nowrap">
+        <div className="hidden 2xl:flex shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-full bg-(--cacique-surface) border border-(--cacique-border)/20 text-[10px] text-(--cacique-accent-alt) font-bold whitespace-nowrap">
           <ShoppingBag className="w-3.5 h-3.5 text-[#D16014]" />
           <span>Servicio en Mesa &amp; Express / Recoger en Local</span>
         </div>
 
-        <div className="hidden xl:flex items-center gap-3 shrink-0">
+        <div className="hidden xl:flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={handleReservationClick}
@@ -169,10 +178,51 @@ export default function Navbar({ onOpenReservation }) {
             </Link>
           )}
 
-          <div className="flex items-center gap-1 bg-[#0A090C] border border-[#659B5E]/30 p-1 rounded-xl">
-            <button 
+          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-(--cacique-border)/20 bg-(--cacique-card) p-1">
+            <button
               type="button"
-              onClick={decreaseFontSize} 
+              onClick={toggleTheme}
+              aria-pressed={isLightTheme}
+              aria-label={isLightTheme ? 'Activar modo oscuro' : 'Activar modo claro'}
+              title={isLightTheme ? 'Activar modo oscuro' : 'Activar modo claro'}
+              className="px-2 py-1 rounded-lg hover:bg-[#D16014] transition-colors cursor-pointer"
+            >
+              {isLightTheme ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
+            </button>
+            <button
+              type="button"
+              onClick={toggleTalkBack}
+              aria-pressed={isTalkBackEnabled}
+              aria-label={isTalkBackEnabled ? 'Desactivar lector de voz' : 'Activar lector de voz'}
+              title={isTalkBackEnabled ? 'Desactivar lector de voz' : 'Activar lector de voz'}
+              className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${isTalkBackEnabled ? 'bg-[#D16014] text-white' : 'hover:bg-[#D16014]'}`}
+            >
+              {isTalkBackEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+
+          <label className="flex shrink-0 items-center gap-1.5 rounded-xl border border-(--cacique-border)/20 bg-(--cacique-card) p-1">
+            <Eye className="w-3.5 h-3.5 shrink-0 text-(--cacique-accent-alt)" aria-hidden="true" />
+            <span className="sr-only">Tipo de daltonismo</span>
+            <select
+              aria-label="Tipo de daltonismo"
+              value={colorBlindMode}
+              onChange={(event) => handleColorBlindChange(event.target.value)}
+              title="Filtro visual de contraste"
+              className="w-34 shrink-0 cursor-pointer truncate rounded-lg bg-transparent px-1 py-1 text-[11px] font-bold uppercase tracking-wide text-(--cacique-text) focus-visible:outline-2 focus-visible:outline-(--cacique-accent)"
+            >
+              {colorBlindModes.map((mode) => (
+                <option key={mode.id} value={mode.id}>
+                  {mode.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-(--cacique-border)/20 bg-(--cacique-card) p-1">
+            <button
+              type="button"
+              onClick={decreaseFontSize}
               disabled={fontSizeLevel <= -1}
               className="px-2 py-1 text-xs font-black hover:bg-[#D16014] rounded-lg disabled:opacity-30 transition-colors cursor-pointer"
               title="Disminuir Tamaño de Letra"
@@ -180,18 +230,18 @@ export default function Navbar({ onOpenReservation }) {
             >
               A-
             </button>
-            <button 
+            <button
               type="button"
-              onClick={resetFontSize} 
+              onClick={resetFontSize}
               className="p-1 hover:bg-[#659B5E] rounded-lg transition-colors cursor-pointer text-gray-300"
               title="Restablecer Tamaño"
               aria-label="Restablecer tamaño de letra"
             >
               <RotateCcw className="w-3 h-3" />
             </button>
-            <button 
+            <button
               type="button"
-              onClick={increaseFontSize} 
+              onClick={increaseFontSize}
               disabled={fontSizeLevel >= 2}
               className="px-2 py-1 text-xs font-black hover:bg-[#D16014] rounded-lg disabled:opacity-30 transition-colors cursor-pointer"
               title="Aumentar Tamaño de Letra"
@@ -206,9 +256,9 @@ export default function Navbar({ onOpenReservation }) {
               <span className="max-w-40 truncate text-xs font-bold text-[#F8FFE5] flex items-center gap-2">
                 <User className="w-4 h-4 text-[#D16014]" /> {user.nombre || user.email?.split('@')[0]}
               </span>
-              <button 
+              <button
                 type="button"
-                onClick={logout} 
+                onClick={logout}
                 className="text-red-400 hover:text-red-300 p-1 transition-colors cursor-pointer"
                 title="Cerrar Sesión"
                 aria-label="Cerrar sesión"
@@ -228,10 +278,10 @@ export default function Navbar({ onOpenReservation }) {
         </div>
 
         {/* BOTÓN MÓVIL */}
-        <button 
+        <button
           type="button"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="xl:hidden shrink-0 p-2 rounded-xl border border-[#659B5E]/40 bg-[#001812] text-[#F8FFE5] hover:text-[#D16014] transition-colors"
+          className="shrink-0 rounded-xl border border-(--cacique-border)/20 bg-(--cacique-card) p-2 text-(--cacique-text) hover:text-(--cacique-accent) transition-colors xl:hidden"
           aria-label="Alternar menú de navegación"
           aria-expanded={isMobileMenuOpen}
           aria-controls="mobile-navigation"
@@ -245,7 +295,7 @@ export default function Navbar({ onOpenReservation }) {
       {isMobileMenuOpen && (
         <div
           id="mobile-navigation"
-          className="xl:hidden max-h-[calc(100vh-5rem)] overflow-y-auto bg-[#001812] border-b border-[#659B5E]/30 px-6 py-6 space-y-4 text-xs font-extrabold uppercase"
+          className="max-h-[calc(100vh-5rem)] w-full max-w-full min-w-0 overflow-x-auto overflow-y-auto border-b border-(--cacique-border)/20 bg-(--cacique-surface) px-6 py-6 space-y-4 text-xs font-extrabold uppercase"
         >
           <Link
             to="/"
@@ -349,3 +399,4 @@ export default function Navbar({ onOpenReservation }) {
     </header>
   );
 }
+

@@ -5,6 +5,7 @@ import AppRouter from '../routes/AppRouter';
 import PublicRoute from '../routes/PublicRoute';
 import Login from '../pages/Login';
 import { AccessibilityProvider } from '../context/AccessibilityContext';
+import { TalkBackProvider } from '../context/TalkBackContext';
 import { CASHIER_ORDERS_STORAGE_KEY, enqueueCashierOrder, getCashierOrders, recordCashierSale, removeCashierOrder } from '../services/cashierService';
 
 const { authContext } = vi.hoisted(() => ({
@@ -37,7 +38,7 @@ function CurrentPath() {
   return <span data-testid="current-cashier-path">{useLocation().pathname}</span>;
 }
 
-const renderApp = (path = '/cashier') => render(<AccessibilityProvider><MemoryRouter initialEntries={[path]}><AppRouter /><CurrentPath /></MemoryRouter></AccessibilityProvider>);
+const renderApp = (path = '/cashier') => render(<TalkBackProvider><AccessibilityProvider><MemoryRouter initialEntries={[path]}><AppRouter /><CurrentPath /></MemoryRouter></AccessibilityProvider></TalkBackProvider>);
 const createMemoryStorage = (initialValue = null, failures = {}) => {
   let value = initialValue;
   return {
@@ -245,7 +246,7 @@ describe('CashierDashboard y acceso por roles', () => {
   });
 
   it('muestra credenciales compactas por sede y autocompleta el formulario', () => {
-    render(<AccessibilityProvider><MemoryRouter><Login /></MemoryRouter></AccessibilityProvider>);
+    render(<TalkBackProvider><AccessibilityProvider><MemoryRouter><Login /></MemoryRouter></AccessibilityProvider></TalkBackProvider>);
     fireEvent.click(screen.getByRole('button', { name: /Accesos Rápidos de Prueba/i }));
     fireEvent.click(screen.getByRole('tab', { name: 'Cartago' }));
     const cashierCredential = screen.getByText('cajero.cartago@elcacique.com').closest('article');
@@ -256,3 +257,4 @@ describe('CashierDashboard y acceso por roles', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
+

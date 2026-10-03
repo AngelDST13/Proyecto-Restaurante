@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { TEST_ACCESS_CREDENTIALS } from '../services/authSecurity';
-import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket, Store } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket, Store, KeyRound } from 'lucide-react';
 import caciqueIcon from '../assets/img/Cacique.svg';
 
 export default function Login() {
@@ -246,10 +246,11 @@ function CredentialAccessPanel({ onAutofill }) {
 
   return (
     <div className="flex justify-center">
-      <button type="button" onClick={() => setIsOpen(true)} className="min-h-9 rounded-lg border border-white/10 px-3 text-[11px] font-bold text-zinc-400 transition-colors hover:border-amber-500/30 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-amber-400">
-        🔑 Accesos Rápidos de Prueba
+      <button type="button" onClick={() => setIsOpen(true)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-[11px] font-bold text-zinc-400 transition-colors hover:border-amber-500/30 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-amber-400">
+        <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
+        Accesos Rápidos de Prueba
       </button>
-      {isOpen && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4" onMouseDown={event => { if (event.target === event.currentTarget) setIsOpen(false); }}>
+      {isOpen && <div className="fixed inset-0 z-80 flex items-center justify-center bg-black/75 p-4" onMouseDown={event => { if (event.target === event.currentTarget) setIsOpen(false); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="test-credentials-title" className="w-full max-w-lg space-y-4 rounded-xl border border-amber-500/25 bg-[#07110D] p-4 text-left shadow-2xl sm:p-5">
           <header className="flex items-start justify-between gap-3">
             <div><h2 id="test-credentials-title" className="font-bold text-white">Accesos de prueba</h2><p className="mt-1 text-xs text-zinc-400">Seleccione sede y rol para autocompletar.</p></div>
