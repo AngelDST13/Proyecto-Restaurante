@@ -1,22 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useAccessibility } from '../context/AccessibilityContext';
-import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, CreditCard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, RotateCcw, ShoppingBag, Sun, Moon, Volume2, VolumeX, Eye } from 'lucide-react';
+import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, CreditCard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, ShoppingBag } from 'lucide-react';
 import caciqueIcon from '../assets/img/Cacique.svg';
-import { useTalkBack } from '../context/TalkBackContext';
 
 export default function Navbar({ onOpenReservation }) {
   const { user, logout } = useAuth();
-  const { fontSizeLevel, increaseFontSize, decreaseFontSize, resetFontSize, isLightTheme, toggleTheme, colorBlindMode, colorBlindModes, setColorBlindMode } = useAccessibility();
-  const { isEnabled: isTalkBackEnabled, toggleTalkBack, announce } = useTalkBack();
-
-  /** Aplica un filtro visual y lo anuncia en voz alta. */
-  const handleColorBlindChange = (modeId) => {
-    setColorBlindMode(modeId);
-    const mode = colorBlindModes.find((item) => item.id === modeId);
-    if (mode) announce(`Filtro visual activado: ${mode.label}. ${mode.description}`);
-  };
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -93,22 +82,22 @@ export default function Navbar({ onOpenReservation }) {
         <Link
           to="/"
           onClick={handleLogoClick}
-          className="flex items-center gap-3.5 group cursor-pointer py-1 select-none shrink-0"
+          className="group flex shrink-0 cursor-pointer select-none items-center gap-3 py-1"
           aria-label="Ir al inicio de El Cacique"
         >
-          <div className="relative w-11 h-11 flex items-center justify-center shrink-0">
-            <div className="absolute inset-0 bg-[#D16014]/30 rounded-full blur-md group-hover:blur-lg transition-all"></div>
+          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-(--cacique-accent)/30 blur-md transition-all group-hover:blur-lg"></div>
             <img
               src={caciqueIcon}
               alt="Logo El Cacique"
-              className="cacique-logo w-full h-full object-contain relative z-10 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)] group-hover:scale-105 transition-transform duration-300"
+              className="cacique-logo relative z-10 h-full w-full object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] transition-transform duration-300 group-hover:scale-105"
             />
           </div>
-          <div>
-            <span className="font-extrabold text-lg text-(--cacique-heading) tracking-wide block leading-none group-hover:text-(--cacique-accent) transition-colors">
+          <div className="min-w-0 shrink">
+            <span className="block whitespace-nowrap font-extrabold leading-none tracking-wide text-(--cacique-heading) drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] transition-colors group-hover:text-(--cacique-accent) text-base sm:text-lg">
               EL CACIQUE
             </span>
-            <span className="text-[10px] font-bold text-(--cacique-accent-alt) tracking-widest uppercase mt-0.5 block">
+            <span className="mt-0.5 block whitespace-nowrap text-[10px] font-bold uppercase tracking-widest text-(--cacique-accent-alt) drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               CHICHARRONERA GOURMET
             </span>
           </div>
@@ -177,79 +166,6 @@ export default function Navbar({ onOpenReservation }) {
               <span className="hidden 2xl:inline">{dashboardConfig.label}</span>
             </Link>
           )}
-
-          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-(--cacique-border)/20 bg-(--cacique-card) p-1">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-pressed={isLightTheme}
-              aria-label={isLightTheme ? 'Activar modo oscuro' : 'Activar modo claro'}
-              title={isLightTheme ? 'Activar modo oscuro' : 'Activar modo claro'}
-              className="px-2 py-1 rounded-lg hover:bg-[#D16014] transition-colors cursor-pointer"
-            >
-              {isLightTheme ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
-            </button>
-            <button
-              type="button"
-              onClick={toggleTalkBack}
-              aria-pressed={isTalkBackEnabled}
-              aria-label={isTalkBackEnabled ? 'Desactivar lector de voz' : 'Activar lector de voz'}
-              title={isTalkBackEnabled ? 'Desactivar lector de voz' : 'Activar lector de voz'}
-              className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${isTalkBackEnabled ? 'bg-[#D16014] text-white' : 'hover:bg-[#D16014]'}`}
-            >
-              {isTalkBackEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-            </button>
-          </div>
-
-          <label className="flex shrink-0 items-center gap-1.5 rounded-xl border border-(--cacique-border)/20 bg-(--cacique-card) p-1">
-            <Eye className="w-3.5 h-3.5 shrink-0 text-(--cacique-accent-alt)" aria-hidden="true" />
-            <span className="sr-only">Tipo de daltonismo</span>
-            <select
-              aria-label="Tipo de daltonismo"
-              value={colorBlindMode}
-              onChange={(event) => handleColorBlindChange(event.target.value)}
-              title="Filtro visual de contraste"
-              className="w-34 shrink-0 cursor-pointer truncate rounded-lg bg-transparent px-1 py-1 text-[11px] font-bold uppercase tracking-wide text-(--cacique-text) focus-visible:outline-2 focus-visible:outline-(--cacique-accent)"
-            >
-              {colorBlindModes.map((mode) => (
-                <option key={mode.id} value={mode.id}>
-                  {mode.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="flex shrink-0 items-center gap-1 rounded-xl border border-(--cacique-border)/20 bg-(--cacique-card) p-1">
-            <button
-              type="button"
-              onClick={decreaseFontSize}
-              disabled={fontSizeLevel <= -1}
-              className="px-2 py-1 text-xs font-black hover:bg-[#D16014] rounded-lg disabled:opacity-30 transition-colors cursor-pointer"
-              title="Disminuir Tamaño de Letra"
-              aria-label="Disminuir tamaño de letra"
-            >
-              A-
-            </button>
-            <button
-              type="button"
-              onClick={resetFontSize}
-              className="p-1 hover:bg-[#659B5E] rounded-lg transition-colors cursor-pointer text-gray-300"
-              title="Restablecer Tamaño"
-              aria-label="Restablecer tamaño de letra"
-            >
-              <RotateCcw className="w-3 h-3" />
-            </button>
-            <button
-              type="button"
-              onClick={increaseFontSize}
-              disabled={fontSizeLevel >= 2}
-              className="px-2 py-1 text-xs font-black hover:bg-[#D16014] rounded-lg disabled:opacity-30 transition-colors cursor-pointer"
-              title="Aumentar Tamaño de Letra"
-              aria-label="Aumentar tamaño de letra"
-            >
-              A+
-            </button>
-          </div>
 
           {user ? (
             <div className="flex items-center gap-3 bg-[#0A090C] border border-[#659B5E]/40 px-4 py-2 rounded-2xl">
@@ -320,59 +236,30 @@ export default function Navbar({ onOpenReservation }) {
               <span>{dashboardConfig.label}</span>
             </Link>
           )}
-          <button 
+          <button
             type="button"
-            onClick={() => handleSectionClick('nosotros')} 
+            onClick={() => handleSectionClick('nosotros')}
             className="flex items-center gap-2 w-full text-left py-2 hover:text-[#D16014]"
           >
             <Info className="w-4 h-4 text-amber-400" />
             <span>Nosotros</span>
           </button>
-          <button 
+          <button
             type="button"
-            onClick={() => handleSectionClick('eventos')} 
+            onClick={() => handleSectionClick('eventos')}
             className="flex items-center gap-2 w-full text-left py-2 hover:text-[#D16014]"
           >
             <Calendar className="w-4 h-4 text-[#D16014]" />
             <span>Eventos</span>
           </button>
-          <button 
+          <button
             type="button"
-            onClick={handleReservationClick} 
+            onClick={handleReservationClick}
             className="flex items-center gap-2 w-full text-left py-2 text-[#659B5E] font-bold"
           >
             <Calendar className="w-4 h-4" />
             <span>Agendar Reserva</span>
           </button>
-
-          <div className="pt-4 border-t border-[#F8FFE5]/10 flex justify-between items-center">
-            <span className="text-[10px] text-gray-400">Tamaño de letra:</span>
-            <div className="flex gap-2">
-              <button 
-                type="button" 
-                onClick={decreaseFontSize} 
-                disabled={fontSizeLevel <= -1}
-                className="px-2.5 py-1 bg-[#0A090C] border border-[#659B5E]/30 rounded text-white disabled:opacity-30"
-              >
-                A-
-              </button>
-              <button 
-                type="button" 
-                onClick={resetFontSize} 
-                className="px-2.5 py-1 bg-[#0A090C] border border-[#659B5E]/30 rounded text-gray-400"
-              >
-                Normal
-              </button>
-              <button 
-                type="button" 
-                onClick={increaseFontSize} 
-                disabled={fontSizeLevel >= 2}
-                className="px-2.5 py-1 bg-[#0A090C] border border-[#659B5E]/30 rounded text-white disabled:opacity-30"
-              >
-                A+
-              </button>
-            </div>
-          </div>
 
           <div className="pt-3 border-t border-[#F8FFE5]/10">
             {user ? (

@@ -5,7 +5,7 @@ import { AccessibilityProvider } from '../context/AccessibilityContext';
 import { AuthProvider } from '../context/AuthContext';
 import AccessibilityPanel from '../components/AccessibilityPanel';
 import Navbar from '../components/Navbar';
-import { sanitizeSpeechText, TALKBACK_RATES } from '../hooks/useTalkBack';
+import { sanitizeSpeechText, TALKBACK_RATES, extractSpeechLabel, SPOKEN_SELECTOR } from '../hooks/useTalkBack';
 import { TalkBackProvider, useTalkBack } from '../context/TalkBackContext';
 
 /**
@@ -143,10 +143,11 @@ describe('TalkBackService (Web Speech Synthesis)', () => {
     window.localStorage.setItem('cacique_talkback_enabled', 'true');
     renderPanel();
 
-    expect(screen.getByRole('button', { name: 'Desactivar lector de voz' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Desactivar TalkBack' })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir panel de accesibilidad' }));
-    expect(screen.getByTestId('talkback-controls')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir accesibilidad' }));
+    expect(screen.getByTestId('dock-tab-voz')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Desactivar TalkBack' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Pausar lectura' }));
     expect(window.speechSynthesis.pause).toHaveBeenCalled();
@@ -174,25 +175,23 @@ describe('TalkBackService (Web Speech Synthesis)', () => {
     window.localStorage.setItem('cacique_talkback_enabled', 'true');
     renderPanel();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Desactivar lector de voz' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir accesibilidad' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Desactivar TalkBack' }));
     expect(window.localStorage.getItem('cacique_talkback_enabled')).toBe('false');
     expect(window.speechSynthesis.cancel).toHaveBeenCalled();
-    expect(screen.queryByTestId('talkback-controls')).not.toBeInTheDocument();
+    // Tras desactivar, el Dock muestra el interruptor de activacion y oculta
+    // los controles de transporte.
+    expect(screen.getByRole('button', { name: 'Activar TalkBack' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Pausar lectura' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Detener lectura' })).not.toBeInTheDocument();
   });
 
-  it('alterna el TalkBack desde la barra del Navbar', () => {
+  it('alterna el TalkBack desde el Dock flotante', () => {
     window.localStorage.setItem('cacique_talkback_enabled', 'true');
-    render(withTalkBack(
-      <AuthProvider>
-        <AccessibilityProvider>
-          <MemoryRouter>
-            <Navbar />
-          </MemoryRouter>
-        </AccessibilityProvider>
-      </AuthProvider>,
-    ));
+    renderPanel();
 
-    const toggle = screen.getByRole('button', { name: 'Desactivar lector de voz' });
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir accesibilidad' }));
+    const toggle = screen.getByRole('button', { name: 'Desactivar TalkBack' });
     expect(toggle).toHaveAttribute('aria-pressed', 'true');
 
     fireEvent.click(toggle);
@@ -206,14 +205,14 @@ describe('TalkBackService (Web Speech Synthesis)', () => {
     try {
       renderPanelWithoutSpeech();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Activar lector de voz' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Abrir panel de accesibilidad' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Abrir accesibilidad' }));
+      fireEvent.click(screen.getByRole('button', { name: /Activar TalkBack/ }));
 
       expect(screen.getByText(/no expone la Web Speech Synthesis API/i)).toBeInTheDocument();
       // Los controles siguen visibles, pero ninguna locución es posible.
-      expect(screen.getByTestId('talkback-controls')).toBeInTheDocument();
+      expect(screen.getByTestId('dock-tab-voz')).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: 'Leer resumen de la comanda' }));
-      expect(screen.getByTestId('talkback-controls')).toBeInTheDocument();
+      expect(screen.getByTestId('dock-tab-voz')).toBeInTheDocument();
 
       window.localStorage.removeItem('cacique_talkback_enabled');
       render(withTalkBack(<TalkBackProbe />));
@@ -245,7 +244,7 @@ describe('TalkBackService (Web Speech Synthesis)', () => {
     expect(TALKBACK_RATES).toEqual([0.8, 1, 1.2]);
   });
 
-  it('comparte una unica instancia entre el Navbar y el Panel', () => {
+  it('comparte una unica instancia del lector con toda la aplicacion', () => {
     render(
       withTalkBack(
         <AuthProvider>
@@ -259,12 +258,14 @@ describe('TalkBackService (Web Speech Synthesis)', () => {
       ),
     );
 
-    // El interruptor del Navbar activa el lector en el panel compartido.
-    fireEvent.click(screen.getAllByRole('button', { name: 'Activar lector de voz' })[0]);
+    // El interruptor del Dock activa el lector y el Navbar no lo duplica.
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir accesibilidad' }));
+    fireEvent.click(screen.getByRole('button', { name: /Activar TalkBack/ }));
     expect(window.localStorage.getItem('cacique_talkback_enabled')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Desactivar TalkBack' })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir panel de accesibilidad' }));
-    expect(screen.getByTestId('talkback-controls')).toBeInTheDocument();
+    // El Navbar limpio no expone controles de accesibilidad duplicados.
+    expect(screen.queryByRole('button', { name: /Aumentar tamaño de letra/i })).not.toBeInTheDocument();
   });
 
   it('permite sobrescribir el idioma y la velocidad por anuncio', () => {
@@ -281,7 +282,7 @@ describe('TalkBackService (Web Speech Synthesis)', () => {
     window.localStorage.setItem('cacique_talkback_enabled', 'true');
     renderPanel();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir panel de accesibilidad' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir accesibilidad' }));
     fireEvent.click(screen.getByRole('button', { name: /Velocidad Lenta/ }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Leer resumen de la comanda' }));
@@ -310,6 +311,162 @@ describe('TalkBackService (Web Speech Synthesis)', () => {
     expect(() => render(<TalkBackProbe />)).toThrow(/debe usarse dentro de un TalkBackProvider/);
     consoleError.mockRestore();
   });
+
+  describe('Lectura automatica por foco y hover', () => {
+    function SpeakablePage() {
+      return (
+        <div>
+          <h1>Mesa cinco disponible</h1>
+          <button type="button">Cerrar comanda</button>
+          <a href="/menu">Ver menu</a>
+          <button type="button" aria-label="Mesa 7 ocupada">
+            <span data-menu-item>Chicharron gourmet</span>
+          </button>
+          <span data-stock-alert>Stock critico de Papa</span>
+          <p>Parrafo sincescrito</p>
+        </div>
+      );
+    }
+
+    it('define el selector de elementos hablables', () => {
+      for (const selector of ['button', 'a[href]', 'h1', 'h2', 'h3', '[data-menu-item]', '[data-stock-alert]']) {
+        expect(SPOKEN_SELECTOR).toContain(selector);
+      }
+    });
+
+    it('extrae la etiqueta priorizando data-spoken-label, aria-label y texto', () => {
+      const withExplicit = document.createElement('button');
+      withExplicit.setAttribute('data-spoken-label', 'Mesa tres ocupada');
+      expect(extractSpeechLabel(withExplicit)).toBe('Mesa tres ocupada');
+
+      const withAria = document.createElement('button');
+      withAria.setAttribute('aria-label', 'Cerrar panel');
+      withAria.textContent = 'X';
+      expect(extractSpeechLabel(withAria)).toBe('Cerrar panel');
+
+      const withText = document.createElement('button');
+      withText.textContent = '  Agregar   plato  ';
+      expect(extractSpeechLabel(withText)).toBe('Agregar plato');
+
+      expect(extractSpeechLabel(null)).toBe('');
+    });
+
+    it('lee en voz alta el elemento enfocado', () => {
+      window.localStorage.setItem('cacique_talkback_enabled', 'true');
+      render(withTalkBack(<SpeakablePage />));
+
+      // Un encabezado no es focusable: la lectura por foco se valida sobre un control.
+      screen.getByRole('button', { name: 'Cerrar comanda' }).focus();
+      expect(lastUtterance().text).toBe('Cerrar comanda');
+    });
+
+    it('lee en voz alta el elemento sobrevolado y evita repeticiones', () => {
+      window.localStorage.setItem('cacique_talkback_enabled', 'true');
+      render(withTalkBack(<SpeakablePage />));
+
+      const button = screen.getByRole('button', { name: 'Cerrar comanda' });
+      fireEvent.mouseOver(button);
+      expect(lastUtterance().text).toBe('Cerrar comanda');
+
+      const callsAfterFirst = window.speechSynthesis.speak.mock.calls.length;
+      fireEvent.mouseOver(button);
+      expect(window.speechSynthesis.speak.mock.calls.length).toBe(callsAfterFirst);
+    });
+
+    it('usa la etiqueta accesible para las tarjetas de menu y las alertas', () => {
+      window.localStorage.setItem('cacique_talkback_enabled', 'true');
+      render(withTalkBack(<SpeakablePage />));
+
+      fireEvent.mouseOver(screen.getByRole('button', { name: 'Mesa 7 ocupada' }));
+      expect(lastUtterance().text).toBe('Mesa 7 ocupada');
+
+      fireEvent.mouseOver(screen.getByText('Stock critico de Papa'));
+      expect(lastUtterance().text).toBe('Stock critico de Papa');
+    });
+
+    it('ignora elementos que no son hablables', () => {
+      window.localStorage.setItem('cacique_talkback_enabled', 'true');
+      render(withTalkBack(<SpeakablePage />));
+
+      fireEvent.mouseOver(screen.getByText('Parrafo sincescrito'));
+      expect(window.speechSynthesis.speak).not.toHaveBeenCalled();
+    });
+
+    it('no lee nada mientras el TalkBack esta desactivado', () => {
+      window.localStorage.removeItem('cacique_talkback_enabled');
+      render(withTalkBack(<SpeakablePage />));
+
+      fireEvent.mouseOver(screen.getByRole('button', { name: 'Cerrar comanda' }));
+      expect(window.speechSynthesis.speak).not.toHaveBeenCalled();
+    });
+
+    it('usa la velocidad seleccionada para la lectura automatica', () => {
+      window.localStorage.setItem('cacique_talkback_enabled', 'true');
+      render(withTalkBack(<SpeakablePage />));
+
+      fireEvent.mouseOver(screen.getByRole('button', { name: 'Cerrar comanda' }));
+      expect(lastUtterance().rate).toBe(1);
+      expect(lastUtterance().lang).toBe('es-ES');
+    });
+
+    it('desbloquea el audio del navegador en la primera interaccion', () => {
+      window.localStorage.setItem('cacique_talkback_enabled', 'true');
+      render(withTalkBack(<SpeakablePage />));
+
+      expect(window.speechSynthesis.speak).not.toHaveBeenCalled();
+      fireEvent.pointerDown(document.body);
+
+      // La locucion de calentamiento se emite y se cancela de inmediato.
+      const warmup = window.speechSynthesis.speak.mock.calls[0][0];
+      expect(warmup.volume).toBe(0);
+      expect(warmup.lang).toBe('es-ES');
+      expect(window.speechSynthesis.cancel).toHaveBeenCalled();
+
+      const callsAfterUnlock = window.speechSynthesis.speak.mock.calls.length;
+      fireEvent.pointerDown(document.body);
+      expect(window.speechSynthesis.speak.mock.calls.length).toBe(callsAfterUnlock);
+    });
+
+    it('tolera motores que rechazan la locucion de calentamiento', () => {
+      window.localStorage.setItem('cacique_talkback_enabled', 'true');
+      const originalSpeak = window.speechSynthesis.speak;
+      window.speechSynthesis.speak.mockImplementationOnce(() => {
+        throw new Error('audio bloqueado');
+      });
+
+      render(withTalkBack(<SpeakablePage />));
+      expect(() => fireEvent.pointerDown(document.body)).not.toThrow();
+
+      window.speechSynthesis.speak = originalSpeak;
+    });
+
+    it('deja de escuchar al desactivarse y se limpia al desmontar', () => {
+      window.localStorage.setItem('cacique_talkback_enabled', 'true');
+      const { unmount } = render(withTalkBack(<SpeakablePage />));
+
+      unmount();
+      window.speechSynthesis.speak.mockClear();
+
+      fireEvent.mouseOver(document.body);
+      expect(window.speechSynthesis.speak).not.toHaveBeenCalled();
+    });
+
+    it('publica el anuncio en la region aria-live del documento', () => {
+      window.localStorage.setItem('cacique_talkback_enabled', 'true');
+      render(
+        withTalkBack(
+          <>
+            <div id="cacique-aria-live-region" aria-live="polite" />
+            <SpeakablePage />
+          </>,
+        ),
+      );
+
+      fireEvent.mouseOver(screen.getByRole('button', { name: 'Cerrar comanda' }));
+      expect(document.getElementById('cacique-aria-live-region')).toHaveTextContent('Cerrar comanda');
+    });
+  });
 });
+
 
 

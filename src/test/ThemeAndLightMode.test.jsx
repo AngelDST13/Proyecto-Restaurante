@@ -71,13 +71,13 @@ describe('ThemeAndLightMode', () => {
     expect(root.style.getPropertyValue('--cacique-accent-alt')).toBe(LIGHT_PALETTE.accentAlt);
   });
 
-  it('usa la paleta clara con contraste legible: marfil, blanco puro y verde hoja', () => {
-    expect(LIGHT_PALETTE.canvas).toBe('#FDFBF7');
-    expect(LIGHT_PALETTE.surface).toBe('#F8F5EE');
-    expect(LIGHT_PALETTE.card).toBe('#FFFFFF');
+  it('usa la paleta clara Gourmet con contraste legible: crema, esmeralda y ambar', () => {
+    expect(LIGHT_PALETTE.canvas).toBe('#F4F0EA');
+    expect(LIGHT_PALETTE.surface).toBe('#FDFBF7');
+    expect(LIGHT_PALETTE.card).toBe('#062319');
     expect(LIGHT_PALETTE.border).toBe('#2D5A27');
-    expect(LIGHT_PALETTE.heading).toBe('#0F291E');
-    expect(LIGHT_PALETTE.accent).toBe('#E65100');
+    expect(LIGHT_PALETTE.heading).toBe('#0A2E20');
+    expect(LIGHT_PALETTE.accent).toBe('#D97706');
     expect(LIGHT_PALETTE.accentAlt).toBe('#D97706');
   });
 
@@ -115,7 +115,7 @@ describe('ThemeAndLightMode', () => {
     expect(screen.getByTestId('theme')).toHaveTextContent('dark');
   });
 
-  it('cierra el panel de accesibilidad con Escape y con clic fuera', () => {
+  it('cierra el Dock de accesibilidad con Escape y con su boton de cierre', () => {
     render(
       <TalkBackProvider>
         <AccessibilityProvider>
@@ -124,7 +124,7 @@ describe('ThemeAndLightMode', () => {
       </TalkBackProvider>,
     );
 
-    const openPanel = screen.getByRole('button', { name: 'Abrir panel de accesibilidad' });
+    const openPanel = screen.getByRole('button', { name: 'Abrir accesibilidad' });
     fireEvent.click(openPanel);
     expect(screen.getByRole('region', { name: 'Panel de accesibilidad' })).toBeInTheDocument();
 
@@ -132,12 +132,47 @@ describe('ThemeAndLightMode', () => {
     expect(screen.queryByRole('region', { name: 'Panel de accesibilidad' })).not.toBeInTheDocument();
 
     fireEvent.click(openPanel);
-    fireEvent.mouseDown(document.body);
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar panel de accesibilidad' }));
     expect(screen.queryByRole('region', { name: 'Panel de accesibilidad' })).not.toBeInTheDocument();
 
-    fireEvent.click(openPanel);
-    fireEvent.mouseDown(screen.getByRole('region', { name: 'Panel de accesibilidad' }));
-    expect(screen.getByRole('region', { name: 'Panel de accesibilidad' })).toBeInTheDocument();
+    // El Dock permanece montado: solo se oculta su contenido.
+    expect(openPanel).toBeInTheDocument();
+  });
+
+  it('expone el Dock con las cuatro pestañas de accesibilidad', () => {
+    render(
+      <TalkBackProvider>
+        <AccessibilityProvider>
+          <AccessibilityPanel />
+        </AccessibilityProvider>
+      </TalkBackProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir accesibilidad' }));
+
+    for (const tab of ['Voz', 'Tema', 'Visión', 'Texto']) {
+      expect(screen.getByRole('tab', { name: tab })).toBeInTheDocument();
+    }
+    expect(screen.getByRole('tab', { name: 'Voz' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByTestId('dock-tab-voz')).toBeInTheDocument();
+  });
+
+  it('expone el cambio de tema desde la pestaña Tema del Dock', () => {
+    render(
+      <TalkBackProvider>
+        <AccessibilityProvider>
+          <AccessibilityPanel />
+        </AccessibilityProvider>
+      </TalkBackProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir accesibilidad' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Tema' }));
+    expect(screen.getByTestId('dock-tab-tema')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Activar modo claro' }));
+    expect(document.documentElement).toHaveClass('theme-light');
+    expect(screen.getByRole('button', { name: 'Activar modo oscuro' })).toBeInTheDocument();
   });
 
   it('expone el resplandor claro y ambar del logo Cacique.svg', () => {
@@ -149,8 +184,8 @@ describe('ThemeAndLightMode', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alternar tema' }));
 
     const lightGlow = document.documentElement.style.getPropertyValue('--cacique-logo-glow');
+    expect(lightGlow).toContain('rgba(0, 0, 0, 0.6)');
     expect(lightGlow).toContain('rgba(255, 255, 255, 0.9)');
-    expect(lightGlow).toContain('rgba(230, 81, 0, 0.3)');
   });
 
   it('renderiza el logo Cacique.svg con la clase de resplandor en el Navbar', () => {
@@ -172,7 +207,7 @@ describe('ThemeAndLightMode', () => {
     expect(logo.getAttribute('src')).toContain('Cacique');
   });
 
-  it('permite cambiar el tema desde el boton del Navbar', () => {
+  it('mantiene el Navbar limpio, sin controles de accesibilidad duplicados', () => {
     render(
       <TalkBackProvider>
         <AuthProvider>
@@ -185,10 +220,20 @@ describe('ThemeAndLightMode', () => {
       </TalkBackProvider>,
     );
 
-    const toggle = screen.getByRole('button', { name: 'Activar modo claro' });
-    fireEvent.click(toggle);
-    expect(document.documentElement).toHaveClass('theme-light');
-    expect(screen.getByRole('button', { name: 'Activar modo oscuro' })).toBeInTheDocument();
+    // La barra solo conserva navegacion, reserva y sesion.
+    for (const label of ['Inicio', 'Nosotros', 'Eventos', 'AGENDAR RESERVA']) {
+      expect(screen.getAllByRole('button', { name: new RegExp(label, 'i') }).length).toBeGreaterThan(0);
+    }
+
+    // Los controles de accesibilidad viven exclusivamente en el Dock flotante.
+    for (const label of [
+      /Aumentar tamaño de letra/i,
+      /Disminuir tamaño de letra/i,
+      /Tipo de daltonismo/i,
+      /Activar lector de voz/i,
+    ]) {
+      expect(screen.queryByRole('button', { name: label })).not.toBeInTheDocument();
+    }
   });
 
   it('expone el contenedor raiz del que depende el filtro visual', () => {
@@ -262,5 +307,6 @@ describe('ThemeAndLightMode', () => {
     Object.defineProperty(window, 'localStorage', original);
   });
 });
+
 
 

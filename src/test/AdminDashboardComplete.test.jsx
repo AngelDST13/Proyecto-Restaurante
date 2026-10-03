@@ -86,12 +86,12 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
   it('sincroniza A-, reinicio y A+ con el AccessibilityContext', () => {
     renderAdmin();
     const root = document.documentElement;
-    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Aumentar tamaño de letra' })[0]);
     expect(root.style.fontSize).toBe('110%');
     fireEvent.click(screen.getByRole('button', { name: 'Reducir tamaño de letra' }));
     expect(root.style.fontSize).toBe('100%');
-    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Aumentar tamaño de letra' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Aumentar tamaño de letra' })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Restablecer tamaño de letra' }));
     expect(root.style.fontSize).toBe('100%');
   });

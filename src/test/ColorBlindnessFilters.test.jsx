@@ -151,7 +151,10 @@ describe('ColorBlindnessFilters', () => {
   it('expone el selector de daltonismo en el panel de accesibilidad', () => {
     renderPanel();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir panel de accesibilidad' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir accesibilidad' }));
+
+    // La sección de filtros vive en la pestaña "Visión".
+    fireEvent.click(screen.getByRole('tab', { name: 'Visión' }));
 
     const select = screen.getByLabelText('Tipo de daltonismo');
     expect(select).toHaveValue('none');

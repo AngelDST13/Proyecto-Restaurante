@@ -61,6 +61,42 @@ export const getSpeechSynthesis = () => {
 
 export const isSpeechSynthesisAvailable = () => getSpeechSynthesis() !== null;
 
+/** Selectores de los elementos que TalkBack lee automaticamente. */
+export const SPOKEN_SELECTOR = [
+  'button',
+  'a[href]',
+  '[role="button"]',
+  '[role="link"]',
+  '[role="tab"]',
+  '[role="menuitem"]',
+  '[role="checkbox"]',
+  '[role="switch"]',
+  'input:not([type="hidden"])',
+  'select',
+  'textarea',
+  'h1',
+  'h2',
+  'h3',
+  '[data-menu-item]',
+  '[data-table-status]',
+  '[data-stock-alert]',
+  '[data-spoken-label]',
+].join(', ');
+
+/**
+ * Extrae el texto que debe leerse en voz alta de un elemento.
+ * Prioriza el texto explicito, luego el contenido visible y por ultimo
+ * el nombre accesible (aria-label / title).
+ */
+export const extractSpeechLabel = (element) => {
+  if (!element) return '';
+  const explicit = element.getAttribute?.('data-spoken-label');
+  const ariaLabel = element.getAttribute?.('aria-label');
+  const text = (element.textContent ?? '').replace(/\s+/g, ' ').trim();
+
+  return sanitizeSpeechText(explicit || ariaLabel || text);
+};
+
 export function useTalkBackEngine({ lang = DEFAULT_TALKBACK_LANG } = {}) {
   const [isEnabled, setIsEnabled] = useState(() => {
     try {
@@ -74,6 +110,7 @@ export function useTalkBackEngine({ lang = DEFAULT_TALKBACK_LANG } = {}) {
   const [rate, setRate] = useState(1);
   const [isSupported] = useState(isSpeechSynthesisAvailable);
   const lastAnnouncementRef = useRef('');
+  const lastHoveredRef = useRef(null);
 
   const cancel = useCallback(() => {
     getSpeechSynthesis()?.cancel();
@@ -94,13 +131,19 @@ export function useTalkBackEngine({ lang = DEFAULT_TALKBACK_LANG } = {}) {
       utterance.pitch = options.pitch ?? 1;
 
       lastAnnouncementRef.current = clean;
+      // Se publica en la region aria-live de forma sincrona para que los lectores
+      // de pantalla reciban el texto en la misma interaccion que lo dispara.
+      if (isEnabled) {
+        const liveRegion = document.getElementById('cacique-aria-live-region');
+        if (liveRegion) liveRegion.textContent = clean;
+      }
       synthesis.cancel();
       synthesis.speak(utterance);
       setIsSpeaking(true);
       setIsPaused(false);
       return true;
     },
-    [lang, rate],
+    [isEnabled, lang, rate],
   );
 
   const pause = useCallback(() => {
@@ -169,12 +212,75 @@ export function useTalkBackEngine({ lang = DEFAULT_TALKBACK_LANG } = {}) {
     return 'Lector de voz activo';
   }, [isEnabled, isPaused, isSpeaking, isSupported]);
 
-  // Notifica a las regiones aria-live del documento.
+  /**
+   * Lectura automatica: al enfocar o sobrevolar un elemento interactivo se
+   * reproduce su etiqueta en voz alta. Se registra en fase de captura para
+   *_run_ antes que los manejadores propios de cada componente.
+   */
   useEffect(() => {
-    if (!isEnabled || !lastAnnouncementRef.current) return;
-    const liveRegion = document.getElementById('cacique-aria-live-region');
-    if (liveRegion) liveRegion.textContent = lastAnnouncementRef.current;
-  }, [isEnabled, isSpeaking]);
+    if (!isEnabled) return undefined;
+
+    const describe = (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (!target.closest(SPOKEN_SELECTOR)) return;
+      const label = extractSpeechLabel(target);
+      if (!label) return;
+      speak(label, { rate });
+    };
+
+    const onFocusIn = (event) => describe(event);
+    const onPointerOver = (event) => {
+      // Se evita repetir la lectura al mover el puntero dentro del mismo elemento.
+      if (lastHoveredRef.current === event.target) return;
+      lastHoveredRef.current = event.target;
+      describe(event);
+    };
+
+    document.addEventListener('focusin', onFocusIn, true);
+    document.addEventListener('mouseover', onPointerOver, true);
+
+    return () => {
+      document.removeEventListener('focusin', onFocusIn, true);
+      document.removeEventListener('mouseover', onPointerOver, true);
+      lastHoveredRef.current = null;
+    };
+  }, [isEnabled, rate, speak]);
+
+  /**
+   * Desbloqueo de audio: algunos navegadores restringen `speechSynthesis`
+   * hasta que el usuario interactua con la pagina. Un primer `speak()` vacio
+   * durante una interaction real libera el canal de audio del motor nativo.
+   */
+  useEffect(() => {
+    if (!isEnabled) return undefined;
+
+    const unlock = () => {
+      const synthesis = getSpeechSynthesis();
+      if (!synthesis) return;
+
+      try {
+        const warmup = new window.SpeechSynthesisUtterance(' ');
+        warmup.volume = 0;
+        warmup.lang = lang;
+        synthesis.speak(warmup);
+        synthesis.cancel();
+      } catch {
+        // Algunos motores no aceptan la locucion de calentamiento: se ignora.
+      }
+
+      document.removeEventListener('pointerdown', unlock, true);
+      document.removeEventListener('keydown', unlock, true);
+    };
+
+    document.addEventListener('pointerdown', unlock, true);
+    document.addEventListener('keydown', unlock, true);
+
+    return () => {
+      document.removeEventListener('pointerdown', unlock, true);
+      document.removeEventListener('keydown', unlock, true);
+    };
+  }, [isEnabled, lang]);
 
   // Limpieza: cancela la locucion al desmontar para no dejar audio huerfano.
   useEffect(() => () => getSpeechSynthesis()?.cancel(), []);

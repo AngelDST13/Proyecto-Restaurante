@@ -3,6 +3,7 @@ import { AppRouter } from './routes/AppRouter';
 import { AuthProvider } from './context/AuthContext';
 import { AccessibilityProvider } from './context/AccessibilityContext';
 import AccessibilityPanel from './components/AccessibilityPanel';
+import WhatsAppFloatButton from './components/WhatsAppFloatButton';
 import { TalkBackProvider } from './context/TalkBackContext';
 import InteractiveGlow from './components/InteractiveGlow';
 
@@ -17,6 +18,7 @@ export default function App() {
               <AppRouter />
             </div>
             <AccessibilityPanel />
+            <WhatsAppFloatButton />
             <div
               id="cacique-aria-live-region"
               aria-live="polite"

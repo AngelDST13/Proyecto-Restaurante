@@ -1,9 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import Navbar from '../components/Navbar';
 import ReservationModal from '../components/ReservationModal';
-import { AccessibilityProvider } from '../context/AccessibilityContext';
+import { AccessibilityProvider, useAccessibility } from '../context/AccessibilityContext';
 import { TalkBackProvider } from '../context/TalkBackContext';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 
@@ -13,20 +13,46 @@ function UserControls() {
 }
 function RouteProbe() { return <output data-testid="nav-path">{useLocation().pathname}</output>; }
 
+/**
+ * El escalado de texto vive en el Dock Flotante de Accesibilidad (pestaña
+ * "Texto"), no en el Navbar.
+ */
+function TextScaleDock() {
+  const { fontSizeLevel, increaseFontSize, decreaseFontSize, resetFontSize } = useAccessibility();
+  return (
+    <div data-testid="text-scale-dock">
+      <span data-testid="dock-level">{fontSizeLevel}</span>
+      <button type="button" onClick={increaseFontSize} disabled={fontSizeLevel >= 2}>
+        Aumentar tamaño de letra
+      </button>
+      <button type="button" onClick={decreaseFontSize} disabled={fontSizeLevel <= -1}>
+        Disminuir tamaño de letra
+      </button>
+      <button type="button" onClick={resetFontSize}>Restablecer tamaño de letra</button>
+    </div>
+  );
+}
+
 describe('Navbar y reservas', () => {
   it('muestra las opciones de sesión, navega por roles, y controla el menú móvil y tamaño de fuente', () => {
-    render(<AuthProvider><TalkBackProvider><AccessibilityProvider><MemoryRouter initialEntries={['/menu']}><UserControls /><Navbar /><RouteProbe /></MemoryRouter></AccessibilityProvider></TalkBackProvider></AuthProvider>);
+    render(<AuthProvider><TalkBackProvider><AccessibilityProvider><MemoryRouter initialEntries={['/menu']}><UserControls /><Navbar /><TextScaleDock /><RouteProbe /></MemoryRouter></AccessibilityProvider></TalkBackProvider></AuthProvider>);
     expect(screen.getByRole('link', { name: /Iniciar Sesión/i })).toHaveAttribute('href', '/login');
-    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
+    const withinDock = () => within(screen.getByTestId('text-scale-dock'));
+    const increase = () => withinDock().getByRole('button', { name: 'Aumentar tamaño de letra' });
+    const decrease = () => withinDock().getByRole('button', { name: 'Disminuir tamaño de letra' });
+
+    fireEvent.click(increase());
+    fireEvent.click(increase());
     expect(document.documentElement.style.fontSize).toBe('120%');
-    fireEvent.click(screen.getByRole('button', { name: 'Aumentar tamaño de letra' }));
-    expect(screen.getByRole('button', { name: 'Aumentar tamaño de letra' })).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Disminuir tamaño de letra' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Disminuir tamaño de letra' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Disminuir tamaño de letra' }));
+    fireEvent.click(increase());
+    expect(increase()).toBeDisabled();
+
+    fireEvent.click(decrease());
+    fireEvent.click(decrease());
+    fireEvent.click(decrease());
     expect(document.documentElement.style.fontSize).toBe('90%');
-    expect(screen.getByRole('button', { name: 'Disminuir tamaño de letra' })).toBeDisabled();
+    expect(decrease()).toBeDisabled();
+
     fireEvent.click(screen.getByRole('button', { name: 'Restablecer tamaño de letra' }));
     fireEvent.click(screen.getByRole('button', { name: 'Alternar menú de navegación' }));
     expect(screen.getAllByRole('link', { name: 'Menú' })[0]).toHaveAttribute('href', '/menu');

@@ -24,13 +24,16 @@ export const FONT_SIZE_MAP = {
 /** Paleta oficial del Modo Claro (artesanal / gourmet). */
 // eslint-disable-next-line react-refresh/only-export-components
 export const LIGHT_PALETTE = {
-  canvas: '#FDFBF7',
-  surface: '#F8F5EE',
-  card: '#FFFFFF',
+  canvas: '#F4F0EA',
+  surface: '#FDFBF7',
+  card: '#062319',
   border: '#2D5A27',
-  heading: '#0F291E',
-  text: '#18181B',
-  accent: '#E65100',
+  heading: '#0A2E20',
+  text: '#0A2E20',
+  muted: '#4A5A50',
+  onCard: '#F4F0EA',
+  onCardMuted: '#C7D6C2',
+  accent: '#D97706',
   accentAlt: '#D97706',
 };
 
@@ -43,6 +46,9 @@ export const DARK_PALETTE = {
   border: '#659B5E',
   heading: '#F8FFE5',
   text: '#F8FFE5',
+  muted: '#A1A1AA',
+  onCard: '#F8FFE5',
+  onCardMuted: '#C7D6C2',
   accent: '#D16014',
   accentAlt: '#D97706',
 };
@@ -175,12 +181,15 @@ export function AccessibilityProvider({ children }) {
     root.style.setProperty('--cacique-accent', palette.accent);
     root.style.setProperty('--cacique-accent-alt', palette.accentAlt);
 
+    root.style.setProperty('--cacique-on-card', palette.onCard);
+    root.style.setProperty('--cacique-on-card-muted', palette.onCardMuted);
+    root.style.setProperty('--cacique-muted', palette.muted);
     root.style.setProperty('--cacique-border-alpha', `${palette.border}33`);
-    root.style.setProperty('--cacique-accent-alpha', `${palette.accent}1f`);
+    root.style.setProperty('--cacique-accent-alpha', `${palette.accent}26`);
     root.style.setProperty(
       '--cacique-logo-glow',
       theme === 'light'
-        ? 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 8px rgba(230, 81, 0, 0.3))'
+        ? 'drop-shadow(0px 0px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))'
         : 'drop-shadow(0 0 12px rgba(245, 158, 11, 0.4))',
     );
 
