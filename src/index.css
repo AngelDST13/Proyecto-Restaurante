@@ -27,7 +27,7 @@
     --cacique-accent-alt: #D97706;
     --cacique-border-alpha: #4A352533;
     --cacique-accent-alpha: #C86D1226;
-    --cacique-logo-glow: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85));
+    --cacique-logo-glow: drop-shadow(0px 0px 12px rgba(0, 0, 0, 0.85));
   }
 
   html,
@@ -96,7 +96,7 @@ html,
    ========================================================================== */
 
 html.theme-light .cacique-logo {
-  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85))
+  filter: drop-shadow(0px 0px 12px rgba(0, 0, 0, 0.85))
     drop-shadow(0 0 12px rgba(255, 255, 255, 0.9));
 }
 

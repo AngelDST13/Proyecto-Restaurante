@@ -124,6 +124,9 @@ export default function ReservationModal({
           exit={{ opacity: 0, scale: 0.92, y: 15 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reservation-modal-title"
           className="relative w-full max-w-2xl bg-[#001812] border-2 border-[#D16014] rounded-3xl p-6 sm:p-8 text-[#F8FFE5] shadow-[0_0_50px_rgba(209,96,20,0.35)] overflow-y-auto max-h-[90vh]"
         >
           {/* BOTÓN CERRAR */}
@@ -142,7 +145,7 @@ export default function ReservationModal({
               <Sparkles className="w-3.5 h-3.5 text-[#D16014]" />
               <span>SISTEMA CULINARIO DE RESERVAS</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">Agendar Mesa o Evento</h2>
+            <h2 id="reservation-modal-title" className="text-2xl sm:text-3xl font-black text-white">Agendar Mesa o Evento</h2>
             <p className="text-xs text-gray-300">Reserva tu espacio en salón o terraza con atención gastronómica preferencial.</p>
           </div>
 
@@ -151,10 +154,13 @@ export default function ReservationModal({
             {/* SEDE Y TIPO DE CELEBRACIÓN */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1.5">Sede Preferida</label>
+                <label htmlFor="reservation-sede" className="block text-xs font-bold text-gray-300 mb-1.5">
+                  Sede Preferida
+                </label>
                 <div className="relative">
                   <MapPin className="absolute left-3.5 top-3.5 w-4 h-4 text-[#659B5E]" />
                   <select
+                    id="reservation-sede"
                     name="sede"
                     value={formData.sede}
                     onChange={handleChange}

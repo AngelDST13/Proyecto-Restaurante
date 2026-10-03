@@ -192,7 +192,7 @@ export function AccessibilityProvider({ children }) {
     root.style.setProperty(
       '--cacique-logo-glow',
       theme === 'light'
-        ? 'drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))'
+        ? 'drop-shadow(0px 0px 12px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))'
         : 'drop-shadow(0 0 12px rgba(245, 158, 11, 0.4))',
     );
 

@@ -4,6 +4,7 @@ import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, CreditCard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, ShoppingBag, Sun, Moon } from 'lucide-react';
 import { caciqueAsset as caciqueIcon } from '../assets/img';
+import { requestReservationModal } from '../hooks/useReservationModal';
 
 export default function Navbar({ onOpenReservation }) {
   const { user, logout } = useAuth();
@@ -72,7 +73,8 @@ export default function Navbar({ onOpenReservation }) {
     if (typeof onOpenReservation === 'function') {
       onOpenReservation();
     } else {
-      handleSectionClick('eventos');
+      // El Navbar global no recibe props: se comunica mediante un evento global.
+      requestReservationModal();
     }
   };
 

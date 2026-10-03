@@ -30,6 +30,43 @@ export default function AiAgentWidget() {
   ]);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const containerRef = useRef(null);
+
+  /**
+   * Cierre por clic fuera del contenedor del asistente.
+   * No usa overlays ni bloqueos de puntero: solo escucha el documento, por lo
+   * que el usuario puede seguir interactuando con el resto de la pagina.
+   */
+  useEffect(() => {
+    if (!isOpen || isMinimized) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setIsMinimized(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+    };
+  }, [isOpen, isMinimized]);
+
+  /** Escape tambien cierra la ventana del asistente. */
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+        setIsMinimized(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -104,16 +141,17 @@ export default function AiAgentWidget() {
         <div className={`cacique-bot-float cacique-bot-bounce fixed ${positionClasses} z-40 flex items-center gap-1.5`}>
           <button
             type="button"
-            onClick={() => { setIsOpen(true); setIsMinimized(false); }}
-            className="group relative flex items-center gap-2.5 rounded-full border border-amber-400/50 bg-amber-600 px-4 py-3 text-xs font-bold text-white shadow-[0_0_20px_rgba(217,119,6,0.5)] transition-all duration-300 hover:scale-105 hover:bg-amber-500 hover:shadow-[0_0_30px_rgba(217,119,6,0.8)] active:scale-95 sm:text-sm"
-            aria-label="Abrir asistente virtual"
+            onClick={() => { setIsOpen((previous) => !previous); setIsMinimized(false); }}
+            aria-expanded={isOpen}
+            aria-controls="cacique-chat-panel"
+            aria-label={isOpen ? 'Cerrar asistente virtual' : 'Abrir asistente virtual'}
+            className="group relative flex h-14 w-14 items-center justify-center rounded-full border border-amber-400/50 bg-amber-600 text-white shadow-[0_0_20px_rgba(217,119,6,0.5)] transition-all duration-300 hover:scale-105 hover:bg-amber-500 hover:shadow-[0_0_30px_rgba(217,119,6,0.8)] active:scale-95"
           >
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
-            <Bot className="h-5 w-5 text-white animate-bounce transition-transform duration-300 group-hover:rotate-12" />
-            <span className="text-xs font-extrabold tracking-wide drop-shadow-sm sm:text-sm">
+            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
+            <Bot className="h-6 w-6 text-white animate-bounce transition-transform duration-300 group-hover:rotate-12" />
+            <span className="sr-only">
               {isStaffContext ? 'IA Operativa Staff' : 'Asistente Virtual'}
             </span>
-            <Sparkles className="cacique-sparkle h-3.5 w-3.5 text-amber-200" />
           </button>
           <button
             type="button"
@@ -140,7 +178,8 @@ export default function AiAgentWidget() {
       )}
 
       {!isHidden && isOpen && !isMinimized && (
-        <div className={`cacique-chat-enter fixed ${positionClasses} z-50 w-[calc(100vw-2rem)] sm:w-96 bg-zinc-950/98 backdrop-blur-2xl border border-amber-500/40 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-120 max-h-[82vh]`}>
+        <div ref={containerRef} className={`cacique-chat-enter fixed ${positionClasses} z-50 flex w-[calc(100vw-2rem)] sm:w-96 flex-col overflow-hidden rounded-3xl border border-amber-500/40 bg-zinc-950/98 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl`}>
+          <div id="cacique-chat-panel" className="flex h-120 max-h-[82vh] min-h-0 flex-col">
           <div className="p-4 bg-amber-600 border-b border-amber-500/30 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg border border-white/20 bg-black/20 text-white">
@@ -203,6 +242,7 @@ export default function AiAgentWidget() {
               <Send className="w-4 h-4" />
             </button>
           </form>
+          </div>
         </div>
       )}
     </div>

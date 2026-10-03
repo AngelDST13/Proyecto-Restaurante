@@ -427,17 +427,19 @@ describe('TalkBackService (Web Speech Synthesis)', () => {
       expect(window.speechSynthesis.pause.mock.calls.length).toBe(pauseCalls);
     });
 
-    it('tolera motores que rechazan la locucion de calentamiento', () => {
+    it('tolera motores que rechazan la secuencia de desbloqueo', () => {
       window.localStorage.setItem('cacique_talkback_enabled', 'true');
-      const originalSpeak = window.speechSynthesis.speak;
-      window.speechSynthesis.speak.mockImplementationOnce(() => {
+      const originalPause = window.speechSynthesis.pause;
+      window.speechSynthesis.pause.mockImplementationOnce(() => {
         throw new Error('audio bloqueado');
       });
 
-      render(withTalkBack(<SpeakablePage />));
-      expect(() => fireEvent.pointerDown(document.body)).not.toThrow();
-
-      window.speechSynthesis.speak = originalSpeak;
+      try {
+        render(withTalkBack(<SpeakablePage />));
+        expect(() => fireEvent.pointerDown(document.body)).not.toThrow();
+      } finally {
+        window.speechSynthesis.pause = originalPause;
+      }
     });
 
     it('deja de escuchar al desactivarse y se limpia al desmontar', () => {

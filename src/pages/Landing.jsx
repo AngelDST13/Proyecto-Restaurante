@@ -9,6 +9,7 @@ import {
   AlertTriangle, Ghost, Snowflake, PartyPopper
 } from 'lucide-react';
 import { caciqueAsset as caciqueIcon } from '../assets/img';
+import { useReservationRequestHandler } from '../hooks/useReservationModal';
 
 function getSeasonForDate(now) {
   const month = now.getMonth() + 1;
@@ -40,6 +41,12 @@ export default function Landing() {
   const navigate = useNavigate();
   const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [reservationType, setReservationType] = useState('General');
+
+  // El Navbar global solicita la apertura del modal mediante un evento.
+  useReservationRequestHandler((type) => {
+    setReservationType(type);
+    setIsReservationOpen(true);
+  });
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [activeSedeMap, setActiveSedeMap] = useState('ESCAZÚ');
 
