@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import App from '../App';
-import defaultAssets, { ASSET_PATHS, caciqueAsset, logoDarkVariant, logoLightVariant } from '../assets/img';
+import defaultAssets, { ASSET_PATHS, caciqueAsset, caciqueBlackAsset, logoDarkVariant, logoLightVariant } from '../assets/img';
 
 /**
  * Pestaña del navegador ("El Cacique" + favicon Cacique.svg), activos
@@ -46,11 +46,12 @@ describe('Pestaña del navegador', () => {
 });
 
 describe('Activos centralizados en src/assets/img', () => {
-  it('el indice exporta los tres vectores oficiales', () => {
+  it('el indice exporta los cuatro vectores oficiales', () => {
     expect(caciqueAsset).toBeTruthy();
+    expect(caciqueBlackAsset).toBeTruthy();
     expect(logoDarkVariant).toBeTruthy();
     expect(logoLightVariant).toBeTruthy();
-    expect(defaultAssets).toEqual({ cacique: caciqueAsset, logoDark: logoDarkVariant, logoLight: logoLightVariant });
+    expect(defaultAssets).toEqual({ cacique: caciqueAsset, caciqueBlack: caciqueBlackAsset, logoDark: logoDarkVariant, logoLight: logoLightVariant });
     for (const assetPath of Object.values(ASSET_PATHS)) {
       expect(fs.existsSync(path.resolve(projectRoot, assetPath)), assetPath).toBe(true);
     }
@@ -59,6 +60,7 @@ describe('Activos centralizados en src/assets/img', () => {
   it('src/assets/img solo contiene los vectores y su indice', () => {
     expect(listFiles('src/assets').sort()).toEqual([
       'src/assets/img/Cacique.svg',
+      'src/assets/img/Caciquen.svg',
       'src/assets/img/LogoB.svg',
       'src/assets/img/LogoN.svg',
       'src/assets/img/index.js'
@@ -67,7 +69,7 @@ describe('Activos centralizados en src/assets/img', () => {
 
   it('no existen carpetas de imagenes duplicadas en public/', () => {
     expect(fs.existsSync(path.resolve(projectRoot, 'public/assets'))).toBe(false);
-    const publicImages = listFiles('public').filter((file) => /.(svg|png|jpe?g|webp|gif|ico)$/i.test(file));
+    const publicImages = listFiles('public').filter((file) => /\.(svg|png|jpe?g|webp|gif|ico)$/i.test(file));
     expect(publicImages).toEqual([]);
   });
 
@@ -86,8 +88,13 @@ describe('Activos centralizados en src/assets/img', () => {
     'src/pages/Login.jsx',
     'src/pages/AdminDashboard.jsx',
     'src/pages/CashierDashboard.jsx'
-  ])('%s importa sus logos desde ../assets/img', (file) => {
-    expect(read(file)).toMatch(/from '\.\.\/assets\/img';/);
+  ])('%s usa el isotipo centralizado CaciqueLogo', (file) => {
+    expect(read(file)).toMatch(/import CaciqueLogo from '\.{1,2}\/(components\/)?CaciqueLogo';/);
+  });
+
+  it('CaciqueLogo importa ambos vectores desde el indice de activos', () => {
+    expect(read('src/components/CaciqueLogo.jsx'))
+      .toContain("import { caciqueAsset, caciqueBlackAsset, logoDarkVariant, logoLightVariant } from '../assets/img';");
   });
 });
 

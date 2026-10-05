@@ -90,13 +90,14 @@ describe('NavbarThemeToggle', () => {
     expect(toggles.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('mantiene el logo Cacique.svg con el resplandor difuminado', () => {
+  it('muestra Cacique.svg con resplandor dorado en Modo Oscuro', () => {
     renderNavbar();
 
     const logo = screen.getByAltText('Logo El Cacique');
     expect(logo).toHaveClass('cacique-logo');
-    expect(logo.getAttribute('src')).toContain('Cacique');
-    expect(logo.className).toContain('drop-shadow-[0_0_12px_rgba(0,0,0,0.9)]');
+    // El resplandor dorado se aplica en index.css segun data-variant.
+    expect(logo).toHaveAttribute('data-variant', 'dark');
+    expect(logo.getAttribute('src')).toMatch(/Cacique.svg/);
   });
 
   it('el conmutador mantiene el branding completo sin recortarse', () => {

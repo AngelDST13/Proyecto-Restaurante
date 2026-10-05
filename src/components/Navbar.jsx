@@ -3,7 +3,7 @@ import { useAccessibility } from '../context/AccessibilityContext';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, CreditCard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, ShoppingBag, Sun, Moon } from 'lucide-react';
-import { caciqueAsset as caciqueIcon } from '../assets/img';
+import CaciqueLogo from './CaciqueLogo';
 import LogoutConfirmModal from './LogoutConfirmModal';
 import { requestReservationModal } from '../hooks/useReservationModal';
 
@@ -97,10 +97,9 @@ export default function Navbar({ onOpenReservation }) {
         >
           <div className="relative flex h-11 w-11 shrink-0 items-center justify-center">
             <div className="absolute inset-0 rounded-full bg-(--cacique-accent)/30 blur-md transition-all group-hover:blur-lg"></div>
-            <img
-              src={caciqueIcon}
+            <CaciqueLogo
               alt="Logo El Cacique"
-              className="cacique-logo relative z-10 h-full w-full object-contain drop-shadow-[0_0_12px_rgba(0,0,0,0.9)] transition-transform duration-300 group-hover:scale-105"
+              className="relative z-10 h-full w-full transition-transform duration-300 group-hover:scale-105"
             />
           </div>
           <div className="min-w-0 shrink">
@@ -170,9 +169,10 @@ export default function Navbar({ onOpenReservation }) {
           <button
             type="button"
             onClick={handleReservationClick}
-            className="px-4 py-2 rounded-xl bg-[#659B5E] hover:bg-emerald-600 text-white font-extrabold text-xs uppercase transition-all shadow-md cursor-pointer flex items-center gap-2 whitespace-nowrap"
+            data-testid="navbar-reservar"
+            className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-5 text-xs font-bold uppercase leading-none tracking-wider text-white shadow-md transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 bg-[#659B5E] hover:bg-emerald-600"
           >
-            <Calendar className="w-3.5 h-3.5" />
+            <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>AGENDAR RESERVA</span>
           </button>
 
@@ -207,9 +207,10 @@ export default function Navbar({ onOpenReservation }) {
           ) : (
             <Link
               to="/login"
-              className="px-5 py-2.5 rounded-xl bg-[#D16014] hover:bg-[#b8510f] text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg flex items-center gap-2"
+              data-testid="navbar-login"
+              className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-5 text-xs font-bold uppercase leading-none tracking-wider text-white shadow-md transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 bg-[#D16014] hover:bg-[#b8510f]"
             >
-              <LogIn className="w-4 h-4" />
+              <LogIn className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>Iniciar Sesión</span>
             </Link>
           )}

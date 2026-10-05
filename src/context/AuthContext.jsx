@@ -9,10 +9,20 @@ import {
   generateSessionSignature,
   verifySessionIntegrity
 } from '../services/authSecurity';
+import { INACTIVITY_REASON, LOGOUT_REASON_KEY } from '../services/sessionReasons';
 
 const AuthContext = createContext();
 const ENCRYPTED_USER_KEY = 'gourmetsync_enc_user';
 const SIGNATURE_KEY = 'gourmetsync_sig';
+function consumeLogoutReason() {
+  try {
+    const reason = sessionStorage.getItem(LOGOUT_REASON_KEY);
+    sessionStorage.removeItem(LOGOUT_REASON_KEY);
+    return reason;
+  } catch {
+    return null;
+  }
+}
 
 function clearStoredSession() {
   localStorage.removeItem(ENCRYPTED_USER_KEY);
@@ -56,13 +66,34 @@ export function AuthProvider({ children }) {
     return storedUser;
   });
 
-  const [inactivityToast, setInactivityToast] = useState(false);
+  const [inactivityToast, setInactivityToast] = useState(() => consumeLogoutReason() === INACTIVITY_REASON);
   const timerRef = useRef(null);
 
-  const logout = useCallback(() => {
+  const logout = useCallback((reason) => {
+    // Un segundo cierre inmediato (p. ej. la verificacion de integridad, que
+    // detecta la sesion ya borrada antes del re-render) no debe borrar el
+    // motivo de inactividad pendiente.
+    let pendingReason;
+    try {
+      pendingReason = sessionStorage.getItem(LOGOUT_REASON_KEY);
+    } catch {
+      pendingReason = null;
+    }
+    const isInactivity = reason === INACTIVITY_REASON || pendingReason === INACTIVITY_REASON;
+
     setUser(null);
     clearStoredSession();
     sessionStorage.clear();
+    if (isInactivity) {
+      // En memoria para la navegacion SPA y en sessionStorage para sobrevivir
+      // a la recarga completa hacia /login.
+      setInactivityToast(true);
+      try {
+        sessionStorage.setItem(LOGOUT_REASON_KEY, INACTIVITY_REASON);
+      } catch {
+        // Sin sessionStorage la sesion se cierra igual, solo sin el aviso.
+      }
+    }
     if (timerRef.current) clearTimeout(timerRef.current);
     window.location.href = '/login';
   }, []);
@@ -92,8 +123,7 @@ export function AuthProvider({ children }) {
     const resetTimer = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
-        setInactivityToast(true);
-        logout();
+        logout(INACTIVITY_REASON);
       }, 180000);
     };
 

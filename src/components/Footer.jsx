@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Phone, Clock, Mail, MessageSquare, ShieldCheck, Store } from 'lucide-react';
-import { caciqueAsset as caciqueIcon } from '../assets/img';
+import CaciqueLogo from './CaciqueLogo';
 
 export default function Footer() {
   return (
@@ -10,10 +10,9 @@ export default function Footer() {
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 relative shrink-0">
-              <img
-                src={caciqueIcon}
+              <CaciqueLogo
                 alt="Logo El Cacique"
-                className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(209,96,20,0.8)]"
+                className="w-full h-full"
               />
             </div>
             <div>

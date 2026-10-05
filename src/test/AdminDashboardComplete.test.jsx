@@ -144,7 +144,7 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
     const logo = screen.getByAltText('El Cacique Logo');
     expect(logo).toHaveAttribute('src', expect.stringContaining('Cacique.svg'));
     expect(logo).toHaveClass('w-14', 'h-14');
-    expect(logo.className).toContain('drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]');
+    expect(logo).toHaveAttribute('data-variant', 'dark');
     expect(logo.closest('div').parentElement).toHaveTextContent('EL CACIQUE');
     expect(logo.closest('div').parentElement).toHaveTextContent('Chicharronera Gourmet');
     fireEvent.error(logo);
@@ -161,7 +161,8 @@ describe('AdminDashboard: menú e invoices con interacciones del DOM real', () =
     expect(screen.getByText(/Promoción CACIQUE10 sincronizada/i)).toBeInTheDocument();
     open('Reseñas & Clientes');
     fireEvent.click(screen.getByRole('button', { name: 'Revisar moderación' }));
-    expect(screen.getByText(/No hay reseñas pendientes/i)).toBeInTheDocument();
+    // Escazú (sede por defecto) tiene una reseña sin verificar.
+    expect(screen.getByText('1 reseña(s) sin verificar pendientes de moderación')).toBeInTheDocument();
     open('Arqueo de Caja & POS');
     fireEvent.change(screen.getByLabelText('Monto inicial'), { target: { value: '20000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Abrir caja' }));

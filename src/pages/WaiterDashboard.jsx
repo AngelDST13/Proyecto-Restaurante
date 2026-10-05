@@ -6,10 +6,10 @@ import { enqueueCashierOrder } from '../services/cashierService';
 import { useSharedCollection } from '../hooks/useSharedCollection';
 import { RESERVATIONS_KEY, addKitchenOrder, createWaiterTables, reservationsByTable } from '../services/liveSync';
 import Toast from '../components/Toast';
-import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ThemeToggleButton from '../components/ThemeToggleButton';
+import InactivityGuard from '../components/InactivityGuard';
 import {
-  Utensils, LogOut, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, Scissors, CreditCard, User,
+  Utensils, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, Scissors, CreditCard, User,
   ShieldCheck, CheckCircle2, Search, AlertCircle, FileText, Send, Trash2,
   Sparkles, Coffee, BellRing
 } from 'lucide-react';
@@ -17,7 +17,9 @@ import {
 const READY_ORDERS_STORAGE_KEY = 'cacique_ready_order_notifications';
 
 export default function WaiterDashboard() {
-  const { user, logout } = useAuth();
+  // El cierre de sesion vive solo en la barra superior (Navbar), que ya
+  // muestra el modal de confirmacion: aqui no se duplica el boton.
+  const { user } = useAuth();
   const [selectedFloor, setSelectedFloor] = useState('piso1');
   const [selectedTable, setSelectedTable] = useState(null);
   const [precuentaTable, setPrecuentaTable] = useState(null);
@@ -38,12 +40,6 @@ export default function WaiterDashboard() {
   const [orderNote, setOrderNote] = useState('');
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [readyNotifications, setReadyNotifications] = useState([]);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-
-  const handleLogout = () => {
-    setIsLogoutModalOpen(false);
-    logout();
-  };
 
   // Mesas por Piso (plano compartido con la asignacion de reservas web)
   const [tables, setTables] = useState(createWaiterTables);
@@ -331,6 +327,7 @@ export default function WaiterDashboard() {
 
   return (
     <div className="min-h-screen w-full max-w-full min-w-0 overflow-x-hidden bg-[#07090E] text-[#F8FFE5] pt-20 pb-12 px-4 sm:px-6 font-sans">
+      <InactivityGuard />
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
       )}
@@ -493,10 +490,6 @@ export default function WaiterDashboard() {
             </div>
 
             <ThemeToggleButton />
-
-            <button onClick={() => setIsLogoutModalOpen(true)} title="Cerrar Sesión" aria-label="Cerrar Sesión" className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
-              <LogOut className="w-5 h-5" />
-            </button>
           </div>
         </div>
 
@@ -895,12 +888,6 @@ export default function WaiterDashboard() {
         </div>
       </div>
 
-    <LogoutConfirmModal
-      isOpen={isLogoutModalOpen}
-      description="Se finalizará la sesión activa del punto de salón."
-      onCancel={() => setIsLogoutModalOpen(false)}
-      onConfirm={handleLogout}
-    />
     </div>
   );
 }

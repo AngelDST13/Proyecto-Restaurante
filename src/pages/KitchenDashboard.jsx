@@ -11,6 +11,7 @@ import {
 import { useSharedCollection } from '../hooks/useSharedCollection';
 import { KITCHEN_ORDERS_KEY, readCollection, writeCollection } from '../services/liveSync';
 import ThemeToggleButton from '../components/ThemeToggleButton';
+import InactivityGuard from '../components/InactivityGuard';
 
 const READY_ORDERS_STORAGE_KEY = 'cacique_ready_order_notifications';
 
@@ -226,6 +227,7 @@ export default function KitchenDashboard() {
 
   return (
     <div className="min-h-screen w-full max-w-full min-w-0 overflow-x-hidden bg-[#0A090C] text-[#F8FFE5] font-sans pb-16">
+      <InactivityGuard />
       
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />

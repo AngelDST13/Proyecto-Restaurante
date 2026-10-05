@@ -2,15 +2,16 @@ import { startTransition, useCallback, useEffect, useMemo, useState } from 'reac
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
-import { useAutoLogout } from '../hooks/useAutoLogout';
+import { STAFF_INACTIVITY_TIMEOUT_MS, STAFF_INACTIVITY_WARNING_MS, useAutoLogout } from '../hooks/useAutoLogout';
 
 import FacturacionPanel from '../components/FacturacionPanel';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useSharedCollection } from '../hooks/useSharedCollection';
 import { RESERVATIONS_KEY, writeCollection } from '../services/liveSync';
+import { aggregateBranchMetrics, averageRating, filterReviewsBySede, loadReviews, saveReviews } from '../services/adminInsights';
 import ThemeToggleButton from '../components/ThemeToggleButton';
 import { ADMIN_SEDES, createAdminRegister, getAdminRegistersBySede, removeAdminRegister } from '../services/adminRegistersService';
-import { caciqueAsset as caciqueIcon, logoDarkVariant as officialLogo } from '../assets/img';
+import CaciqueLogo from '../components/CaciqueLogo';
 import { decryptData, encryptData, formatSedeName, TEST_ACCESS_CREDENTIALS } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { CLIENTS_STORAGE_KEY, CLIENT_BRANCH_LABELS, CLIENT_BRANCHES, DEFAULT_CLIENTS, filterClients } from '../services/clientsService';
@@ -30,8 +31,8 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const navigateToLogin = useCallback(() => navigate('/login'), [navigate]);
   const { showWarning: showInactivityWarning, resetTimer: resetInactivityTimer } = useAutoLogout(null, {
-    timeoutMs: 10 * 60 * 1000,
-    warningMs: 9 * 60 * 1000,
+    timeoutMs: STAFF_INACTIVITY_TIMEOUT_MS,
+    warningMs: STAFF_INACTIVITY_WARNING_MS,
     onTimeout: navigateToLogin
   });
 
@@ -231,11 +232,20 @@ export default function AdminDashboard() {
     { id: 3, codigo: 'LUNESCRIOLLO', descripcion: '15% de descuento los lunes', usos: 0, estado: 'Programado' }
   ];
 
-  const reviews = [
-    { id: 1, cliente: 'María González', sede: 'Escazú', rating: 5, comentario: 'El chifrijo estuvo increíble y el servicio fue muy rápido.' },
-    { id: 2, cliente: 'Diego Vargas', sede: 'Santa Ana', rating: 4, comentario: 'Muy buen sabor. La terraza es excelente para compartir.' },
-    { id: 3, cliente: 'Sofía Ramírez', sede: 'Cartago', rating: 5, comentario: 'La atención del equipo y la calidad de la paila fueron excelentes.' }
-  ];
+  // Reseñas moderables: persistidas y filtradas por la sede del selector.
+  const [reviews, setReviews] = useState(loadReviews);
+  const [pendingReviewDeletion, setPendingReviewDeletion] = useState(null);
+  const visibleReviews = filterReviewsBySede(reviews, selectedSede);
+  const visibleAverageRating = averageRating(visibleReviews);
+  const unverifiedReviewsCount = visibleReviews.filter(review => review.verificada === false).length;
+
+  const deleteReview = review => {
+    const next = reviews.filter(item => item.id !== review.id);
+    setReviews(next);
+    saveReviews(next);
+    setPendingReviewDeletion(null);
+    showToast(`Reseña de ${review.cliente} eliminada`, 'info');
+  };
 
   const metricsByPeriod = {
     dia: {
@@ -292,9 +302,7 @@ export default function AdminDashboard() {
     ? historicalData.filter(row => row.month === selectedHistoryMonth && (selectedSede === 'todas' || row.sede === selectedSede))
     : [];
   const historyScale = timePeriod === 'dia' ? 30 : timePeriod === 'semana' ? 4 : 1;
-  const baseMetrics = selectedSede === 'todas'
-    ? { ...branchKeys.reduce((sum, key) => { const metric = metricsByPeriod[timePeriod][key]; return { ventas: sum.ventas + metric.ventas, comandas: sum.comandas + metric.comandas, clientes: sum.clientes + metric.clientes, completados: sum.completados + metric.completados, pendientes: sum.pendientes + metric.pendientes, cancelados: sum.cancelados + metric.cancelados }; }, { ventas: 0, comandas: 0, clientes: 0, completados: 0, pendientes: 0, cancelados: 0 }), coccion: '16 min', mesasTotal: branchKeys.reduce((n, key) => n + branchDetails[key].mesasTotal, 0), mesasLibres: branchKeys.reduce((n, key) => n + branchDetails[key].mesasLibres, 0) }
-    : { ...metricsByPeriod[timePeriod][selectedSede], ...branchDetails[selectedSede] };
+  const baseMetrics = aggregateBranchMetrics(metricsByPeriod[timePeriod], branchDetails, selectedSede);
   const currentMetrics = selectedHistoricalRows.length
     ? { ...baseMetrics,
       ventas: Math.round(selectedHistoricalRows.reduce((total, row) => total + row.ventas, 0) / historyScale),
@@ -696,11 +704,9 @@ export default function AdminDashboard() {
         <div className="space-y-8">
 
           <div className="flex min-w-0 items-center gap-3 p-3 border-b border-zinc-800/80 mb-4">
-            <img
-              src={caciqueIcon}
-              onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = officialLogo; }}
+            <CaciqueLogo
               alt="El Cacique Logo"
-              className="w-14 h-14 object-contain drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]"
+              className="w-14 h-14"
             />
             <div className="min-w-0">
               <span className="block text-lg font-black leading-none tracking-wide text-amber-400">EL CACIQUE</span>
@@ -1256,23 +1262,41 @@ export default function AdminDashboard() {
                 <h3 className="font-extrabold text-lg text-[#F8FFE5] flex items-center gap-2"><MessageSquare className="w-5 h-5 text-[#D16014]" /> Reseñas y Clientes</h3>
                 <p className="text-gray-400 text-[11px]">Comentarios recientes de la experiencia gastronómica.</p>
               </div>
-              <div className="text-right"><span className="block text-2xl font-black text-amber-400">4.8</span><span className="text-[10px] text-gray-400">Promedio general</span></div>
+              <div className="text-right"><span className="block text-2xl font-black text-amber-400" data-testid="reviews-average">{visibleAverageRating ?? '—'}</span><span className="text-[10px] text-gray-400">{selectedSede === 'todas' ? 'Promedio general' : `Promedio Sede ${formatSedeName(selectedSede)}`}</span></div>
             </div>
 
-            <div className="space-y-3">
-              {reviews.map(review => (
-                <div key={review.id} className="p-4 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="space-y-3" aria-label="Reseñas de clientes" role="list">
+              {visibleReviews.length === 0 && <p className="rounded-2xl border border-[#F8FFE5]/10 bg-[#0A090C] p-4 text-gray-400">No hay reseñas para esta sede.</p>}
+              {visibleReviews.map(review => (
+                <article key={review.id} role="listitem" aria-label={`Reseña de ${review.cliente}`} className="p-4 bg-[#0A090C] rounded-2xl border border-[#F8FFE5]/10 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2"><strong className="text-white">{review.cliente}</strong><span className="text-[10px] text-[#659B5E]">Sede {review.sede}</span></div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <strong className="text-white">{review.cliente}</strong>
+                      <span className="text-[10px] text-[#659B5E]">Sede {review.sede}</span>
+                      {review.verificada === false && <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-300">No verificada</span>}
+                    </div>
                     <p className="text-gray-300 leading-relaxed">{review.comentario}</p>
                   </div>
-                  <div className="shrink-0 text-amber-400 tracking-wide">Calificación {review.rating}/5</div>
-                </div>
+                  <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                    <span className="text-amber-400 tracking-wide">Calificación {review.rating}/5</span>
+                    {pendingReviewDeletion === review.id ? (
+                      <div className="flex flex-wrap items-center gap-2" role="group" aria-label={`Confirmar eliminación de la reseña de ${review.cliente}`}>
+                        <span className="text-[11px] font-bold text-red-400">¿Eliminar esta reseña?</span>
+                        <button type="button" onClick={() => deleteReview(review)} className="rounded-lg bg-red-600 px-3 py-1.5 font-bold text-white hover:bg-red-700 active:scale-95">Sí, eliminar</button>
+                        <button type="button" onClick={() => setPendingReviewDeletion(null)} className="rounded-lg border border-[#F8FFE5]/15 px-3 py-1.5 font-bold text-gray-300 hover:text-white active:scale-95">Cancelar</button>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => setPendingReviewDeletion(review.id)} aria-label={`Eliminar reseña de ${review.cliente}`} className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/40 px-3 py-1.5 font-bold text-red-400 hover:bg-red-500/10 active:scale-95">
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Eliminar
+                      </button>
+                    )}
+                  </div>
+                </article>
               ))}
             </div>
 
             <button
-              onClick={() => showToast('No hay reseñas pendientes de moderación', 'info')}
+              onClick={() => showToast(unverifiedReviewsCount ? `${unverifiedReviewsCount} reseña(s) sin verificar pendientes de moderación` : 'No hay reseñas pendientes de moderación', 'info')}
               className="px-5 py-2.5 rounded-xl bg-[#659B5E] hover:bg-[#52824c] text-white font-extrabold flex items-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4" /> Revisar moderación

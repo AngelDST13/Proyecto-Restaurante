@@ -9,7 +9,7 @@ import {
   Flame, ChevronRight, ChevronLeft, Award, ShieldCheck, Sparkles,
   AlertTriangle, Ghost, Snowflake, PartyPopper
 } from 'lucide-react';
-import { caciqueAsset as caciqueIcon } from '../assets/img';
+import CaciqueLogo from '../components/CaciqueLogo';
 import { useReservationRequestHandler } from '../hooks/useReservationModal';
 
 function getSeasonForDate(now) {
@@ -256,7 +256,7 @@ export default function Landing() {
       </section>
 
       {/* 2. NOSOTROS */}
-      <section id="nosotros" className="py-24 px-6 bg-[#001812] border-y border-[#659B5E]/30 relative overflow-hidden scroll-mt-24">
+      <section id="nosotros" className="py-24 px-6 bg-[#001812] bg-linear-to-b from-[#659B5E]/10 to-transparent light:from-[#E8DFD8]/40 border-y border-[#659B5E]/30 relative overflow-hidden scroll-mt-24">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#659B5E]/20 text-[#659B5E] border border-[#659B5E]/40 text-[10px] font-black uppercase tracking-widest">
@@ -294,10 +294,9 @@ export default function Landing() {
           <div className="relative flex flex-col items-center justify-center p-8 text-center">
             <div className="relative group flex items-center justify-center">
               <div className="absolute inset-0 bg-[#D16014]/20 rounded-full blur-3xl transform group-hover:scale-125 transition-transform duration-500"></div>
-              <img 
-                src={caciqueIcon} 
-                alt="Isotipo El Cacique" 
-                className="w-72 h-72 sm:w-96 sm:h-96 object-contain relative z-10 filter drop-shadow-[0_0_35px_rgba(209,96,20,0.7)] group-hover:scale-105 transition-transform duration-500" 
+              <CaciqueLogo
+                alt="Isotipo El Cacique"
+                className="w-72 h-72 sm:w-96 sm:h-96 relative z-10 group-hover:scale-105 transition-transform duration-500"
               />
             </div>
           </div>

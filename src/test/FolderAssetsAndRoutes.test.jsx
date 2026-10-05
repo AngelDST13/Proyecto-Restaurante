@@ -30,13 +30,14 @@ describe('Activos visuales consolidados en src/assets/img', () => {
   it('centraliza las rutas en ASSET_PATHS', () => {
     expect(ASSET_PATHS).toEqual({
       cacique: 'src/assets/img/Cacique.svg',
+      caciqueBlack: 'src/assets/img/Caciquen.svg',
       logoDark: 'src/assets/img/LogoN.svg',
       logoLight: 'src/assets/img/LogoB.svg',
     });
   });
 
-  it('ofrece tambien un export por defecto con los tres vectores', () => {
-    expect(Object.keys(assets).sort()).toEqual(['cacique', 'logoDark', 'logoLight']);
+  it('ofrece tambien un export por defecto con los cuatro vectores', () => {
+    expect(Object.keys(assets).sort()).toEqual(['cacique', 'caciqueBlack', 'logoDark', 'logoLight']);
     expect(assets.cacique).toBe(caciqueAsset);
     expect(assets.logoDark).toBe(logoDarkVariant);
     expect(assets.logoLight).toBe(logoLightVariant);

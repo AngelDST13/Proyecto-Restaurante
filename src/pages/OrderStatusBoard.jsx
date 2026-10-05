@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Flame, CheckCircle2, Clock, Volume2, Sparkles } from 'lucide-react';
-import { caciqueAsset as caciqueIcon } from '../assets/img';
+import CaciqueLogo from '../components/CaciqueLogo';
 
 export default function OrderStatusBoard() {
   const [orders, setOrders] = useState([
@@ -37,7 +37,7 @@ export default function OrderStatusBoard() {
         {/* ENCABEZADO DEL MONITOR */}
         <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl">
           <div className="flex items-center gap-4">
-            <img src={caciqueIcon} alt="Cacique" className="w-12 h-12 filter drop-shadow-[0_0_15px_rgba(209,96,20,0.8)]" />
+            <CaciqueLogo alt="Cacique" className="w-12 h-12" />
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wider flex items-center gap-2">
                 ESTADO DE PEDIDOS <Sparkles className="w-5 h-5 text-[#D16014]" />

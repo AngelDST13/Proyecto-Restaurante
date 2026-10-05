@@ -7,7 +7,7 @@ import { triggerN8nAutomation } from '../services/n8nService';
 import { sanitizePlainTextInput } from '../services/authSecurity';
 import LoginQuickAccessModal from '../components/LoginQuickAccessModal';
 import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket, Store } from 'lucide-react';
-import { caciqueAsset as caciqueIcon } from '../assets/img';
+import CaciqueLogo from '../components/CaciqueLogo';
 
 export default function Login() {
   const { loginWithCredentials, registerClient } = useAuth();
@@ -118,10 +118,9 @@ export default function Login() {
 
           <div className="relative w-32 h-32 mx-auto flex items-center justify-center">
             <div className="absolute inset-0 bg-[#D16014]/40 rounded-full blur-2xl animate-pulse"></div>
-            <img
-              src={caciqueIcon}
+            <CaciqueLogo
               alt="Isotipo El Cacique"
-              className="w-full h-full object-contain relative z-10 filter drop-shadow-[0_0_25px_rgba(209,96,20,0.9)] hover:scale-105 transition-transform duration-300"
+              className="w-full h-full relative z-10 hover:scale-105 transition-transform duration-300"
             />
           </div>
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import FacturacionPanel from '../components/FacturacionPanel';
 import Toast from '../components/Toast';
-import { caciqueAsset as caciqueIcon, logoDarkVariant as officialLogo } from '../assets/img';
+import CaciqueLogo from '../components/CaciqueLogo';
 import { formatSedeName } from '../services/authSecurity';
 import { CASHIER_PAYMENT_METHODS, CASHIER_TABLE_COUNTS, closeCashierRegister, getCashierOrders, getCashierState, openCashierRegister, recordCashierSale, removeCashierOrder } from '../services/cashierService';
 import { CreditCard, Lock, LogOut, Receipt, Unlock } from 'lucide-react';
@@ -10,6 +10,7 @@ import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useSharedCollection } from '../hooks/useSharedCollection';
 import { KITCHEN_ORDERS_KEY, activeKitchenOrders } from '../services/liveSync';
 import ThemeToggleButton from '../components/ThemeToggleButton';
+import InactivityGuard from '../components/InactivityGuard';
 
 const PAYMENT_METHODS = CASHIER_PAYMENT_METHODS;
 const DEFAULT_OPENING_AMOUNT = 50000;
@@ -146,12 +147,13 @@ export default function CashierDashboard() {
 
   return (
     <main className="min-h-screen w-full bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] light:from-[#F5EFE6] light:via-[#F0E8DF] light:to-[#E8DFD8] px-4 pb-12 pt-24 text-[#F8FFE5] sm:px-6">
+      <InactivityGuard />
       {toast.show && <Toast message={toast.message} type={toast.type} onClose={() => setToast(previous => ({ ...previous, show: false }))} />}
       <div className="mx-auto max-w-7xl space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#659B5E]/30 bg-black/20 p-4 sm:p-5">
           <div>
             <div className="flex items-center gap-3">
-              <img src={caciqueIcon} onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = officialLogo; }} alt="Dibujo del Cacique" aria-label="Dibujo ilustrado del Cacique" className="h-14 w-14 shrink-0 object-contain drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]" />
+              <CaciqueLogo alt="Dibujo del Cacique" aria-label="Dibujo ilustrado del Cacique" className="h-14 w-14 shrink-0" />
               <div><span className="block text-base font-black leading-none tracking-wide text-amber-400">EL CACIQUE</span><span className="mt-1 block text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Chicharronera Gourmet</span></div>
               <div><p className="text-xs font-bold uppercase tracking-widest text-amber-400">Sede activa · {sedeNombre}</p><h1 className="mt-1 text-2xl font-black text-white">Panel de Cajero</h1><p className="mt-1 text-sm text-zinc-400">Turno de {user?.nombre || 'Cajero de turno'}</p></div>
             </div>

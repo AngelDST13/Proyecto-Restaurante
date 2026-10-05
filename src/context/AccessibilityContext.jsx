@@ -65,7 +65,7 @@ export const DARK_PALETTE = {
 export const COLOR_BLIND_MODES = [
   {
     id: 'none',
-    label: 'Visión normal',
+    label: 'Visión por defecto',
     className: 'cb-none',
     filterId: null,
     description: 'Sin ajustes de color. Paleta original de la marca.',

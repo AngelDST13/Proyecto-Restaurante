@@ -128,20 +128,29 @@ html,
 }
 
 /* ==========================================================================
-   Resplandor del logo Cacique.svg
-   En Modo Claro se aplican contorno blanco brillante y resplandor ambar
-   para que el vector resalte nitidamente sobre fondos claros.
+   Isotipo del Cacique segun el tema (componente CaciqueLogo)
+   - Modo Oscuro: Cacique.svg (trazo blanco) con resplandor dorado.
+   - Modo Claro: Caciquen.svg (trazo negro) nitido sobre el beige marfil.
+   - Alto Contraste: el fondo es negro puro, asi que el trazo negro se
+     invierte a blanco para no desaparecer.
    ========================================================================== */
 
-/* Sombra perimetral difuminada oscura para la ilustracion vectorial del Cacique:
-   garantiza definicion en Modo Claro (fondo beige) y en Modo Oscuro. */
-html.theme-light .cacique-logo,
-html.theme-dark .cacique-logo,
-.cacique-logo,
-img[src*="Cacique"],
-img[src*="cacique"],
-img[alt*="Cacique"],
-img[alt*="cacique"] {
+.cacique-logo[data-variant='dark'] {
+  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6)) drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) !important;
+}
+
+.cacique-logo[data-variant='light'] {
+  filter: drop-shadow(0 2px 6px rgba(44, 26, 14, 0.18)) !important;
+}
+
+html.cb-alto-contraste .cacique-logo[data-variant='light'] {
+  filter: invert(1) !important;
+}
+
+/* Cualquier otra imagen del Cacique que no use el componente conserva un
+   contorno oscuro para mantener su definicion. */
+img[src*="Cacique"]:not(.cacique-logo),
+img[alt*="Cacique"]:not(.cacique-logo) {
   filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85)) !important;
 }
 
@@ -366,7 +375,7 @@ html.theme-light {
 
 /* --- Superficies oscuras heredadas -> superficies claras ----------------- */
 
-html.theme-light :is([class*='bg-[#0A090C]'], [class*='bg-[#0A110D]']) {
+html.theme-light :is([class*='bg-[#0A090C]'], [class*='bg-[#0A110D]'], [class*='bg-[#07090E]']) {
   background-color: var(--cacique-canvas);
 }
 

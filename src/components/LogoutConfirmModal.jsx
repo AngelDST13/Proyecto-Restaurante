@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertCircle } from 'lucide-react';
 
 /**
@@ -14,6 +15,12 @@ import { AlertCircle } from 'lucide-react';
  *
  * Se cierra con Escape o con el boton Cancelar, y solo ejecuta `onConfirm`
  * cuando el usuario confirma explicitamente.
+ *
+ * Se renderiza en un portal sobre `document.body`: el Navbar lo monta dentro
+ * de su `<header>` con `backdrop-blur`, y un `backdrop-filter` convierte al
+ * header en el bloque contenedor de los hijos `fixed`. Sin el portal, el
+ * `fixed inset-0` cubria solo la franja del header y el dialogo quedaba
+ * pegado arriba en lugar de centrado en la pantalla.
  */
 export default function LogoutConfirmModal({
   isOpen,
@@ -35,9 +42,10 @@ export default function LogoutConfirmModal({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      data-testid="logout-modal-overlay"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
       onClick={(event) => {
         if (event.target === event.currentTarget) onCancel?.();
       }}
@@ -60,19 +68,20 @@ export default function LogoutConfirmModal({
             type="button"
             autoFocus
             onClick={onCancel}
-            className="flex-1 cursor-pointer rounded-xl border border-(--cacique-border)/40 px-4 py-3 font-bold text-(--cacique-text) transition-colors hover:border-(--cacique-accent)"
+            className="flex-1 cursor-pointer rounded-xl border border-(--cacique-border)/40 px-4 py-3 font-bold text-(--cacique-text) transition-colors hover:border-(--cacique-accent) active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
             Cancelar
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="flex-1 cursor-pointer rounded-xl bg-red-600 px-4 py-3 font-extrabold text-white shadow-lg transition-colors hover:bg-red-700"
+            className="flex-1 cursor-pointer rounded-xl bg-red-600 px-4 py-3 font-extrabold text-white shadow-lg transition-colors hover:bg-red-700 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
             Sí, Cerrar
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

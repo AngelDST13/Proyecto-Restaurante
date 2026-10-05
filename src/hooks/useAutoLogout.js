@@ -1,6 +1,18 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { INACTIVITY_REASON } from '../services/sessionReasons';
 
+/** Paneles operativos (Admin, Caja, Mesero, Cocina): 15 minutos sin actividad. */
+export const STAFF_INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
+/** El aviso "¿Sigue ahí?" aparece 1 minuto antes del cierre. */
+export const STAFF_INACTIVITY_WARNING_MS = STAFF_INACTIVITY_TIMEOUT_MS - 60 * 1000;
+/** Interacciones que reinician el contador de inactividad. */
+export const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'touchstart', 'scroll', 'click'];
+
+/**
+ * Cierra la sesion tras `timeoutMs` sin interaccion. El cierre usa el motivo
+ * `inactividad`, que AuthContext conserva para mostrar el aviso en /login.
+ */
 export function useAutoLogout(onLogoutNotify, options = {}) {
   const { user, logout } = useAuth();
   const [showWarning, setShowWarning] = useState(false);
@@ -32,7 +44,7 @@ export function useAutoLogout(onLogoutNotify, options = {}) {
 
       logoutTimer = setTimeout(() => {
         setShowWarning(false);
-        logout();
+        logout(INACTIVITY_REASON);
         if (typeof onTimeout === 'function') onTimeout();
         if (typeof onLogoutNotify === 'function') {
           onLogoutNotify(`Su sesión ha caducado por ${Math.round(timeoutMs / 60000)} minutos de inactividad.`, 'info');
@@ -48,8 +60,7 @@ export function useAutoLogout(onLogoutNotify, options = {}) {
       startTimers();
     };
 
-    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
-    events.forEach((evt) => window.addEventListener(evt, handleActivity));
+    ACTIVITY_EVENTS.forEach((evt) => window.addEventListener(evt, handleActivity));
 
     startTimers();
 
@@ -57,7 +68,7 @@ export function useAutoLogout(onLogoutNotify, options = {}) {
       clearTimeout(warningTimer);
       clearTimeout(logoutTimer);
       startTimersRef.current = null;
-      events.forEach((evt) => window.removeEventListener(evt, handleActivity));
+      ACTIVITY_EVENTS.forEach((evt) => window.removeEventListener(evt, handleActivity));
     };
   }, [user, logout, onLogoutNotify, onTimeout, timeoutMs, warningMs]);
 

@@ -1,5 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { configure, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+
+// El parseo de CSV/XLSX (Blob + DecompressionStream) puede superar el
+// segundo por defecto de waitFor cuando la suite corre en paralelo con
+// instrumentacion de cobertura.
+configure({ asyncUtilTimeout: 5000 });
 import { afterEach, describe, expect, it, vi, beforeEach } from 'vitest';
 import { AccessibilityProvider } from '../context/AccessibilityContext';
 import { AuthProvider } from '../context/AuthContext';
