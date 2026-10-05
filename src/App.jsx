@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AppRouter } from './routes/AppRouter';
 import { AuthProvider } from './context/AuthContext';
@@ -7,7 +8,15 @@ import WhatsAppFloatButton from './components/WhatsAppFloatButton';
 import { TalkBackProvider } from './context/TalkBackContext';
 import InteractiveGlow from './components/InteractiveGlow';
 
+/** Titulo de la pestana del navegador (debe coincidir con index.html). */
+const APP_TITLE = 'El Cacique';
+
 export default function App() {
+  // Ninguna vista cambia el titulo: se fija una vez al montar la aplicacion.
+  useEffect(() => {
+    document.title = APP_TITLE;
+  }, []);
+
   return (
     <AuthProvider>
       <AccessibilityProvider>

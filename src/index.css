@@ -207,13 +207,52 @@ html.theme-light .cacique-surface {
     color: #ffffff !important;
   }
 
+  /* Toda superficie (tarjetas, modales, paneles, dock) pasa a negro puro:
+     sin esto, las tarjetas blancas del Modo Claro quedaban con texto blanco
+     forzado encima. Incluye elementos fuera de #cacique-app-root (dock de
+     accesibilidad, chat de IA). */
+  html.cb-alto-contraste body :is(
+    section, article, aside, header, footer, nav, main, dialog, [role='dialog'], [role='tabpanel'],
+    .glass-card, .cacique-card, .cacique-surface, .cacique-login-card, .cacique-login-banner,
+    .cacique-login-switch, .cacique-footer-card,
+    [class*='bg-[#'], [class*='bg-white'], [class*='bg-zinc-'], [class*='bg-gray-'],
+    [class*='bg-(--cacique-'], [class*='from-[#'], [class*='bg-black/']
+  ) {
+    background-color: #000000 !important;
+    background-image: none !important;
+    border-color: #FFD700 !important;
+  }
+
+  /* Formularios: fondo negro puro, borde amarillo fluorescente e inputs con
+     texto blanco nitido. */
+  html.cb-alto-contraste :is(form, fieldset) {
+    background-color: #000000 !important;
+    border-color: #FFD700 !important;
+  }
+
+  html.cb-alto-contraste :is(input, select, textarea) {
+    caret-color: #FFD700;
+    -webkit-text-fill-color: #ffffff;
+  }
+
+  html.cb-alto-contraste :is(input, textarea)::placeholder {
+    color: #e5e5e5 !important;
+    -webkit-text-fill-color: #e5e5e5;
+    opacity: 1;
+  }
+
+  html.cb-alto-contraste :is(input, select, textarea):focus {
+    outline: 3px solid #FFD700 !important;
+    outline-offset: 2px;
+  }
+
   html.cb-alto-contraste .cb-hc-outline,
   html.cb-alto-contraste button,
   html.cb-alto-contraste a,
   html.cb-alto-contraste input,
   html.cb-alto-contraste select,
   html.cb-alto-contraste textarea {
-    border: 2px solid #ffd400 !important;
+    border: 2px solid #FFD700 !important;
     color: #ffffff !important;
     background-color: #000000 !important;
     font-weight: 700;
@@ -221,7 +260,7 @@ html.theme-light .cacique-surface {
 
   html.cb-alto-contraste button:hover,
   html.cb-alto-contraste a:hover {
-    background-color: #ffd400 !important;
+    background-color: #FFD700 !important;
     color: #000000 !important;
   }
 
@@ -250,7 +289,7 @@ html.theme-light .cacique-surface {
   }
 
   html.cb-alto-contraste :focus-visible {
-    outline: 3px solid #ffd400;
+    outline: 3px solid #FFD700;
     outline-offset: 2px;
   }
 }

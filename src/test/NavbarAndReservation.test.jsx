@@ -112,7 +112,7 @@ describe('Navbar y reservas', () => {
     fireEvent.change(screen.getByPlaceholderText(/Angel Salazar/i), { target: { value: 'Ana Pérez123' } });
     fireEvent.change(screen.getByPlaceholderText(/8888-8888/i), { target: { value: '+506 8888-1234abc' } });
     fireEvent.click(screen.getByRole('button', { name: /Confirmar Reservación/i }));
-    // Sin servidor (fetch rechazado en setup.js) la reserva queda en cola local.
+    // Sin servidor (fetch rechazado en setup.jsx) la reserva queda en cola local.
     await waitFor(() => expect(onSuccess).toHaveBeenCalledWith(
       expect.stringContaining('Ana Pérez'),
       expect.objectContaining({ offline: true }),

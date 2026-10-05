@@ -28,7 +28,8 @@ export default defineConfig({
     environment: 'jsdom',
     pool: 'vmThreads',
     globals: true,
-    setupFiles: ['./src/test/setup.js'],
+    include: ['src/test/**/*.test.jsx'],
+    setupFiles: ['./src/test/setup.jsx'],
     testTimeout: 60000,
     coverage: {
       provider: 'v8',

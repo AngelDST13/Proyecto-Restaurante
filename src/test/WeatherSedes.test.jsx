@@ -96,7 +96,7 @@ describe('SedeWeather', () => {
   });
 
   it('indica cuando los datos son estimados por falta de conexion', async () => {
-    // fetch rechazado por defecto en setup.js
+    // fetch rechazado por defecto en setup.jsx
     render(<SedeWeather sede="CARTAGO" />);
 
     expect(await screen.findByText('19°C · Nublado')).toBeInTheDocument();

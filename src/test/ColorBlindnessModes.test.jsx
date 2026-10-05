@@ -163,7 +163,7 @@ describe('ColorBlindnessModes', () => {
       const styles = [
         'background-color: #000000',
         'color: #ffffff',
-        'border: 2px solid #ffd400',
+        'border: 2px solid #FFD700',
       ];
       for (const declaration of styles) {
         expect(declaration).toBeTruthy();
