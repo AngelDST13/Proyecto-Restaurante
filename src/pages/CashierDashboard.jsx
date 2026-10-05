@@ -4,11 +4,13 @@ import FacturacionPanel from '../components/FacturacionPanel';
 import Toast from '../components/Toast';
 import { caciqueAsset as caciqueIcon, logoDarkVariant as officialLogo } from '../assets/img';
 import { formatSedeName } from '../services/authSecurity';
-import { CASHIER_TABLE_COUNTS, getCashierOrders, getCashierState, recordCashierSale, removeCashierOrder } from '../services/cashierService';
-import { CreditCard, LogOut, Receipt } from 'lucide-react';
+import { CASHIER_PAYMENT_METHODS, CASHIER_TABLE_COUNTS, closeCashierRegister, getCashierOrders, getCashierState, openCashierRegister, recordCashierSale, removeCashierOrder } from '../services/cashierService';
+import { CreditCard, Lock, LogOut, Receipt, Unlock } from 'lucide-react';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import ThemeToggleButton from '../components/ThemeToggleButton';
 
-const PAYMENT_METHODS = ['Efectivo', 'Tarjeta', 'SINPE Móvil'];
+const PAYMENT_METHODS = CASHIER_PAYMENT_METHODS;
+const DEFAULT_OPENING_AMOUNT = 50000;
 const formatCurrency = amount => `₡${Number(amount || 0).toLocaleString('es-CR')}`;
 
 export default function CashierDashboard() {
@@ -21,6 +23,43 @@ export default function CashierDashboard() {
   const [receipt, setReceipt] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  // Estado del turno de caja: la caja NO arranca cerrada de forma irreversible,
+  // el cajero debe abrirla con su arqueo inicial para poder cobrar.
+  const [isOpeningFormOpen, setIsOpeningFormOpen] = useState(false);
+  const [openingAmountInput, setOpeningAmountInput] = useState(String(DEFAULT_OPENING_AMOUNT));
+  const [closingSummary, setClosingSummary] = useState(() => cashierState?.lastClosingSummary || null);
+  const [isClosingFormOpen, setIsClosingFormOpen] = useState(false);
+  const [declaredCashInput, setDeclaredCashInput] = useState('');
+
+  const isCashOpen = Boolean(cashierState?.cashOpen);
+
+  const handleOpenCash = event => {
+    event.preventDefault();
+    const result = openCashierRegister({ sede, openingAmount: openingAmountInput });
+    if (!result.success) {
+      showToast(result.message, 'error');
+      return;
+    }
+    setCashierState(getCashierState(sede));
+    setIsOpeningFormOpen(false);
+    setClosingSummary(null);
+    showToast(`Caja abierta en ${sedeNombre} con ${formatCurrency(openingAmountInput)} de caja chica.`, 'success');
+  };
+
+  const handleCloseCash = event => {
+    event.preventDefault();
+    const result = closeCashierRegister({ sede, declaredCash: declaredCashInput });
+    if (!result.success) {
+      showToast(result.message, 'error');
+      return;
+    }
+    setCashierState(getCashierState(sede));
+    setClosingSummary(result.summary);
+    setIsClosingFormOpen(false);
+    setDeclaredCashInput('');
+    showToast(`Caja cerrada en ${sedeNombre}. Arqueo final registrado.`, 'success');
+  };
 
   useEffect(() => {
     const refreshCashierData = () => {
@@ -112,10 +151,92 @@ export default function CashierDashboard() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <span className={`inline-flex min-h-9 items-center rounded-full border px-3 text-xs font-bold ${cashierState?.cashOpen ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-300'}`}>{cashierState?.cashOpen ? 'Caja Abierta' : 'Caja Cerrada'}</span>
+            <span className={`inline-flex min-h-9 items-center rounded-full border px-3 text-xs font-bold ${isCashOpen ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-amber-500/30 bg-amber-500/10 text-amber-200'}`} data-testid="cash-register-status">{isCashOpen ? 'Caja Abierta' : 'Caja Cerrada'}</span>
+            <ThemeToggleButton />
+            {isCashOpen ? (
+              <button type="button" onClick={() => setIsClosingFormOpen(open => !open)} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-rose-400/30 px-3 text-sm font-bold text-rose-200 hover:border-rose-400/60"><Lock className="h-4 w-4" /> Cerrar Caja / Arqueo Final</button>
+            ) : (
+              <button type="button" onClick={() => setIsOpeningFormOpen(open => !open)} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-400/30 px-3 text-sm font-bold text-emerald-200 hover:border-emerald-400/60"><Unlock className="h-4 w-4" /> Abrir Caja / Arqueo Inicial</button>
+            )}
             <button type="button" onClick={() => setIsLogoutModalOpen(true)} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-bold text-zinc-200 hover:border-rose-400/50 hover:text-rose-200"><LogOut className="h-4 w-4" /> Cerrar sesión</button>
           </div>
         </header>
+
+        {/* APERTURA DE CAJA (ARQUEO INICIAL) */}
+        {!isCashOpen && isOpeningFormOpen && (
+          <section aria-labelledby="cash-open-title" className="rounded-2xl border border-emerald-500/30 bg-black/20 p-4 sm:p-5">
+            <h2 id="cash-open-title" className="text-lg font-bold text-white">Abrir Caja · Arqueo Inicial</h2>
+            <p className="mt-1 text-xs text-zinc-400">Registre el monto de caja chica con el que inicia el turno. La caja debe estar abierta para gestionar el mapa de mesas, cobrar comandas y facturar.</p>
+            <form onSubmit={handleOpenCash} className="mt-4 flex flex-wrap items-end gap-3">
+              <label className="text-xs font-bold text-zinc-300">
+                Monto de caja chica inicial
+                <input
+                  aria-label="Monto de caja chica inicial"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={openingAmountInput}
+                  onChange={event => setOpeningAmountInput(event.target.value)}
+                  className="mt-1 block w-56 rounded-lg border border-white/15 bg-[#0A090C] px-3 py-2 text-sm text-white"
+                />
+              </label>
+              <button type="submit" className="min-h-10 rounded-lg bg-emerald-600 px-4 text-sm font-bold text-white hover:bg-emerald-500">Confirmar apertura</button>
+              <button type="button" onClick={() => setIsOpeningFormOpen(false)} className="min-h-10 rounded-lg border border-white/15 px-4 text-sm font-bold text-zinc-300">Cancelar</button>
+            </form>
+          </section>
+        )}
+
+        {/* CIERRE DE CAJA (ARQUEO FINAL) */}
+        {isCashOpen && isClosingFormOpen && (
+          <section aria-labelledby="cash-close-title" className="rounded-2xl border border-rose-500/30 bg-black/20 p-4 sm:p-5">
+            <h2 id="cash-close-title" className="text-lg font-bold text-white">Cerrar Caja · Arqueo Final</h2>
+            <p className="mt-1 text-xs text-zinc-400">Ingrese el efectivo contado en gaveta. El sistema calcula el esperado a partir de la caja chica inicial y las ventas en efectivo.</p>
+            <form onSubmit={handleCloseCash} className="mt-4 flex flex-wrap items-end gap-3">
+              <label className="text-xs font-bold text-zinc-300">
+                Efectivo contado en gaveta
+                <input
+                  aria-label="Efectivo contado en gaveta"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={declaredCashInput}
+                  placeholder={String(expectedCash)}
+                  onChange={event => setDeclaredCashInput(event.target.value)}
+                  className="mt-1 block w-56 rounded-lg border border-white/15 bg-[#0A090C] px-3 py-2 text-sm text-white"
+                />
+              </label>
+              <button type="submit" className="min-h-10 rounded-lg bg-rose-600 px-4 text-sm font-bold text-white hover:bg-rose-500">Confirmar cierre</button>
+              <button type="button" onClick={() => setIsClosingFormOpen(false)} className="min-h-10 rounded-lg border border-white/15 px-4 text-sm font-bold text-zinc-300">Cancelar</button>
+            </form>
+          </section>
+        )}
+
+        {/* RESUMEN DEL ARQUEO FINAL */}
+        {closingSummary && (
+          <section aria-labelledby="closing-summary-title" data-testid="closing-summary" className="rounded-2xl border border-[#659B5E]/30 bg-black/20 p-4 sm:p-5">
+            <h2 id="closing-summary-title" className="text-lg font-bold text-white">Resumen del último arqueo · {sedeNombre}</h2>
+            <dl className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {PAYMENT_METHODS.map(method => (
+                <div key={method} className="rounded-xl border border-white/10 p-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{method}</dt>
+                  <dd className="mt-1 text-lg font-black text-amber-300">{formatCurrency(closingSummary.byPaymentMethod[method])}</dd>
+                </div>
+              ))}
+              <div className="rounded-xl border border-white/10 p-3">
+                <dt className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Caja chica inicial</dt>
+                <dd className="mt-1 text-lg font-black text-white">{formatCurrency(closingSummary.openingAmount)}</dd>
+              </div>
+              <div className="rounded-xl border border-white/10 p-3">
+                <dt className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Efectivo esperado</dt>
+                <dd className="mt-1 text-lg font-black text-white">{formatCurrency(closingSummary.expectedCash)}</dd>
+              </div>
+              <div className="rounded-xl border border-white/10 p-3">
+                <dt className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Diferencia</dt>
+                <dd className="mt-1 text-lg font-black text-white">{formatCurrency(closingSummary.difference)}</dd>
+              </div>
+            </dl>
+          </section>
+        )}
 
         <section aria-label="Ventas del día" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <CashierMetric label="Ventas en efectivo" value={cashSales} />

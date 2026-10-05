@@ -2,9 +2,11 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { AuthProvider } from '../context/AuthContext';
+import { AccessibilityProvider } from '../context/AccessibilityContext';
 import WaiterDashboard from '../pages/WaiterDashboard';
 
-const renderWaiter = () => render(<AuthProvider><MemoryRouter><WaiterDashboard /></MemoryRouter></AuthProvider>);
+// El panel incluye el conmutador de tema, que consume AccessibilityContext.
+const renderWaiter = () => render(<AccessibilityProvider><AuthProvider><MemoryRouter><WaiterDashboard /></MemoryRouter></AuthProvider></AccessibilityProvider>);
 
 describe('WaiterDashboard POS', () => {
   it('calcula subtotal, IVA y servicio al agregar un platillo', () => {

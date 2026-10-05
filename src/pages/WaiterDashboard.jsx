@@ -5,6 +5,7 @@ import { subscribeToLiveEvents } from '../services/n8nService';
 import { enqueueCashierOrder } from '../services/cashierService';
 import Toast from '../components/Toast';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import ThemeToggleButton from '../components/ThemeToggleButton';
 import {
   Utensils, LogOut, Clock, DollarSign, Layers, Plus, Minus, ShoppingBag, Scissors, CreditCard, User,
   ShieldCheck, CheckCircle2, Search, AlertCircle, FileText, Send, Trash2,
@@ -481,7 +482,9 @@ export default function WaiterDashboard() {
               <span>Turno Activo: 11:00 AM - 8:00 PM</span>
             </div>
 
-            <button onClick={() => setIsLogoutModalOpen(true)} title="Cerrar Sesión" className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
+            <ThemeToggleButton />
+
+            <button onClick={() => setIsLogoutModalOpen(true)} title="Cerrar Sesión" aria-label="Cerrar Sesión" className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
               <LogOut className="w-5 h-5" />
             </button>
           </div>

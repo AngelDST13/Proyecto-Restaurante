@@ -4,11 +4,17 @@ import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Home, Utensils, UtensilsCrossed, ChefHat, LayoutDashboard, CreditCard, Calendar, User, LogOut, LogIn, Menu as MenuIcon, X, Info, ShoppingBag, Sun, Moon } from 'lucide-react';
 import { caciqueAsset as caciqueIcon } from '../assets/img';
+import LogoutConfirmModal from './LogoutConfirmModal';
 import { requestReservationModal } from '../hooks/useReservationModal';
 
 export default function Navbar({ onOpenReservation }) {
   const { user, logout } = useAuth();
   const { isLightTheme, toggleTheme } = useAccessibility();
+  // Modal universal: salir del sitio con una sesion activa siempre exige
+  // confirmacion explicita, sin importar el rol (Admin, Cajero, Mesero o Cocina).
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const requestLogout = () => setIsLogoutModalOpen(true);
+  const confirmLogout = () => { setIsLogoutModalOpen(false); logout(); };
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -190,7 +196,7 @@ export default function Navbar({ onOpenReservation }) {
               </span>
               <button
                 type="button"
-                onClick={logout}
+                onClick={requestLogout}
                 className="text-red-400 hover:text-red-300 p-1 transition-colors cursor-pointer"
                 title="Cerrar Sesión"
                 aria-label="Cerrar sesión"
@@ -292,9 +298,9 @@ export default function Navbar({ onOpenReservation }) {
 
         <div className="pt-3 border-t border-[#F8FFE5]/10">
             {user ? (
-              <button 
+              <button
                 type="button"
-                onClick={logout} 
+                onClick={requestLogout} 
                 className="w-full py-2.5 bg-red-500/20 text-red-400 rounded-xl text-center font-bold"
               >
                 Cerrar Sesión ({user.nombre || user.email?.split('@')[0]})
@@ -312,6 +318,11 @@ export default function Navbar({ onOpenReservation }) {
           </div>
         </div>
       )}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={confirmLogout}
+      />
     </header>
   );
 }

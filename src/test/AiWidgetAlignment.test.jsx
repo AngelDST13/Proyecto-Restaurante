@@ -75,6 +75,42 @@ describe('Alineacion del boton circular del Asistente IA', () => {
     expect(screen.getByRole('button', { name: 'Abrir asistente virtual' })).toBeInTheDocument();
   });
 
+  it('queda alineado en la esquina inferior izquierda en TODAS las pantallas', () => {
+    // No debe variar por ruta: los paneles administrativos también lo alinean a
+    // la izquierda, encima del botón de WhatsApp (`bottom-6 left-4`).
+    for (const path of ['/menu', '/', '/admin', '/waiter', '/kitchen', '/cashier']) {
+      const { container, unmount } = renderWidget(path);
+      const launcher = container.querySelector('.cacique-bot-float');
+
+      expect(launcher, `launcher ausente en ${path}`).toBeInTheDocument();
+      expect(launcher).toHaveClass('fixed');
+      expect(launcher).toHaveClass('bottom-24');
+      expect(launcher).toHaveClass('left-4');
+      expect(launcher).not.toHaveClass('right-4');
+      expect(launcher).not.toHaveClass('right-6');
+
+      unmount();
+    }
+  });
+
+  it('mantiene el chat abierto en la misma columna que el launcher', () => {
+    for (const path of ['/menu', '/admin']) {
+      const { container, unmount } = renderWidget(path);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Abrir asistente virtual' }));
+      const panel = container.querySelector('#cacique-chat-panel');
+
+      expect(panel).toBeInTheDocument();
+      // El panel se apila sobre el launcher, sin salirse a la derecha.
+      expect(container.querySelector('.cacique-chat-enter')).toHaveClass('left-4');
+      expect(container.querySelector('.cacique-chat-enter')).not.toHaveClass('right-4');
+      // Debe quedar por encima del launcher (bottom-44 > bottom-24).
+      expect(container.querySelector('.cacique-chat-enter')).toHaveClass('bottom-44');
+
+      unmount();
+    }
+  });
+
   it('mantiene la interactividad: el chat no bloquea el resto de la pagina', () => {
     const { container } = renderWidget();
     fireEvent.click(screen.getByRole('button', { name: 'Abrir asistente virtual' }));
@@ -82,5 +118,20 @@ describe('Alineacion del boton circular del Asistente IA', () => {
     // El overlay no cubre la pagina: no hay sibling fixed con inset-0.
     expect(container.querySelector('.fixed.inset-0')).not.toBeInTheDocument();
     expect(container.querySelector('#cacique-chat-panel').className).toMatch(/pointer-events-auto/);
+  });
+
+  it('el encabezado del chat conserva únicamente el botón de cerrar', () => {
+    const { container } = renderWidget();
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir asistente virtual' }));
+
+    // Un único control en el encabezado: cerrar (X de Lucide).
+    const header = container.querySelector('#cacique-chat-panel > div');
+    const headerButtons = header.querySelectorAll('button');
+    expect(headerButtons).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Cerrar asistente' })).toBeInTheDocument();
+
+    // No debe quedar el botón de minimizar ni el de "mostrar asistente".
+    expect(screen.queryByRole('button', { name: /Minimizar asistente/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Mostrar asistente virtual' })).not.toBeInTheDocument();
   });
 });

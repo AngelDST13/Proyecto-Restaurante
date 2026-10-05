@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
+import { AccessibilityProvider } from '../context/AccessibilityContext';
 import WaiterDashboard from '../pages/WaiterDashboard';
 import { CASHIER_ORDERS_STORAGE_KEY, recordCashierSale } from '../services/cashierService';
 
@@ -39,7 +40,7 @@ describe('Cobros POS por sede', () => {
   });
 
   const openTableReceipt = () => {
-    render(<AuthProvider><MemoryRouter><WaiterDashboard /></MemoryRouter></AuthProvider>);
+    render(<AccessibilityProvider><AuthProvider><MemoryRouter><WaiterDashboard /></MemoryRouter></AuthProvider></AccessibilityProvider>);
     fireEvent.click(screen.getByRole('button', { name: /Mesa 02/i }));
     const product = screen.getByText('Chifrijo Especial de Paila').closest('div[class*="rounded-xl"]');
     fireEvent.click(within(product).getByTitle('Agregar a comanda'));

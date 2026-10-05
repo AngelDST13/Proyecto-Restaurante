@@ -123,6 +123,15 @@ export const VALID_ACCOUNTS = {
     alias: 'Cocina Heredia',
     rol: 'cocina',
     sede: 'heredia'
+  },
+  // Cliente Registrado: credencial de demostracion del portal de fidelizacion.
+  // No accede a ningun panel operativo, solo al sitio publico y a sus cuentas.
+  'cliente.escazu@elcacique.com': {
+    password: 'Cliente2026!',
+    nombre: 'Cliente Registrado Escazú',
+    alias: 'Cliente Escazú',
+    rol: 'cliente',
+    sede: 'escazu'
   }
 };
 
@@ -137,11 +146,25 @@ export function formatSedeName(sedeKey = 'escazu') {
   return names[cleanSedeKey] || 'Escazú';
 }
 
+/**
+ * Etiquetas oficiales de rol.
+ *
+ * El rol del salon se llama SIEMPRE "Mesero" (nunca "Cajero / Mesero"): cada
+ * puesto tiene un nombre unico para el personal, el cliente y la documentacion.
+ */
+export const ROLE_LABELS = {
+  administrador: 'Administrador',
+  cajero: 'Cajero',
+  mesero: 'Mesero',
+  cocina: 'Cocina KDS',
+  cliente: 'Cliente Registrado'
+};
+
 export const TEST_ACCESS_CREDENTIALS = Object.entries(VALID_ACCOUNTS).map(([email, account]) => ({
   email,
   password: account.password,
   sede: account.rol === 'administrador' ? 'Todas las sedes' : formatSedeName(account.sede),
-  rol: account.rol === 'administrador' ? 'Administrador' : account.rol === 'cocina' ? 'Cocina KDS' : account.rol === 'cajero' ? 'Cajero' : 'Cajero / Mesero'
+  rol: ROLE_LABELS[account.rol] || 'Mesero'
 }));
 
 export function sanitizeUserForSession(userObj) {

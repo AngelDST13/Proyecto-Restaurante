@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
 
 /**
@@ -5,28 +6,38 @@ import { AlertCircle } from 'lucide-react';
  *
  * Evita cierres de sesion accidentales en todos los paneles operativos
  * (Admin, Cajero, Mesero y Cocina) mostrando siempre la misma pregunta:
- * "¿Desea cerrar la sesion activa?".
+ * "¿Está seguro que desea cerrar la sesion activa?".
+ *
+ * Implementa el patron WAI-ARIA de dialogo modal: `role="dialog"`,
+ * `aria-modal="true"` y cierre con la tecla Escape mediante un listener de
+ * documento (el overlay por si solo solo capturaria la tecla con foco dentro).
  *
  * Se cierra con Escape o con el boton Cancelar, y solo ejecuta `onConfirm`
  * cuando el usuario confirma explicitamente.
  */
 export default function LogoutConfirmModal({
   isOpen,
-  title = '¿Desea cerrar la sesión activa?',
-  description = 'Se finalizará la sesión activa del panel operativo.',
+  title = '¿Está seguro que desea cerrar la sesión activa?',
+  description = 'Se finalizará la sesión activa y deberá iniciar nuevamente con sus credenciales.',
   onCancel,
   onConfirm,
 }) {
-  if (!isOpen) return null;
+  // El listener se declara siempre (antes de cualquier return temprano) para
+  // respetar el orden de hooks de React, y solo se suscribe si el modal esta abierto.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') onCancel?.();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onCancel]);
 
-  const handleKeyDown = (event) => {
-    if (event.key === 'Escape') onCancel?.();
-  };
+  if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-      onKeyDown={handleKeyDown}
       onClick={(event) => {
         if (event.target === event.currentTarget) onCancel?.();
       }}
@@ -47,6 +58,7 @@ export default function LogoutConfirmModal({
         <div className="mt-5 flex gap-3">
           <button
             type="button"
+            autoFocus
             onClick={onCancel}
             className="flex-1 cursor-pointer rounded-xl border border-(--cacique-border)/40 px-4 py-3 font-bold text-(--cacique-text) transition-colors hover:border-(--cacique-accent)"
           >

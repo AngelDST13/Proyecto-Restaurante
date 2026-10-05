@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../context/AuthContext';
+import { AccessibilityProvider } from '../context/AccessibilityContext';
 import WaiterDashboard from '../pages/WaiterDashboard';
 import KitchenDashboard from '../pages/KitchenDashboard';
 import { encryptData } from '../services/authSecurity';
@@ -15,7 +16,8 @@ vi.mock('../services/n8nService', () => ({
   })
 }));
 
-const withAuth = element => <AuthProvider><MemoryRouter>{element}</MemoryRouter></AuthProvider>;
+// Los paneles montan el conmutador de tema, que requiere AccessibilityContext.
+const withAuth = element => <AccessibilityProvider><AuthProvider><MemoryRouter>{element}</MemoryRouter></AuthProvider></AccessibilityProvider>;
 
 describe('Flujos completos de POS y KDS', () => {
   it('reparte el total entre N personas y actualiza el desglose al cambiar N', () => {

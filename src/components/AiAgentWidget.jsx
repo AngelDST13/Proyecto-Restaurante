@@ -10,14 +10,14 @@ export default function AiAgentWidget() {
   const { user } = useAuth();
   const normalizedRole = String(user?.rol || '').toLowerCase().trim();
   const isStaffRole = ['admin', 'administrador', 'mesero', 'waiter', 'pos', 'cocina', 'kitchen', 'kds'].includes(normalizedRole);
-  const isInternalPanel = ['/admin', '/kitchen', '/waiter'].includes(location.pathname);
+  const isInternalPanel = ['/admin', '/kitchen', '/waiter', '/cashier'].includes(location.pathname);
   const isStaffContext = isStaffRole || isInternalPanel;
   // La esquina inferior derecha queda reservada para el Dock de Accesibilidad.
-  // El asistente se apila en la izquierda, encima del boton de WhatsApp
-  // (WhatsApp en `bottom-6 left-4`, chat en `bottom-24 left-4`).
-  const positionClasses = isInternalPanel
-    ? 'bottom-24 right-4 sm:bottom-24 sm:right-6'
-    : 'bottom-24 left-4 sm:bottom-24 sm:left-6';
+  // El asistente se apila SIEMPRE en la esquina inferior izquierda, encima del
+  // boton de WhatsApp (WhatsApp en `bottom-6 left-4`, launcher en `bottom-24 left-4`).
+  // No se variations por ruta: debe quedar simetrico en todas las pantallas,
+  // incluidos los paneles administrativos (/admin, /waiter, /kitchen, /cashier).
+  const positionClasses = 'bottom-24 left-4';
   const moduloIA = isStaffContext ? 'AGENTE_IA_INTERNO' : 'AGENTE_IA_CONSULTA';
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);

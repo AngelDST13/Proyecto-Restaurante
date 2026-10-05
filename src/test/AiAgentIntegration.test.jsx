@@ -29,9 +29,12 @@ describe('Widget del agente IA', () => {
     expect(screen.getByRole('button', { name: 'Abrir asistente virtual' })).toBeInTheDocument();
   });
 
-  it('se posiciona a la derecha dentro de un panel interno', () => {
+  it('se posiciona en la esquina inferior izquierda también dentro de un panel interno', () => {
     const { container } = renderWidget('/admin');
-    expect(container.querySelector('.cacique-bot-float')).toHaveClass('right-4');
+    const launcher = container.querySelector('.cacique-bot-float');
+    expect(launcher).toHaveClass('left-4');
+    expect(launcher).toHaveClass('bottom-24');
+    expect(launcher).not.toHaveClass('right-4');
     expect(screen.getByText('IA Operativa Staff')).toBeInTheDocument();
   });
 

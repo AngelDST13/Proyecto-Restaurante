@@ -6,6 +6,8 @@ import { useAutoLogout } from '../hooks/useAutoLogout';
 
 import FacturacionPanel from '../components/FacturacionPanel';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import ThemeToggleButton from '../components/ThemeToggleButton';
+import { ADMIN_SEDES, createAdminRegister, getAdminRegistersBySede, removeAdminRegister } from '../services/adminRegistersService';
 import { caciqueAsset as caciqueIcon, logoDarkVariant as officialLogo } from '../assets/img';
 import { decryptData, encryptData, formatSedeName, TEST_ACCESS_CREDENTIALS } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
@@ -17,7 +19,7 @@ import {
   TrendingUp, AlertTriangle, Plus, Trash2, Pencil, CheckCircle2, XCircle,
   BarChart3, Package, CreditCard, Calendar, MapPin, LogOut, ExternalLink,
   Search, Sliders, AlertCircle, Star, Ticket, MessageSquare,
-  Award, ArrowUpRight, Download, Upload, Mail, FileText, Truck, Send, Paperclip
+  Award, ArrowUpRight, Download, Upload, Mail, FileText, Truck, Send, Paperclip, KeyRound
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -135,6 +137,27 @@ export default function AdminDashboard() {
     ];
   });
   const [editingEmployeeId, setEditingEmployeeId] = useState(null);
+
+  // CONFIGURACIÓN DE CAJAS Y CREDENCIALES POR SEDE
+  const [registersSede, setRegistersSede] = useState(selectedSede === 'todas' ? 'escazu' : selectedSede);
+  const [registers, setRegisters] = useState(() => getAdminRegistersBySede(selectedSede === 'todas' ? 'escazu' : selectedSede));
+  const [registerForm, setRegisterForm] = useState({ label: '', email: '', password: '', sede: selectedSede === 'todas' ? 'escazu' : selectedSede });
+  const [registerError, setRegisterError] = useState('');
+
+  const refreshRegisters = targetSede => setRegisters(getAdminRegistersBySede(targetSede));
+
+  const handleCreateRegister = event => {
+    event.preventDefault();
+    setRegisterError('');
+    const result = createAdminRegister(registerForm);
+    if (!result.success) {
+      setRegisterError(result.message);
+      return;
+    }
+    refreshRegisters(registerForm.sede);
+    setRegisterForm({ label: '', email: '', password: '', sede: registerForm.sede });
+    showToast(`Caja creada en ${formatSedeName(registerForm.sede)} para ${result.register.label}.`, 'success');
+  };
 
   // GESTIÓN DE CLIENTES REGISTRADOS
   const [clients, setClients] = useState(() => {
@@ -722,6 +745,7 @@ export default function AdminDashboard() {
                 { id: 'clientes', label: 'Gestión de Clientes', icon: Users },
                 { id: 'arqueo', label: 'Arqueo de Caja & POS', icon: CreditCard },
                 { id: 'personal', label: 'Personal & Planilla', icon: Users },
+                { id: 'cajas', label: 'Configuración de Cajas y Credenciales por Sede', icon: KeyRound },
                 { id: 'mesas', label: 'Mesas & Reservaciones', icon: Calendar }
             ].map(item => {
               const Icon = item.icon;
@@ -784,6 +808,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:flex-wrap 2xl:flex-nowrap items-stretch sm:items-center gap-3 w-full 2xl:w-auto">
+            <ThemeToggleButton />
             <div className="flex bg-[#0A090C] p-1 rounded-2xl border border-[#659B5E]/40 text-xs font-extrabold">
               {['dia', 'semana', 'mes'].map(period => (
                 <button key={period} onClick={() => handlePeriodChange(period)} className={`px-3 py-1.5 rounded-xl cursor-pointer transition-all ${timePeriod === period ? 'bg-[#D16014] text-white' : 'text-gray-400 hover:text-white'}`}>
@@ -1274,6 +1299,74 @@ export default function AdminDashboard() {
             </form>
             <div className="overflow-x-auto rounded-xl border border-[#F8FFE5]/10"><table className="w-full text-left"><thead className="bg-[#0A090C] text-gray-300"><tr><th className="p-3">Colaborador</th><th className="p-3">Puesto / Sede</th><th className="p-3">Salario mensual</th><th className="p-3">Pago</th><th className="p-3">Banco / IBAN</th><th className="p-3">Acciones</th></tr></thead><tbody className="divide-y divide-[#F8FFE5]/10">{employees.filter(employee => selectedSede === 'todas' || !employee.sede || employee.sede === selectedSede).map(employee => <tr key={employee.id}><td className="p-3 font-bold">{employee.nombre}</td><td className="p-3">{employee.puesto}<br/><span className="text-gray-400">{branchLabels[employee.sede] || 'Escazú'}</span></td><td className="p-3">₡{employee.salario.toLocaleString('es-CR')}</td><td className="p-3">{employee.frecuenciaPago}: {employee.diaPago}</td><td className="p-3">{employee.banco}<br /><span className="text-gray-400">{employee.iban || 'Pendiente de registrar'}</span></td><td className="p-3 flex gap-3"><button type="button" aria-label={`Editar ${employee.nombre}`} onClick={() => { setEditingEmployeeId(employee.id); setEmployeeForm({ ...employee, salario: String(employee.salario) }); }} className="text-amber-300 hover:underline">Editar</button><button type="button" aria-label={`Eliminar ${employee.nombre}`} onClick={() => { const next = employees.filter(item => item.id !== employee.id); setEmployees(next); localStorage.setItem('cacique_admin_payroll', encryptData(next)); }} className="text-red-300 hover:underline">Eliminar</button></td></tr>)}</tbody></table></div>
           </div>
+        )}
+
+        {/* CONFIGURACIÓN DE CAJAS Y CREDENCIALES POR SEDE */}
+        {activeSection === 'cajas' && (
+          <section aria-labelledby="registers-title" className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 text-xs shadow-2xl sm:p-6">
+            <header className="min-w-0">
+              <h3 id="registers-title" className="font-extrabold text-lg text-[#F8FFE5]">Configuración de Cajas y Credenciales por Sede</h3>
+              <p className="mt-1 text-gray-400">Cree nuevas cajas o cajeros asignados a una sede específica y consulte las credenciales de prueba de cada rol.</p>
+            </header>
+
+            <div className="flex flex-wrap gap-2">
+              {ADMIN_SEDES.map(sedeKey => (
+                <button
+                  key={sedeKey}
+                  type="button"
+                  aria-pressed={registersSede === sedeKey}
+                  onClick={() => { setRegistersSede(sedeKey); setRegisterForm(form => ({ ...form, sede: sedeKey })); refreshRegisters(sedeKey); }}
+                  className={`min-h-10 rounded-xl border px-4 py-2 font-bold transition-colors ${registersSede === sedeKey ? 'border-[#D16014] bg-[#D16014] text-white' : 'border-white/15 text-gray-300 hover:border-[#D16014]'}`}
+                >
+                  {formatSedeName(sedeKey)}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleCreateRegister} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <label className="space-y-1"><span>Nombre de la caja / cajero</span><input required aria-label="Nombre de la caja" value={registerForm.label} onChange={event => setRegisterForm({ ...registerForm, label: event.target.value })} className="w-full rounded-xl border border-white/15 bg-[#0A090C] px-3 py-2.5" /></label>
+              <label className="space-y-1"><span>Correo de acceso</span><input required type="email" aria-label="Correo de acceso de la caja" value={registerForm.email} onChange={event => setRegisterForm({ ...registerForm, email: event.target.value })} className="w-full rounded-xl border border-white/15 bg-[#0A090C] px-3 py-2.5" /></label>
+              <label className="space-y-1"><span>Contraseña</span><input required minLength={8} aria-label="Contraseña de la caja" value={registerForm.password} onChange={event => setRegisterForm({ ...registerForm, password: event.target.value })} className="w-full rounded-xl border border-white/15 bg-[#0A090C] px-3 py-2.5" /></label>
+              <label className="space-y-1"><span>Sede asignada</span><select aria-label="Sede de la caja" value={registerForm.sede} onChange={event => { setRegistersSede(event.target.value); setRegisterForm({ ...registerForm, sede: event.target.value }); refreshRegisters(event.target.value); }} className="w-full rounded-xl border border-white/15 bg-[#0A090C] px-3 py-2.5">{ADMIN_SEDES.map(sedeKey => <option key={sedeKey} value={sedeKey}>{formatSedeName(sedeKey)}</option>)}</select></label>
+              <div className="flex items-end"><button type="submit" className="min-h-10 w-full rounded-xl bg-[#D16014] px-5 py-2.5 font-extrabold text-white">Crear caja</button></div>
+            </form>
+
+            {registerError && <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 font-bold text-red-300">{registerError}</p>}
+
+            <div className="overflow-x-auto rounded-xl border border-white/10">
+              <table className="w-full text-left">
+                <thead className="bg-[#0A090C] text-gray-300"><tr><th className="p-3">Caja / Cajero</th><th className="p-3">Correo</th><th className="p-3">Sede</th><th className="p-3">Acciones</th></tr></thead>
+                <tbody className="divide-y divide-white/10">
+                  {registers.length ? registers.map(register => (
+                    <tr key={register.id}>
+                      <td className="p-3 font-bold text-white">{register.label}</td>
+                      <td className="p-3 break-all font-mono text-[10px] text-zinc-300">{register.email}</td>
+                      <td className="p-3">{formatSedeName(register.sede)}</td>
+                      <td className="p-3">
+                        {!register.readOnly ? (
+                          <button
+                            type="button"
+                            aria-label={`Eliminar caja ${register.label}`}
+                            onClick={() => {
+                              if (removeAdminRegister(register.id)) {
+                                refreshRegisters(register.sede);
+                                showToast(`Caja de ${formatSedeName(register.sede)} eliminada.`, 'success');
+                              } else {
+                                showToast('No se pudo eliminar la caja.', 'error');
+                              }
+                            }}
+                            className="font-bold text-red-300 hover:underline"
+                          >
+                            Eliminar
+                          </button>
+                        ) : <span className="text-gray-400">Caja base del catálogo</span>}
+                      </td>
+                    </tr>
+                  )) : <tr><td className="p-3 text-gray-400" colSpan={4}>No hay cajas creadas para {formatSedeName(registersSede)}.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </section>
         )}
 
         {/* GESTIÓN DE CLIENTES REGISTRADOS */}

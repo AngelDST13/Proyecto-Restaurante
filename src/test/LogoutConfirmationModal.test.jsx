@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import WaiterDashboard from '../pages/WaiterDashboard';
 import CashierDashboard from '../pages/CashierDashboard';
+import { AccessibilityProvider } from '../context/AccessibilityContext';
 
 const { logoutMock, cashierLogout, useAuthMock } = vi.hoisted(() => ({
   logoutMock: vi.fn(),
@@ -42,7 +43,7 @@ describe('Modal de confirmacion de cierre de sesion', () => {
     render(<LogoutConfirmModal isOpen onCancel={onCancel} onConfirm={onConfirm} />);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('¿Desea cerrar la sesión activa?')).toBeInTheDocument();
+    expect(screen.getByText('¿Está seguro que desea cerrar la sesión activa?')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
     expect(onCancel).toHaveBeenCalledOnce();
@@ -58,18 +59,35 @@ describe('Modal de confirmacion de cierre de sesion', () => {
       <LogoutConfirmModal isOpen onCancel={onCancel} onConfirm={vi.fn()} />,
     );
 
-    fireEvent.keyDown(container.firstChild, { key: 'Escape' });
+    // Escape se escucha a nivel de documento: funciona sin foco dentro del modal.
+    fireEvent.keyDown(document, { key: 'Escape' });
     expect(onCancel).toHaveBeenCalledTimes(1);
 
     fireEvent.click(container.firstChild);
     expect(onCancel).toHaveBeenCalledTimes(2);
+
+    // Otras teclas no deben cerrar el dialogo.
+    fireEvent.keyDown(document, { key: 'Enter' });
+    expect(onCancel).toHaveBeenCalledTimes(2);
+  });
+
+  it('expone el patron ARIA de dialogo modal y enfoca la opcion segura', () => {
+    render(<LogoutConfirmModal isOpen onCancel={vi.fn()} onConfirm={vi.fn()} />);
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveAccessibleName('Confirmar cierre de sesión');
+    // El foco inicial cae en Cancelar para que Enter no cierre la sesion.
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toHaveFocus();
   });
 
   it('el panel Mesero pide confirmacion antes de cerrar la sesion', () => {
     render(
-      <MemoryRouter>
-        <WaiterDashboard />
-      </MemoryRouter>,
+      <AccessibilityProvider>
+        <MemoryRouter>
+          <WaiterDashboard />
+        </MemoryRouter>
+      </AccessibilityProvider>,
     );
 
     expect(logoutMock).not.toHaveBeenCalled();
@@ -92,16 +110,18 @@ describe('Modal de confirmacion de cierre de sesion', () => {
     });
 
     render(
-      <MemoryRouter>
-        <CashierDashboard />
-      </MemoryRouter>,
+      <AccessibilityProvider>
+        <MemoryRouter>
+          <CashierDashboard />
+        </MemoryRouter>
+      </AccessibilityProvider>,
     );
 
     const logoutButton = screen.getByRole('button', { name: /Cerrar sesión/i });
     fireEvent.click(logoutButton);
     expect(cashierLogout).not.toHaveBeenCalled();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('¿Desea cerrar la sesión activa?')).toBeInTheDocument();
+    expect(screen.getByText('¿Está seguro que desea cerrar la sesión activa?')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Sí, Cerrar' }));
     expect(cashierLogout).toHaveBeenCalledOnce();

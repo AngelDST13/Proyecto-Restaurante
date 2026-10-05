@@ -245,6 +245,7 @@ function CredentialAccessPanel({ onAutofill }) {
   const branches = ['Escazú', 'Santa Ana', 'Cartago', 'Heredia'];
   const branchCredentials = TEST_ACCESS_CREDENTIALS.filter(credential => credential.sede === activeBranch);
   const administratorCredential = TEST_ACCESS_CREDENTIALS.find(credential => credential.rol === 'Administrador');
+  const clientCredential = TEST_ACCESS_CREDENTIALS.find(credential => credential.rol === 'Cliente Registrado');
 
   return (
     <div className="flex justify-center">
@@ -262,9 +263,17 @@ function CredentialAccessPanel({ onAutofill }) {
             {branches.map(branch => <button key={branch} type="button" role="tab" aria-selected={activeBranch === branch} onClick={() => setActiveBranch(branch)} className={`min-h-9 rounded-md px-2 text-xs font-bold ${activeBranch === branch ? 'bg-[#D16014] text-white' : 'text-zinc-400 hover:text-white'}`}>{branch}</button>)}
           </div>
           <div role="tabpanel" className="space-y-2">
-            {branchCredentials.map(credential => <CredentialOption key={credential.email} credential={credential} onAutofill={onAutofill} onClose={() => setIsOpen(false)} />)}
+            {/* El Cliente Registrado no se duplica: se muestra solo en su
+                tarjeta dedicada del portal de fidelización. */}
+            {branchCredentials.filter(credential => credential.rol !== 'Cliente Registrado').map(credential => <CredentialOption key={credential.email} credential={credential} onAutofill={onAutofill} onClose={() => setIsOpen(false)} />)}
           </div>
           {administratorCredential && <CredentialOption credential={administratorCredential} onAutofill={onAutofill} onClose={() => setIsOpen(false)} />}
+          {clientCredential && (
+            <div className="space-y-1 rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-2">
+              <p className="px-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">Portal de fidelización</p>
+              <CredentialOption credential={clientCredential} onAutofill={onAutofill} onClose={() => setIsOpen(false)} />
+            </div>
+          )}
         </section>
       </div>}
     </div>

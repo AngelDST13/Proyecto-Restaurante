@@ -5,9 +5,11 @@ import { formatSedeName } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { 
   Flame, Clock, RefreshCw, 
-  Users, ChefHat, Filter, AlertCircle, LogOut, CheckSquare, Square,
+  Users, ChefHat, Filter, LogOut, CheckSquare, Square,
   MessageSquare, BellRing, Edit3, Send, Timer
 } from 'lucide-react';
+import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import ThemeToggleButton from '../components/ThemeToggleButton';
 
 const READY_ORDERS_STORAGE_KEY = 'cacique_ready_order_notifications';
 
@@ -270,8 +272,11 @@ export default function KitchenDashboard() {
               <RefreshCw className="w-4 h-4" />
             </button>
 
+            <ThemeToggleButton />
+
             <button
               onClick={() => setIsLogoutModalOpen(true)}
+              aria-label="Cerrar Sesión"
               className="p-3 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 rounded-2xl text-red-400 cursor-pointer transition-colors"
               title="Cerrar Sesión"
             >
@@ -516,36 +521,12 @@ export default function KitchenDashboard() {
         </div>
       )}
 
-      {/* MODAL CONFIRMACIÓN CIERRE SESIÓN */}
-      {isLogoutModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-sm bg-[#001812] border border-red-500/40 rounded-3xl p-6 space-y-5 text-center shadow-2xl text-xs text-[#F8FFE5]">
-            <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center mx-auto text-red-400">
-              <AlertCircle className="w-6 h-6" />
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-lg font-black text-white">¿Desea cerrar la sesión activa?</h3>
-              <p className="text-gray-400">Saldrás del panel operativo KDS.</p>
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => setIsLogoutModalOpen(false)}
-                className="flex-1 py-3 rounded-xl bg-[#0A090C] border border-[#F8FFE5]/15 text-gray-300 font-bold hover:text-white cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmLogout}
-                className="flex-1 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-extrabold shadow-lg cursor-pointer"
-              >
-                Sí, Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MODAL UNIVERSAL DE CONFIRMACIÓN DE CIERRE DE SESIÓN */}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleConfirmLogout}
+      />
 
     </div>
   );

@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../context/AuthContext';
+import { AccessibilityProvider } from '../context/AccessibilityContext';
 import KitchenDashboard from '../pages/KitchenDashboard';
 
 vi.mock('../services/n8nService', () => ({
@@ -9,7 +10,7 @@ vi.mock('../services/n8nService', () => ({
   subscribeToLiveEvents: vi.fn(() => () => {})
 }));
 
-const renderKitchen = () => render(<AuthProvider><MemoryRouter><KitchenDashboard /></MemoryRouter></AuthProvider>);
+const renderKitchen = () => render(<AccessibilityProvider><AuthProvider><MemoryRouter><KitchenDashboard /></MemoryRouter></AuthProvider></AccessibilityProvider>);
 
 describe('KitchenDashboard KDS', () => {
   it('ajusta el tiempo estimado de preparación', () => {
@@ -44,8 +45,8 @@ describe('KitchenDashboard KDS', () => {
     fireEvent.click(within(order).getByRole('button', { name: /Notificar Listo a Mesero/i }));
     expect(JSON.parse(localStorage.getItem('cacique_ready_order_notifications'))).toHaveLength(1);
     fireEvent.click(screen.getByTitle('Cerrar Sesión'));
-    expect(screen.getByText(/¿Desea cerrar la sesión activa\?/i)).toBeInTheDocument();
+    expect(screen.getByText(/¿Está seguro que desea cerrar la sesión activa\?/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
-    expect(screen.queryByText(/¿Desea cerrar la sesión activa\?/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/¿Está seguro que desea cerrar la sesión activa\?/i)).not.toBeInTheDocument();
   });
 });
