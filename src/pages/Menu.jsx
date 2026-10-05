@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import Toast from '../components/Toast';
+import { fetchMenu } from '../services/api';
+
+const MENU_OFFLINE_NOTICE_KEY = 'cacique_menu_offline_notice';
 import { Search, Flame, ShoppingBag, Plus, Minus, Trash2, MessageCircle, AlertCircle, Truck, Baby, MapPin } from 'lucide-react';
 
 export default function Menu() {
@@ -18,6 +21,30 @@ export default function Menu() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+  const [remoteCatalog, setRemoteCatalog] = useState(null);
+
+  // Catalogo remoto (json-server). Si no responde se conserva el catalogo
+  // local y se avisa una sola vez por sesion.
+  useEffect(() => {
+    let active = true;
+    fetchMenu().then(({ data, offline }) => {
+      if (!active) return;
+      if (!offline) {
+        setRemoteCatalog(data);
+        return;
+      }
+      try {
+        if (sessionStorage.getItem(MENU_OFFLINE_NOTICE_KEY)) return;
+        sessionStorage.setItem(MENU_OFFLINE_NOTICE_KEY, '1');
+      } catch {
+        // Sin sessionStorage el aviso se muestra igualmente.
+      }
+      setToast({ show: true, message: 'Servidor del menú no disponible: mostrando el catálogo local.', type: 'info' });
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -115,7 +142,9 @@ export default function Menu() {
     setIsCartOpen(false);
   };
 
-  const filteredItems = fullMenu.filter(item => {
+  const catalog = remoteCatalog ?? fullMenu;
+
+  const filteredItems = catalog.filter(item => {
     const matchesCat = activeCategory === 'todos' || item.cat === activeCategory;
     const matchesSearch = item.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || item.desc.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCat && matchesSearch;

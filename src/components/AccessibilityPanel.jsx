@@ -341,15 +341,22 @@ export default function AccessibilityPanel() {
         </defs>
       </svg>
 
+      {/*
+        El contenedor no ocupa el ancho de la pantalla y no captura el puntero:
+        antes era `w-full` con z-70 y formaba una franja invisible sobre la
+        parte inferior que bloqueaba los clics del boton de WhatsApp y del
+        launcher de la IA. Solo el panel y el boton reciben eventos.
+      */}
       <div
         ref={dockRef}
-        className="fixed bottom-4 right-4 z-70 flex w-full max-w-full flex-col items-end gap-3"
+        data-testid="accessibility-dock"
+        className="pointer-events-none fixed bottom-4 right-4 z-70 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-3"
       >
         {isOpen && (
           <section
             id="accessibility-panel"
             aria-label="Panel de accesibilidad"
-            className="w-[min(22rem,calc(100vw-2rem))] overflow-x-auto rounded-2xl border border-(--cacique-border)/40 bg-(--cacique-surface) p-4 text-(--cacique-text) shadow-2xl"
+            className="pointer-events-auto w-[min(22rem,calc(100vw-2rem))] overflow-x-auto rounded-2xl border border-(--cacique-border)/40 bg-(--cacique-surface) p-4 text-(--cacique-text) shadow-2xl"
           >
             <header className="mb-3 flex items-center gap-2 border-b border-(--cacique-border)/20 pb-3">
               <AccessibilityIcon
@@ -410,7 +417,7 @@ export default function AccessibilityPanel() {
           aria-expanded={isOpen}
           aria-controls="accessibility-panel"
           aria-label={isOpen ? 'Cerrar accesibilidad' : 'Abrir accesibilidad'}
-          className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-(--cacique-border)/40 bg-(--cacique-card) text-(--cacique-on-card) shadow-xl transition-all cursor-pointer hover:border-(--cacique-accent) hover:text-(--cacique-accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--cacique-accent)"
+          className="pointer-events-auto inline-flex h-14 w-14 items-center justify-center rounded-full border border-(--cacique-border)/40 bg-(--cacique-card) text-(--cacique-on-card) shadow-xl transition-all cursor-pointer hover:border-(--cacique-accent) hover:text-(--cacique-accent) active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--cacique-accent)"
         >
           <AccessibilityIcon className="h-6 w-6" aria-hidden="true" />
         </button>

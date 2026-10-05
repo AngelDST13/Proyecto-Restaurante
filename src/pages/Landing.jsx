@@ -1,6 +1,7 @@
 import { startTransition, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReservationModal from '../components/ReservationModal';
+import SedeWeather from '../components/SedeWeather';
 import Toast from '../components/Toast';
 import { useAutoLogout } from '../hooks/useAutoLogout';
 import { 
@@ -179,7 +180,7 @@ export default function Landing() {
       )}
 
       {/* 1. HERO SECTION */}
-      <section id="inicio" className="relative min-h-screen flex items-center justify-center pt-20 pb-16 px-6 overflow-hidden">
+      <section id="inicio" className="cacique-keep-colors relative min-h-screen flex items-center justify-center pt-20 pb-16 px-6 overflow-hidden">
         
         <div className="absolute inset-0 z-0 overflow-hidden">
           {heroImages.map((img, idx) => (
@@ -202,7 +203,8 @@ export default function Landing() {
         <button 
           type="button"
           onClick={prevSlide}
-          className="absolute left-4 z-20 p-3 rounded-full bg-black/40 hover:bg-[#D16014] text-white backdrop-blur-md transition-all hidden sm:block cursor-pointer"
+          aria-label="Imagen anterior"
+          className="absolute left-4 z-20 p-3 rounded-full bg-black/40 hover:bg-[#D16014] text-white backdrop-blur-md transition-all hidden sm:block cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
@@ -210,7 +212,8 @@ export default function Landing() {
         <button 
           type="button"
           onClick={nextSlide}
-          className="absolute right-4 z-20 p-3 rounded-full bg-black/40 hover:bg-[#D16014] text-white backdrop-blur-md transition-all hidden sm:block cursor-pointer"
+          aria-label="Imagen siguiente"
+          className="absolute right-4 z-20 p-3 rounded-full bg-black/40 hover:bg-[#D16014] text-white backdrop-blur-md transition-all hidden sm:block cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
@@ -260,7 +263,7 @@ export default function Landing() {
               <Sparkles className="w-3.5 h-3.5" /> TRADICIÓN Y PASIÓN CULINARIA
             </div>
 
-            <h2 className="text-3xl sm:text-5xl font-black text-white leading-tight">
+            <h2 className="text-3xl sm:text-5xl font-black text-white light:text-[#2C1A0E] leading-tight">
               Nuestra Historia &amp; <br />
               <span className="text-[#D16014]">Legado Gastronómico</span>
             </h2>
@@ -304,8 +307,8 @@ export default function Landing() {
       {/* 3. PLATILLOS PRINCIPALES */}
       <section className="py-24 px-6 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-3">
-          <span className="text-xs font-black text-[#D16014] uppercase tracking-widest">FAVORITOS DEL MENÚ</span>
-          <h2 className="text-3xl sm:text-5xl font-black text-white">Nuestra Especialidad Criolla</h2>
+          <span className="text-xs font-black text-(--cacique-accent) light:text-[#0F291E] uppercase tracking-widest">FAVORITOS DEL MENÚ</span>
+          <h2 className="text-3xl sm:text-5xl font-black text-white light:text-[#2C1A0E]">Nuestra Especialidad Criolla</h2>
           <div className="w-20 h-1 bg-[#659B5E] mx-auto rounded-full"></div>
         </div>
 
@@ -351,7 +354,7 @@ export default function Landing() {
           <div className="space-y-6">
             <div className="space-y-2">
               <span className="text-xs font-black text-[#659B5E] uppercase tracking-widest">PRESENCIA NACIONAL</span>
-              <h2 className="text-3xl sm:text-4xl font-black text-white uppercase">Nuestras Chicharroneras</h2>
+              <h2 className="text-3xl sm:text-4xl font-black text-white light:text-[#2C1A0E] uppercase">Nuestras Chicharroneras</h2>
               <p className="text-xs text-gray-400">Seleccione su sede provincial para revisar ubicación, teléfono y horarios de atención en vivo.</p>
             </div>
 
@@ -387,6 +390,7 @@ export default function Landing() {
                 <Clock className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>{selectedSedeObj.horario}</span>
               </p>
+              <SedeWeather key={activeSedeMap} sede={activeSedeMap} />
             </div>
           </div>
 
@@ -408,8 +412,8 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto space-y-12">
           
           <div className="text-center space-y-3">
-            <span className="text-xs font-black text-[#D16014] uppercase tracking-widest">TEMPORADAS Y FESTIVIDADES</span>
-            <h2 className="text-3xl sm:text-5xl font-black text-white uppercase">Especialidades &amp; Eventos de Temporada</h2>
+            <span className="text-xs font-black text-(--cacique-accent) light:text-[#0F291E] uppercase tracking-widest">TEMPORADAS Y FESTIVIDADES</span>
+            <h2 className="text-3xl sm:text-5xl font-black text-white light:text-[#2C1A0E] uppercase">Especialidades &amp; Eventos de Temporada</h2>
             <p className="text-xs sm:text-sm text-gray-300 max-w-2xl mx-auto">
               Sedes seleccionadas ofrecerán menús temáticos y experiencias culinarias únicas durante las principales celebraciones del año.
             </p>
@@ -439,7 +443,7 @@ export default function Landing() {
               <button
                 type="button"
                 onClick={() => reserve('Eventos')}
-                className="w-full py-3 rounded-xl bg-purple-950/60 border border-purple-500/50 hover:bg-purple-800 text-xs font-bold text-white transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="cacique-keep-colors w-full py-3 rounded-xl bg-purple-950/60 border border-purple-500/50 hover:bg-purple-800 light:bg-purple-900 light:hover:bg-purple-800 text-xs font-bold text-white transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               >
                 <span>AGENDAR AGÜIZOTES</span>
                 <ChevronRight className="w-4 h-4" />
@@ -468,7 +472,7 @@ export default function Landing() {
               <button
                 type="button"
                 onClick={() => reserve('Eventos')}
-                className="w-full py-3 rounded-xl bg-amber-950/60 border border-amber-500/50 hover:bg-amber-600 text-xs font-bold text-white transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="cacique-keep-colors w-full py-3 rounded-xl bg-amber-950/60 border border-amber-500/50 hover:bg-amber-600 light:bg-[#7A3E0A] light:hover:bg-[#5C2E07] text-xs font-bold text-white transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               >
                 <span>RESERVAR FIN DE AÑO</span>
                 <ChevronRight className="w-4 h-4" />
@@ -497,7 +501,7 @@ export default function Landing() {
               <button
                 type="button"
                 onClick={() => reserve('Eventos')}
-                className="w-full py-3 rounded-xl bg-[#001812] border border-[#659B5E]/50 hover:bg-[#659B5E] text-xs font-bold text-[#F8FFE5] transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="cacique-keep-colors w-full py-3 rounded-xl bg-[#001812] border border-[#659B5E]/50 hover:bg-[#659B5E] light:bg-[#0F291E] light:hover:bg-[#1D4A36] text-xs font-bold text-[#F8FFE5] light:text-white transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               >
                 <span>RESERVAR MESA</span>
                 <ChevronRight className="w-4 h-4" />
@@ -513,10 +517,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto space-y-10 relative z-10">
 
           <div className="text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-400 text-[10px] font-black uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-(--cacique-accent-alt) light:text-[#0F291E] light:border-[#0F291E]/30 text-[10px] font-black uppercase tracking-widest">
               <Flame className="w-3.5 h-3.5" /> MENÚ DE TEMPORADA
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-white uppercase">Especialidades de Temporada</h2>
+            <h2 className="text-3xl sm:text-5xl font-black text-white light:text-[#2C1A0E] uppercase">Especialidades de Temporada</h2>
           </div>
 
           {temporada === 'navidad' && (
@@ -675,7 +679,7 @@ export default function Landing() {
           isOpen={isReservationOpen}
           onClose={() => setIsReservationOpen(false)}
           initialEventType={reservationType}
-          onSuccess={(message) => setToast({ show: true, message, type: 'success' })}
+          onSuccess={(message, meta) => setToast({ show: true, message, type: meta?.offline ? 'info' : 'success' })}
         />
       )}
 

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import Navbar from '../components/Navbar';
@@ -103,7 +103,7 @@ describe('Navbar y reservas', () => {
     expect(screen.getByRole('button', { name: 'Alternar menú de navegación' })).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('valida y confirma una reserva, y cierra el modal con Escape', () => {
+  it('valida y confirma una reserva, y cierra el modal con Escape', async () => {
     const onClose = vi.fn();
     const onSuccess = vi.fn();
     render(<ReservationModal onClose={onClose} onSuccess={onSuccess} initialEventType="cumpleaños" />);
@@ -112,7 +112,11 @@ describe('Navbar y reservas', () => {
     fireEvent.change(screen.getByPlaceholderText(/Angel Salazar/i), { target: { value: 'Ana Pérez123' } });
     fireEvent.change(screen.getByPlaceholderText(/8888-8888/i), { target: { value: '+506 8888-1234abc' } });
     fireEvent.click(screen.getByRole('button', { name: /Confirmar Reservación/i }));
-    expect(onSuccess).toHaveBeenCalledWith(expect.stringContaining('Ana Pérez'));
+    // Sin servidor (fetch rechazado en setup.js) la reserva queda en cola local.
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledWith(
+      expect.stringContaining('Ana Pérez'),
+      expect.objectContaining({ offline: true }),
+    ));
     expect(onClose).toHaveBeenCalled();
 
     fireEvent.keyDown(window, { key: 'Escape' });
@@ -142,7 +146,7 @@ describe('Navbar y reservas', () => {
     expect(screen.getByLabelText('Tipo de Celebración')).toHaveValue(expectedType);
   });
 
-  it('valida fecha faltante y permite confirmar con alert cuando no hay callbacks', () => {
+  it('valida fecha faltante y permite confirmar con alert cuando no hay callbacks', async () => {
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     const { rerender } = render(<ReservationModal onClose={undefined} onSuccess={undefined} />);
     fireEvent.change(screen.getByPlaceholderText(/Angel Salazar/i), { target: { value: 'Ana Pérez' } });
@@ -153,7 +157,7 @@ describe('Navbar y reservas', () => {
 
     fireEvent.change(screen.getByLabelText('Fecha'), { target: { value: '2026-10-15' } });
     fireEvent.submit(screen.getByRole('button', { name: /CONFIRMAR RESERVACIÓN/i }).closest('form'));
-    expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Ana Pérez'));
+    await waitFor(() => expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Ana Pérez')));
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.getByRole('heading', { name: /Agendar Mesa o Evento/i })).toBeInTheDocument();
 

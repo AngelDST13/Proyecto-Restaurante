@@ -1,8 +1,9 @@
 import { startTransition, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {  sanitizePlainTextInput } from '../services/authSecurity';
+import { sanitizePlainTextInput } from '../services/authSecurity';
+import { createReservation } from '../services/api';
 import {
-  X, Calendar, Clock, Users, MapPin, Send,
+  X, Calendar, Clock, Users, MapPin, Send, LoaderCircle,
   Plus, Minus, User, Phone, MessageSquare, Sparkles
 } from 'lucide-react';
 
@@ -35,6 +36,7 @@ export default function ReservationModal({
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const currentDay = new Date().toISOString().split('T')[0];
@@ -80,8 +82,9 @@ export default function ReservationModal({
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     const newErrors = {};
 
     if (!formData.nombre.trim() || formData.nombre.trim().length < 3) {
@@ -101,10 +104,23 @@ export default function ReservationModal({
       return;
     }
 
-    const confirmationMsg = `¡Reserva confirmada con éxito para ${formData.nombre} en Sede ${formData.sede} el ${formData.fecha} a las ${formData.hora}!`;
+    // createReservation nunca lanza: sin servidor guarda la reserva en la
+    // cola local y devuelve `offline: true`.
+    setIsSubmitting(true);
+    const { data: reservation, offline } = await createReservation({
+      ...formData,
+      nombre: formData.nombre.trim(),
+      telefono: formData.telefono.trim()
+    });
+    setIsSubmitting(false);
+
+    const detalle = `para ${formData.nombre} en Sede ${formData.sede} el ${formData.fecha} a las ${formData.hora}`;
+    const confirmationMsg = offline
+      ? `Reserva registrada ${detalle}. Servidor sin conexión: se sincronizará automáticamente.`
+      : `¡Reserva confirmada con éxito ${detalle}!`;
 
     if (onSuccess) {
-      onSuccess(confirmationMsg);
+      onSuccess(confirmationMsg, { offline, reservation });
     } else {
       alert(confirmationMsg);
     }
@@ -314,10 +330,13 @@ export default function ReservationModal({
             {/* BOTÓN SUBMIT */}
             <button
               type="submit"
-              className="w-full py-4 rounded-xl bg-[#D16014] hover:bg-[#b8510f] text-white font-black text-sm uppercase tracking-wider transition-all shadow-xl shadow-[#D16014]/20 flex items-center justify-center gap-2 cursor-pointer mt-4"
+              disabled={isSubmitting}
+              aria-busy={isSubmitting}
+              aria-label="CONFIRMAR RESERVACIÓN"
+              className="w-full py-4 rounded-xl bg-[#D16014] hover:bg-[#b8510f] text-white font-black text-sm uppercase tracking-wider transition-all shadow-xl shadow-[#D16014]/20 flex items-center justify-center gap-2 cursor-pointer mt-4 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-70"
             >
-              <Send className="w-4 h-4" />
-              <span>CONFIRMAR RESERVACIÓN</span>
+              {isSubmitting ? <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Send className="w-4 h-4" aria-hidden="true" />}
+              <span>{isSubmitting ? 'ENVIANDO RESERVACIÓN...' : 'CONFIRMAR RESERVACIÓN'}</span>
             </button>
 
           </form>

@@ -48,7 +48,7 @@ describe('Alineacion del boton circular del Asistente IA', () => {
 
     // Alineado en la esquina inferior izquierda en vistas publicas.
     expect(container.querySelector('.cacique-bot-float').className).toMatch(/left-4/);
-    expect(container.querySelector('.cacique-bot-float').className).toMatch(/bottom-6/);
+    expect(container.querySelector('.cacique-bot-float').className).toMatch(/bottom-24/);
   });
 
   it('abre y cierra inmediatamente la ventana del chat al pulsar el boton', () => {
@@ -77,14 +77,14 @@ describe('Alineacion del boton circular del Asistente IA', () => {
 
   it('queda alineado en la esquina inferior izquierda en TODAS las pantallas', () => {
     // No debe variar por ruta: los paneles administrativos también lo alinean a
-    // la izquierda, encima del botón de WhatsApp (`bottom-6 left-4`).
+    // la izquierda, encima del botón de WhatsApp (`bottom-6 left-4`): launcher en `bottom-24`.
     for (const path of ['/menu', '/', '/admin', '/waiter', '/kitchen', '/cashier']) {
       const { container, unmount } = renderWidget(path);
       const launcher = container.querySelector('.cacique-bot-float');
 
       expect(launcher, `launcher ausente en ${path}`).toBeInTheDocument();
       expect(launcher).toHaveClass('fixed');
-      expect(launcher).toHaveClass('bottom-6');
+      expect(launcher).toHaveClass('bottom-24');
       expect(launcher).toHaveClass('left-4');
       expect(launcher).not.toHaveClass('right-4');
       expect(launcher).not.toHaveClass('right-6');
@@ -104,8 +104,8 @@ describe('Alineacion del boton circular del Asistente IA', () => {
       // El panel se apila sobre el launcher, sin salirse a la derecha.
       expect(container.querySelector('.cacique-chat-enter')).toHaveClass('left-4');
       expect(container.querySelector('.cacique-chat-enter')).not.toHaveClass('right-4');
-      // Debe quedar por encima del launcher (bottom-24 > bottom-6).
-      expect(container.querySelector('.cacique-chat-enter')).toHaveClass('bottom-24');
+      // Debe quedar por encima del launcher (bottom-44 > bottom-24).
+      expect(container.querySelector('.cacique-chat-enter')).toHaveClass('bottom-44');
 
       unmount();
     }

@@ -1,5 +1,43 @@
 @import "tailwindcss";
 
+/* Variante `light:` para ajustes puntuales del Modo Claro Gourmet
+   (ej. `light:text-[#2C1A0E]`). Se activa con `html.theme-light`. */
+@custom-variant light (&:where(.theme-light, .theme-light *));
+
+/* ==========================================================================
+   Respuesta tactil y foco accesible en todos los botones
+   `:where()` deja especificidad 0 y la capa base pierde ante cualquier
+   utilidad, asi que un componente puede sobrescribirlo sin conflictos.
+   ========================================================================== */
+
+@layer base {
+  :root {
+    --cacique-focus-ring: #f59e0b;
+  }
+
+  html.theme-light {
+    /* Ambar 800: 6.4:1 sobre beige (minimo 3:1 para indicadores de foco). */
+    --cacique-focus-ring: #92400e;
+  }
+
+  :where(button, [role='button'], summary):not(:disabled) {
+    cursor: pointer;
+  }
+
+  :where(button, [role='button']):disabled {
+    cursor: not-allowed;
+  }
+
+  :where(button, [role='button'], a[href], summary, input, select, textarea):focus-visible {
+    outline: 2px solid var(--cacique-focus-ring);
+    outline-offset: 2px;
+  }
+
+  :where(button, [role='button']):not(:disabled):active {
+    translate: 0 1px;
+  }
+}
+
 /* ==========================================================================
    Chicharronera El Cacique — tokens base y tema
    ========================================================================== */
@@ -262,111 +300,292 @@ html.cb-alto-contraste .cacique-select option {
 }
 
 /* ==========================================================================
-   Capa de compatibilidad de la paleta heredada
-   El proyecto usa clases arbitrarias de Tailwind con la paleta oscura
-   (bg-[#0A090C], text-[#F8FFE5], ...). En vez de reescribir cientos de
-   ocurrencias, se remapean a las variables del tema activo para que el Modo
-   Claro reach todas las vistas sin romper los componentes existentes.
+   Modo Claro Gourmet — capa de compatibilidad de la paleta heredada
+
+   IMPORTANTE: este bloque va FUERA de @layer a proposito. Tailwind v4 emite
+   sus utilidades en `@layer utilities`, que siempre gana a `@layer components`
+   sin importar la especificidad. Mientras estos remapeos vivian en
+   `@layer components` nunca se aplicaban: los titulos `text-white` quedaban
+   blancos sobre el lienzo beige. Los estilos sin capa ganan a cualquier capa.
+
+   El proyecto usa clases arbitrarias de la paleta oscura (bg-[#0A090C],
+   text-[#F8FFE5], text-white, ...). En vez de reescribir cientos de
+   ocurrencias se remapean a tokens claros con contraste WCAG AAA (>= 7:1):
+     #2C1A0E cafe tostado  -> 14.6:1 sobre #F5EFE6, 17.2:1 sobre #FFFFFF
+     #0F291E verde bosque  -> 13.9:1 sobre #F5EFE6
+     #5C4636 cafe medio    ->  7.7:1 sobre #F5EFE6,  8.8:1 sobre #FFFFFF
+     #7A3E0A ambar tostado ->  7.3:1 sobre #F5EFE6,  8.3:1 sobre #FFFFFF
    ========================================================================== */
 
-@layer components {
-  html.theme-light [class*='bg-[#0A090C]'] {
-    background-color: var(--cacique-canvas);
-  }
+html.theme-light {
+  --cacique-accent-text: #7A3E0A;
+  --cacique-heading: #2C1A0E;
+}
 
-  html.theme-light [class*='bg-[#001812]'] {
-    background-color: var(--cacique-card);
-  }
+/* --- Superficies oscuras heredadas -> superficies claras ----------------- */
 
-  html.theme-light [class*='text-[#F8FFE5]'] {
-    color: var(--cacique-on-card);
-  }
+html.theme-light :is([class*='bg-[#0A090C]'], [class*='bg-[#0A110D]']) {
+  background-color: var(--cacique-canvas);
+}
 
-  html.theme-light [class*='text-[#659B5E]'] {
-    color: var(--cacique-forest);
-  }
+html.theme-light [class*='bg-[#001812]'] {
+  background-color: var(--cacique-card);
+}
 
-  html.theme-light [class*='border-[#659B5E]'] {
-    border-color: rgba(74, 53, 37, 0.2);
-  }
+html.theme-light [class*='bg-[#00241B]'] {
+  background-color: var(--cacique-surface);
+}
 
-  html.theme-light [class*='bg-[#D16014]'] {
-    background-color: var(--cacique-accent);
-  }
+html.theme-light :is([class*='border-[#659B5E]'], [class*='border-[#F8FFE5]']) {
+  border-color: rgba(74, 53, 37, 0.2);
+}
 
-  html.theme-light [class*='text-[#D16014]'] {
-    color: var(--cacique-accent);
-  }
+/* Degradados de la paleta oscura (velos sobre fotografias y tarjetas). */
+html.theme-light [class*='from-[#001812]'] {
+  --tw-gradient-from: var(--cacique-card);
+}
 
-  /* Modo Claro: los grises y blancos neutros se remapean a la paleta
-     Cafe/Verde Bosque para mantener contraste WCAG AAA en todas las vistas
-     (Login, Footer, Paneles) sin reescribir cada componente. */
-  html.theme-light .text-white {
-    color: var(--cacique-on-card);
-  }
+html.theme-light [class*='to-[#001812]'] {
+  --tw-gradient-to: var(--cacique-card);
+}
 
-  html.theme-light [class*='text-gray-300'],
-  html.theme-light [class*='text-gray-400'],
-  html.theme-light [class*='text-zinc-400'],
-  html.theme-light [class*='text-zinc-300'] {
-    color: var(--cacique-muted);
-  }
+html.theme-light [class*='via-[#0A090C]']:not(.cacique-keep-colors *) {
+  --tw-gradient-via: var(--cacique-canvas);
+}
 
-  html.theme-light [class*='bg-[#00241B]'] {
-    background-color: var(--cacique-surface);
-  }
+/* --- Titulos y texto principal: cafe tostado ----------------------------- */
 
-  /* Login: fondo beige marfil y tarjeta blanca con borde Cafe Tostado. */
-  html.theme-light .cacique-login-canvas {
-    background-color: var(--cacique-canvas);
-  }
+html.theme-light :is(
+  .text-white,
+  [class*='text-[#F8FFE5]'],
+  .text-gray-100,
+  .text-gray-200,
+  .text-zinc-100,
+  .text-zinc-200,
+  .text-amber-50,
+  .text-amber-100
+) {
+  color: var(--cacique-on-card);
+}
 
-  html.theme-light .cacique-login-card {
-    background: rgba(255, 255, 255, 0.96);
-    border-color: rgba(74, 53, 37, 0.2);
-    box-shadow: 0 18px 40px -20px rgba(44, 26, 14, 0.35);
-  }
+/* Todo titulo sin color explicito hereda el cafe tostado del tema. */
+html.theme-light :is(h1, h2, h3, h4) {
+  color: var(--cacique-heading);
+}
 
-  html.theme-light .cacique-login-banner {
-    background-color: var(--cacique-surface);
-    border-color: rgba(74, 53, 37, 0.2);
-    color: var(--cacique-forest);
-  }
+/* --- Texto secundario y descripciones: cafe medio ------------------------ */
 
-  html.theme-light .cacique-login-switch {
-    background-color: var(--cacique-surface);
-    border-color: rgba(74, 53, 37, 0.2);
-  }
+html.theme-light :is(
+  [class*='text-gray-300'],
+  [class*='text-gray-400'],
+  [class*='text-gray-500'],
+  [class*='text-zinc-300'],
+  [class*='text-zinc-400'],
+  [class*='text-zinc-500']
+) {
+  color: var(--cacique-muted);
+}
 
-  /* Footer: superficie Verde Menta clara, sin negro fijo. */
-  html.theme-light .cacique-footer {
-    background-color: var(--cacique-surface);
-    border-top-color: rgba(74, 53, 37, 0.2);
-    color: var(--cacique-text);
-  }
+/* --- Acentos de color: variantes oscuras con contraste AAA --------------- */
 
-  html.theme-light .cacique-footer h4,
-  html.theme-light .cacique-footer span,
-  html.theme-light .cacique-footer a,
-  html.theme-light .cacique-footer strong {
-    color: var(--cacique-on-card);
-  }
+html.theme-light [class*='text-[#659B5E]'],
+html.theme-light :is([class*='text-emerald-400'], [class*='text-green-400']) {
+  color: var(--cacique-forest);
+}
 
-  html.theme-light .cacique-footer p,
-  html.theme-light .cacique-footer li {
-    color: var(--cacique-on-card-muted);
-  }
+html.theme-light :is(
+  [class*='text-[#D16014]'],
+  [class*='text-amber-300'],
+  [class*='text-amber-400'],
+  [class*='text-amber-500'],
+  [class*='text-orange-400']
+) {
+  color: var(--cacique-accent-text);
+}
 
-  html.theme-light .cacique-footer-card {
-    background-color: var(--cacique-card);
-    border-color: rgba(74, 53, 37, 0.2);
-  }
+html.theme-light :is([class*='text-purple-300'], [class*='text-purple-400']) {
+  color: #4C1D95;
+}
 
-  html.theme-light .cacique-footer-cta {
-    background-color: var(--cacique-accent);
-    border-color: rgba(74, 53, 37, 0.2);
-    color: #ffffff;
-  }
+html.theme-light :is([class*='text-rose-300'], [class*='text-rose-400'], [class*='text-red-400']) {
+  color: #881337;
+}
+
+html.theme-light :is([class*='text-emerald-200'], [class*='text-emerald-300']) {
+  color: var(--cacique-forest);
+}
+
+html.theme-light [class*='text-amber-200'] {
+  color: var(--cacique-accent-text);
+}
+
+/* Chips con tinte oscuro translucido (bg-purple-900/60, bg-emerald-950/40...):
+   en Modo Claro se convierten en un tinte suave del mismo tono que su texto
+   ya oscurecido, manteniendo el contraste AAA. */
+html.theme-light :is(
+  [class*='bg-purple-9'],
+  [class*='bg-amber-9'],
+  [class*='bg-emerald-9'],
+  [class*='bg-rose-9'],
+  [class*='bg-red-9'],
+  [class*='bg-green-9'],
+  [class*='bg-blue-9']
+) {
+  background-color: color-mix(in srgb, currentColor 8%, #ffffff);
+}
+
+html.theme-light :is([class*='text-blue-300'], [class*='text-blue-400']) {
+  color: #1E3A8A;
+}
+
+/* --- Estados hover / group-hover sobre superficies claras ---------------- */
+
+html.theme-light [class*='hover:text-white']:hover:not(.cacique-keep-colors, .cacique-keep-colors *, [class*='hover:bg-[#'], [class~='bg-[#D16014]'], [class~='bg-[#659B5E]']) {
+  color: var(--cacique-heading);
+}
+
+html.theme-light .group:hover :is([class*='group-hover:text-[#D16014]'], [class*='group-hover:text-amber-']) {
+  color: var(--cacique-accent-text);
+}
+
+html.theme-light .group:hover [class*='group-hover:text-[#659B5E]'] {
+  color: var(--cacique-forest);
+}
+
+html.theme-light .group:hover [class*='group-hover:text-purple-'] {
+  color: #4C1D95;
+}
+
+/* --- Excepciones: fondos solidos de color y zonas oscuras a proposito -----
+   `revert-layer` devuelve el control a la utilidad de Tailwind, de modo que
+   el texto blanco sobre naranja / verde / ambar, el hero fotografico y el
+   chat de IA conservan sus colores originales en ambos temas.
+   ------------------------------------------------------------------------- */
+
+html.theme-light :is(
+  .cacique-keep-colors,
+  [class~='bg-[#D16014]'],
+  [class~='bg-[#b8510f]'],
+  [class~='bg-[#C86D12]'],
+  [class~='bg-[#659B5E]'],
+  [class~='bg-[#25D366]'],
+  [class~='bg-(--cacique-accent)'],
+  [class*='from-[#D16014]'],
+  [class~='bg-amber-500'],
+  [class~='bg-amber-600'],
+  [class~='bg-amber-700'],
+  [class~='bg-orange-600'],
+  [class~='bg-emerald-600'],
+  [class~='bg-emerald-700'],
+  [class~='bg-green-600'],
+  [class~='bg-rose-600'],
+  [class~='bg-red-600'],
+  [class~='bg-blue-600'],
+  [class~='bg-black'],
+  [class*='bg-black/'],
+  [class~='bg-zinc-900'],
+  [class~='bg-zinc-950']
+) {
+  color: revert-layer;
+  background-color: revert-layer;
+  border-color: revert-layer;
+}
+
+html.theme-light :is(
+  [class~='bg-[#D16014]'],
+  [class~='bg-[#b8510f]'],
+  [class~='bg-[#C86D12]'],
+  [class~='bg-[#659B5E]'],
+  [class~='bg-[#25D366]'],
+  [class~='bg-(--cacique-accent)'],
+  [class*='from-[#D16014]'],
+  [class~='bg-amber-600'],
+  [class~='bg-blue-600'],
+  [class~='bg-zinc-900']
+) :is(.text-white, [class*='text-[#F8FFE5]'], svg, span, h1, h2, h3, h4, p) {
+  color: revert-layer;
+}
+
+/* Las zonas marcadas conservan por completo su paleta oscura. */
+html.theme-light .cacique-keep-colors * {
+  color: revert-layer;
+  background-color: revert-layer;
+  border-color: revert-layer;
+  --tw-gradient-from: revert-layer;
+  --tw-gradient-to: revert-layer;
+}
+
+/* Hover con fondo de color solido: el texto vuelve a su color original. */
+html.theme-light :is(
+  [class~='hover:bg-[#D16014]'],
+  [class~='hover:bg-[#b8510f]'],
+  [class~='hover:bg-[#659B5E]'],
+  [class~='hover:bg-[#52824c]'],
+  [class~='hover:bg-amber-600'],
+  [class~='hover:bg-emerald-600'],
+  [class~='hover:bg-rose-500'],
+  [class~='hover:bg-red-700'],
+  [class~='hover:bg-blue-700'],
+  [class~='hover:bg-purple-800']
+):hover {
+  color: revert-layer;
+  background-color: revert-layer;
+}
+
+/* --- Login --------------------------------------------------------------- */
+
+html.theme-light .cacique-login-canvas {
+  background-color: var(--cacique-canvas);
+}
+
+html.theme-light .cacique-login-card {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(74, 53, 37, 0.2);
+  box-shadow: 0 18px 40px -20px rgba(44, 26, 14, 0.35);
+}
+
+html.theme-light .cacique-login-banner {
+  background-color: var(--cacique-surface);
+  border-color: rgba(74, 53, 37, 0.2);
+  color: var(--cacique-forest);
+}
+
+html.theme-light .cacique-login-switch {
+  background-color: var(--cacique-surface);
+  border-color: rgba(74, 53, 37, 0.2);
+}
+
+/* --- Footer: superficie Verde Menta clara, sin negro fijo ---------------- */
+
+html.theme-light .cacique-footer {
+  background-color: var(--cacique-surface);
+  border-top-color: rgba(74, 53, 37, 0.2);
+  color: var(--cacique-text);
+}
+
+html.theme-light .cacique-footer :is(h4, span, a, strong) {
+  color: var(--cacique-on-card);
+}
+
+html.theme-light .cacique-footer :is(p, li) {
+  color: var(--cacique-on-card-muted);
+}
+
+html.theme-light .cacique-footer-card {
+  background-color: var(--cacique-card);
+  border-color: rgba(74, 53, 37, 0.2);
+}
+
+/* Ambar tostado: el blanco alcanza 8.3:1 (el ambar #C86D12 solo daba 3.7:1). */
+html.theme-light .cacique-footer .cacique-footer-cta,
+html.theme-light .cacique-footer .cacique-footer-cta * {
+  background-color: var(--cacique-accent-text);
+  border-color: rgba(74, 53, 37, 0.2);
+  color: #ffffff;
+}
+
+html.theme-light .cacique-footer .cacique-footer-cta * {
+  background-color: transparent;
 }
 
 /* ==========================================================================

@@ -33,7 +33,7 @@ describe('Widget del agente IA', () => {
     const { container } = renderWidget('/admin');
     const launcher = container.querySelector('.cacique-bot-float');
     expect(launcher).toHaveClass('left-4');
-    expect(launcher).toHaveClass('bottom-6');
+    expect(launcher).toHaveClass('bottom-24');
     expect(launcher).not.toHaveClass('right-4');
     expect(screen.getByText('IA Operativa Staff')).toBeInTheDocument();
   });
@@ -45,18 +45,18 @@ describe('Widget del agente IA', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Abrir asistente virtual' }));
     const input = screen.getByPlaceholderText('Escriba su consulta...');
     fireEvent.change(input, { target: { value: 'Dame el menú con emojis' } });
-    fireEvent.click(screen.getByRole('button', { name: '' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
     expect(await screen.findByText(/no utiliza emojis/i)).toBeInTheDocument();
     expect(triggerMock).not.toHaveBeenCalled();
 
     fireEvent.change(input, { target: { value: 'Precio del chifrijo' } });
-    fireEvent.click(screen.getByRole('button', { name: '' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
     expect(await screen.findByText('¡Hola !')).toBeInTheDocument();
     expect(triggerMock).toHaveBeenCalledOnce();
 
     triggerMock.mockRejectedValueOnce(new Error('offline'));
     fireEvent.change(input, { target: { value: 'Sedes del restaurante' } });
-    fireEvent.click(screen.getByRole('button', { name: '' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
     expect(await screen.findByText(/alta demanda/i)).toBeInTheDocument();
   });
 });

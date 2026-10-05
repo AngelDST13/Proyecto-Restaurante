@@ -107,7 +107,7 @@ export default function Navbar({ onOpenReservation }) {
             <span className="block whitespace-nowrap font-extrabold leading-none tracking-wide text-(--cacique-heading) drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] transition-colors group-hover:text-(--cacique-accent) text-base sm:text-lg">
               EL CACIQUE
             </span>
-            <span className="mt-0.5 block whitespace-nowrap text-[10px] font-bold uppercase tracking-widest text-(--cacique-accent-alt) drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            <span className="mt-0.5 block whitespace-nowrap text-[10px] font-bold uppercase tracking-widest text-(--cacique-accent-alt) light:text-[#7A3E0A] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               CHICHARRONERA GOURMET
             </span>
           </div>

@@ -1,6 +1,11 @@
 import '@testing-library/jest-dom';
 import { afterEach, vi } from 'vitest';
 
+// Red deshabilitada por defecto: ninguna prueba debe salir a internet
+// (Open-Meteo, json-server, n8n). Se simula un servidor caido, de modo que
+// se ejercitan los respaldos; cada prueba puede usar vi.stubGlobal('fetch').
+globalThis.fetch = () => Promise.reject(new TypeError('Failed to fetch (red deshabilitada en pruebas)'));
+
 // jsdom does not implement browser scrolling; components may call this in effects.
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};

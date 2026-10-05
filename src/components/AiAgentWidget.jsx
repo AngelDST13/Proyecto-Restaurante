@@ -13,9 +13,9 @@ export default function AiAgentWidget() {
   const isInternalPanel = ['/admin', '/kitchen', '/waiter', '/cashier'].includes(location.pathname);
   const isStaffContext = isStaffRole || isInternalPanel;
   // La esquina inferior derecha queda reservada para el Dock de Accesibilidad.
-  // El boton circular del asistente se ubica en la esquina inferior izquierda (`bottom-6 left-4`),
-  // y la ventana del chat se posiciona limpiamente por encima en `bottom-24 left-4`.
-  const positionClasses = 'bottom-6 left-4';
+  // Columna izquierda, de abajo hacia arriba:
+  //   WhatsApp `bottom-6 left-4` -> launcher IA `bottom-24 left-4` -> chat `bottom-44 left-4`.
+  const positionClasses = 'bottom-24 left-4';
   const moduloIA = isStaffContext ? 'AGENTE_IA_INTERNO' : 'AGENTE_IA_CONSULTA';
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -124,7 +124,7 @@ export default function AiAgentWidget() {
   };
 
   return (
-    <div className="font-sans">
+    <div className="cacique-keep-colors font-sans">
       <style>{`
         @keyframes caciqueFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
         @keyframes caciqueGlow { 0%, 100% { box-shadow: 0 0 18px rgba(234, 88, 12, .25); } 50% { box-shadow: 0 0 30px rgba(249, 115, 22, .55); } }
@@ -135,14 +135,14 @@ export default function AiAgentWidget() {
         .cacique-sparkle { animation: caciqueSparkle 2.4s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .cacique-bot-float, .cacique-chat-enter, .cacique-sparkle, .cacique-bot-bounce { animation: none !important; } }
       `}</style>
-      <div className={`cacique-bot-float cacique-bot-bounce fixed ${positionClasses} z-40 flex items-center justify-center`}>
+      <div className={`cacique-bot-float cacique-bot-bounce fixed ${positionClasses} z-50 flex items-center justify-center`}>
           <button
             type="button"
             onClick={() => { setIsOpen((previous) => !previous); setIsMinimized(false); }}
             aria-expanded={isOpen}
             aria-controls="cacique-chat-panel"
             aria-label={isOpen ? 'Cerrar asistente virtual' : 'Abrir asistente virtual'}
-            className="group relative flex w-14 h-14 items-center justify-center rounded-full shadow-lg bg-amber-600 text-white transition-all duration-300 hover:scale-105 hover:bg-amber-500 active:scale-95"
+            className="group relative flex w-14 h-14 items-center justify-center rounded-full shadow-lg bg-amber-600 text-white transition-all duration-300 hover:scale-105 hover:bg-amber-500 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
           >
             <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" aria-hidden="true" />
             <Bot className="h-6 w-6 text-white transition-transform duration-300 group-hover:rotate-12" aria-hidden="true" />
@@ -153,8 +153,8 @@ export default function AiAgentWidget() {
       </div>
 
       {isOpen && !isMinimized && (
-        <div ref={containerRef} className="cacique-chat-enter fixed bottom-24 left-4 z-50 max-h-[80vh] w-[90vw] max-w-sm sm:max-w-md shadow-2xl rounded-2xl overflow-hidden border border-amber-500/40 bg-zinc-950/98 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl flex flex-col">
-          <div id="cacique-chat-panel" className="pointer-events-auto flex h-120 max-h-[80vh] min-h-0 flex-col">
+        <div ref={containerRef} className="cacique-chat-enter fixed bottom-44 left-4 z-50 flex max-h-[80vh] w-[90vw] max-w-sm flex-col overflow-hidden rounded-2xl border border-amber-500/40 bg-zinc-950/98 shadow-2xl backdrop-blur-2xl sm:max-w-md">
+          <div id="cacique-chat-panel" className="pointer-events-auto flex h-120 max-h-[min(80vh,calc(100dvh-12rem))] min-h-0 flex-col">
           <div className="p-4 bg-amber-600 border-b border-amber-500/30 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg border border-white/20 bg-black/20 text-white">
@@ -171,9 +171,9 @@ export default function AiAgentWidget() {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              {/* Unico control del encabezado: cerrar (X). El minimization se
-                  achieve con Escape o clic fuera del panel. */}
-              <button type="button" onClick={() => { setIsOpen(false); setIsMinimized(false); }} title="Cerrar" aria-label="Cerrar asistente" className="rounded-lg p-1 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
+              {/* Unico control del encabezado: cerrar (X). Escape o un clic
+                  fuera del panel tambien lo cierran. */}
+              <button type="button" onClick={() => { setIsOpen(false); setIsMinimized(false); }} title="Cerrar" aria-label="Cerrar asistente" className="rounded-lg p-1 text-amber-100 transition-colors hover:bg-black/20 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -212,7 +212,7 @@ export default function AiAgentWidget() {
               onChange={(e) => setInput(e.target.value)}
               className="min-w-0 flex-1 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors"
             />
-            <button type="submit" disabled={loading || !input.trim()} className="flex items-center justify-center rounded-xl bg-amber-600 px-3.5 py-2.5 text-white shadow-md transition-all hover:bg-amber-500 disabled:opacity-40">
+            <button type="submit" aria-label="Enviar mensaje" disabled={loading || !input.trim()} className="flex items-center justify-center rounded-xl bg-amber-600 px-3.5 py-2.5 text-white shadow-md transition-all hover:bg-amber-500 active:scale-95 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
               <Send className="w-4 h-4" />
             </button>
           </form>

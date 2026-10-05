@@ -62,7 +62,7 @@ describe('Encabezado del chat Cacique Bot IA', () => {
     expect(container.querySelector('#cacique-chat-panel')).not.toBeInTheDocument();
     const launcher = container.querySelector('.cacique-bot-float');
     expect(launcher.className).toMatch(/left-4/);
-    expect(launcher.className).toMatch(/bottom-6/);
+    expect(launcher.className).toMatch(/bottom-24/);
   });
 
   it('el panel se situa encima del launcher sin bloquear la pagina', () => {
@@ -75,7 +75,7 @@ describe('Encabezado del chat Cacique Bot IA', () => {
     openChat();
 
     const panel = container.querySelector('.cacique-chat-enter');
-    expect(panel.className).toMatch(/bottom-24/);
+    expect(panel.className).toMatch(/bottom-44/);
     expect(panel.className).toMatch(/left-4/);
     expect(container.querySelector('.fixed.inset-0')).not.toBeInTheDocument();
   });
