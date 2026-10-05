@@ -2,6 +2,7 @@ import { startTransition, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { sanitizePlainTextInput } from '../services/authSecurity';
 import { createReservation } from '../services/api';
+import { addWebReservation, localDateKey } from '../services/liveSync';
 import {
   X, Calendar, Clock, Users, MapPin, Send, LoaderCircle,
   Plus, Minus, User, Phone, MessageSquare, Sparkles
@@ -39,7 +40,7 @@ export default function ReservationModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const currentDay = new Date().toISOString().split('T')[0];
+    const currentDay = localDateKey();
     startTransition(() => {
       setTodayStr(currentDay);
       setFormData(previous => previous.fecha ? previous : { ...previous, fecha: currentDay });
@@ -112,6 +113,8 @@ export default function ReservationModal({
       nombre: formData.nombre.trim(),
       telefono: formData.telefono.trim()
     });
+    // Publica la reserva para Admin (Reservas y Mesas) y Mesero (plano de mesas).
+    addWebReservation({ ...formData, nombre: formData.nombre.trim(), telefono: formData.telefono.trim(), offline });
     setIsSubmitting(false);
 
     const detalle = `para ${formData.nombre} en Sede ${formData.sede} el ${formData.fecha} a las ${formData.hora}`;

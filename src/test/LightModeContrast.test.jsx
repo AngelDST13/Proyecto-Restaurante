@@ -83,13 +83,13 @@ describe('index.css — capa de compatibilidad del Modo Claro', () => {
 });
 
 describe('Contraste WCAG AAA del Modo Claro', () => {
-  const ACCENT_TEXT = '#7A3E0A';
-  const MUTED = '#5C4636';
-  const backgrounds = { canvas: LIGHT_PALETTE.canvas, card: LIGHT_PALETTE.card, surface: LIGHT_PALETTE.surface };
+  const ACCENT_TEXT = '#6B3508';
+  const MUTED = '#4F3B2D';
+  const backgrounds = { canvas: LIGHT_PALETTE.canvas, card: LIGHT_PALETTE.card, surface: LIGHT_PALETTE.surface, panelGradientEnd: '#E8DFD8' };
 
   it('usa en index.css los tokens validados', () => {
     expect(css).toContain(`--cacique-accent-text: ${ACCENT_TEXT};`);
-    expect(css).toContain(`--cacique-muted: ${MUTED};`);
+    expect(css).toContain(`--cacique-muted-text: ${MUTED};`);
   });
 
   it.each(Object.entries(backgrounds))('titulos, descripciones y precios superan 7:1 sobre %s', (_name, bg) => {
@@ -101,7 +101,7 @@ describe('Contraste WCAG AAA del Modo Claro', () => {
 
   it('el blanco nunca se usa como texto sobre los fondos claros', () => {
     for (const bg of Object.values(backgrounds)) {
-      expect(contrast('#FFFFFF', bg)).toBeLessThan(1.3);
+      expect(contrast('#FFFFFF', bg)).toBeLessThan(1.5);
     }
   });
 

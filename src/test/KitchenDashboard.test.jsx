@@ -32,7 +32,7 @@ describe('KitchenDashboard KDS', () => {
     expect(screen.queryByText('ORD-101')).not.toBeInTheDocument();
   });
 
-  it('guarda notas en ítems, notifica entregas y cancela el cierre de sesión', () => {
+  it('guarda notas en ítems, notifica entregas y no duplica el cierre de sesión', () => {
     localStorage.removeItem('cacique_ready_order_notifications');
     renderKitchen();
     const order = screen.getByText('ORD-101').closest('div[class*="bg-[#001812]"]');
@@ -44,9 +44,8 @@ describe('KitchenDashboard KDS', () => {
 
     fireEvent.click(within(order).getByRole('button', { name: /Notificar Listo a Mesero/i }));
     expect(JSON.parse(localStorage.getItem('cacique_ready_order_notifications'))).toHaveLength(1);
-    fireEvent.click(screen.getByTitle('Cerrar Sesión'));
-    expect(screen.getByText(/¿Está seguro que desea cerrar la sesión activa\?/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
-    expect(screen.queryByText(/¿Está seguro que desea cerrar la sesión activa\?/i)).not.toBeInTheDocument();
+    // El cierre de sesión vive solo en la barra superior (Navbar).
+    expect(screen.queryByTitle('Cerrar Sesión')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /cerrar sesión/i })).not.toBeInTheDocument();
   });
 });

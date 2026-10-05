@@ -6,6 +6,8 @@ import { useAutoLogout } from '../hooks/useAutoLogout';
 
 import FacturacionPanel from '../components/FacturacionPanel';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import { useSharedCollection } from '../hooks/useSharedCollection';
+import { RESERVATIONS_KEY, writeCollection } from '../services/liveSync';
 import ThemeToggleButton from '../components/ThemeToggleButton';
 import { ADMIN_SEDES, createAdminRegister, getAdminRegistersBySede, removeAdminRegister } from '../services/adminRegistersService';
 import { caciqueAsset as caciqueIcon, logoDarkVariant as officialLogo } from '../assets/img';
@@ -125,7 +127,9 @@ export default function AdminDashboard() {
     return combined.filter((contact, index) => combined.findIndex(candidate => candidate.correo === contact.correo) === index);
   });
   const [employeeForm, setEmployeeForm] = useState({ nombre: '', puesto: 'Mesero de Salón & Terraza', salario: '', frecuenciaPago: 'Quincenal', diaPago: '15 y 30', banco: 'BAC Credomatic', iban: '', sede: 'escazu' });
-  const [reservations, setReservations] = useState(() => { try { return JSON.parse(localStorage.getItem('cacique_admin_reservations') || '[]'); } catch { return []; } });
+  // Reservas en tiempo real: incluye las creadas desde la Landing (ReservationModal).
+  const reservations = useSharedCollection(RESERVATIONS_KEY);
+  const setReservations = next => writeCollection(RESERVATIONS_KEY, next);
   const [reservationForm, setReservationForm] = useState({ cliente: '', personas: 2, fecha: '', hora: '', sede: 'escazu', mesa: '1' });
   const [editingReservationId, setEditingReservationId] = useState(null);
   const [employees, setEmployees] = useState(() => {
@@ -525,7 +529,6 @@ export default function AdminDashboard() {
       ? reservations.map(item => item.id === editingReservationId ? { ...reservation, id: editingReservationId } : item)
       : [...reservations, { ...reservation, id: crypto.randomUUID() }];
     setReservations(next);
-    localStorage.setItem('cacique_admin_reservations', JSON.stringify(next));
     setReservationForm({ cliente: '', personas: 2, fecha: '', hora: '', sede: selectedSede === 'todas' ? 'escazu' : selectedSede, mesa: '1' });
     setEditingReservationId(null);
     showToast(editingReservationId ? 'Reserva actualizada' : 'Reserva registrada', 'success');
@@ -534,13 +537,11 @@ export default function AdminDashboard() {
   const updateReservationStatus = (id, estado) => {
     const next = reservations.map(item => item.id === id ? { ...item, estado } : item);
     setReservations(next);
-    localStorage.setItem('cacique_admin_reservations', JSON.stringify(next));
   };
 
   const cancelReservation = id => {
     const next = reservations.filter(item => item.id !== id);
     setReservations(next);
-    localStorage.setItem('cacique_admin_reservations', JSON.stringify(next));
     showToast('Reserva cancelada', 'info');
   };
 
@@ -794,7 +795,7 @@ export default function AdminDashboard() {
       {/* ÁREA PRINCIPAL */}
       <main className="min-w-0 w-full max-w-full grow overflow-x-hidden p-4 sm:p-6 lg:p-10 space-y-8 overflow-y-auto">
 
-        <header className="bg-linear-to-r from-[#001812] via-zinc-900 to-[#0A090C] rounded-3xl border border-[#659B5E]/30 p-6 sm:p-8 grid grid-cols-1 2xl:grid-cols-[minmax(16rem,1fr)_auto] items-center gap-6 shadow-2xl shadow-black/60">
+        <header className="bg-linear-to-r from-[#001812] via-zinc-900 to-[#0A090C] light:from-[#F5EFE6] light:via-[#F0E8DF] light:to-[#E8DFD8] rounded-3xl border border-[#659B5E]/30 p-6 sm:p-8 grid grid-cols-1 2xl:grid-cols-[minmax(16rem,1fr)_auto] items-center gap-6 shadow-2xl shadow-black/60">
           <div className="min-w-0 space-y-1">
             <div>
               <span className="inline-flex px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-[11px] uppercase tracking-wider">
@@ -1036,7 +1037,7 @@ export default function AdminDashboard() {
         )}
 
         {activeSection === 'menu' && (
-          <div className="w-full max-w-full min-w-0 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 shadow-2xl sm:p-6">
+          <div className="w-full max-w-full min-w-0 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] light:from-[#F5EFE6] light:via-[#F0E8DF] light:to-[#E8DFD8] p-4 shadow-2xl sm:p-6">
             <div className="mb-5 flex min-w-0 flex-wrap items-start justify-between gap-3"><div><h3 className="font-extrabold text-lg">Gestión dinámica del menú</h3><p className="text-gray-400 text-[11px]">Agrega, edita o elimina platillos y disponibilidad por sucursal.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => exportMenu('csv')} className="min-h-10 rounded-lg border border-white/15 px-3 text-xs font-bold hover:border-emerald-400">Exportar CSV</button><button type="button" onClick={() => exportMenu('xlsx')} className="min-h-10 rounded-lg border border-white/15 px-3 text-xs font-bold hover:border-emerald-400">Exportar Excel</button><button type="button" onClick={() => exportMenu('json')} className="min-h-10 rounded-lg border border-white/15 px-3 text-xs font-bold hover:border-amber-400">Exportar JSON</button><label className="flex min-h-10 cursor-pointer items-center rounded-lg bg-[#D16014] px-3 text-xs font-bold text-white hover:bg-[#b8510f]">Importar menú<input aria-label="Importar archivo de menú" type="file" accept=".csv,.xlsx,.json" onChange={importMenuFile} className="sr-only"/></label></div></div>
             <form onSubmit={addMenuCategory} className="mb-6 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><input value={newCategory} onChange={event => setNewCategory(event.target.value)} placeholder="Nueva categoría o sección" className="min-w-0 w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" /><button className="min-h-11 px-4 py-2.5 rounded-xl bg-[#D16014] text-white font-bold">Crear categoría</button></form>
             <form onSubmit={addMenuItem} className="mb-7 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1303,7 +1304,7 @@ export default function AdminDashboard() {
 
         {/* CONFIGURACIÓN DE CAJAS Y CREDENCIALES POR SEDE */}
         {activeSection === 'cajas' && (
-          <section aria-labelledby="registers-title" className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 text-xs shadow-2xl sm:p-6">
+          <section aria-labelledby="registers-title" className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] light:from-[#F5EFE6] light:via-[#F0E8DF] light:to-[#E8DFD8] p-4 text-xs shadow-2xl sm:p-6">
             <header className="min-w-0">
               <h3 id="registers-title" className="font-extrabold text-lg text-[#F8FFE5]">Configuración de Cajas y Credenciales por Sede</h3>
               <p className="mt-1 text-gray-400">Cree nuevas cajas o cajeros asignados a una sede específica y consulte las credenciales de prueba de cada rol.</p>
@@ -1371,7 +1372,7 @@ export default function AdminDashboard() {
 
         {/* GESTIÓN DE CLIENTES REGISTRADOS */}
         {activeSection === 'clientes' && (
-          <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 text-xs shadow-2xl sm:p-6" aria-labelledby="clients-title">
+          <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] light:from-[#F5EFE6] light:via-[#F0E8DF] light:to-[#E8DFD8] p-4 text-xs shadow-2xl sm:p-6" aria-labelledby="clients-title">
             <header className="min-w-0">
               <h3 id="clients-title" className="font-extrabold text-lg text-[#F8FFE5]">Gestión de Clientes Registrados</h3>
               <p className="mt-1 text-gray-400">Consulta el padrón de comensales, su sede preferida y su historial de reservas.</p>
@@ -1479,7 +1480,7 @@ export default function AdminDashboard() {
 
         {/* MESAS */}
         {activeSection === 'mesas' && (
-          <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 text-xs shadow-2xl sm:p-6" aria-labelledby="reservations-title">
+          <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] light:from-[#F5EFE6] light:via-[#F0E8DF] light:to-[#E8DFD8] p-4 text-xs shadow-2xl sm:p-6" aria-labelledby="reservations-title">
             <header><h3 id="reservations-title" className="font-extrabold text-lg text-[#F8FFE5]">Mesas y reservaciones — {selectedSede === 'todas' ? 'Todas las sedes' : formatSedeName(selectedSede)}</h3><p className="mt-1 text-gray-400">Asigna mesas, consulta su estado y gestiona las reservas por sucursal.</p></header>
 
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -1516,7 +1517,7 @@ export default function AdminDashboard() {
               <div className="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-3"><button className="min-h-11 rounded-xl bg-[#D16014] px-4 py-2 font-bold">{editingReservationId ? 'Guardar cambios de reserva' : 'Crear reserva'}</button>{editingReservationId && <button type="button" onClick={() => { setEditingReservationId(null); setReservationForm({ cliente: '', personas: 2, fecha: '', hora: '', sede: selectedSede === 'todas' ? 'escazu' : selectedSede, mesa: '1' }); }} className="min-h-11 rounded-xl border border-white/15 px-4 py-2 font-bold">Cancelar edición</button>}</div>
             </form>
 
-            <section className="min-w-0 space-y-3" aria-labelledby="active-reservations-title"><h4 id="active-reservations-title" className="font-bold text-amber-300">Reservaciones activas</h4>{reservations.filter(item => selectedSede === 'todas' || item.sede === selectedSede).length === 0 ? <p className="rounded-xl border border-white/10 bg-black/20 p-4 text-zinc-400">No hay reservaciones activas para esta sede.</p> : reservations.filter(item => selectedSede === 'todas' || item.sede === selectedSede).map(item => <article key={item.id} className="flex min-w-0 flex-col justify-between gap-3 rounded-xl border border-white/10 bg-[#0A090C] p-4 sm:flex-row sm:items-center"><div className="min-w-0"><strong className="wrap-break-word">{item.cliente}</strong><p className="mt-1 wrap-break-word text-gray-400">{item.personas} personas · {item.fecha} {item.hora} · {branchLabels[item.sede]} · Mesa {String(item.mesa).padStart(2, '0')}</p><span className="mt-2 inline-flex rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-200">{item.estado || 'Reservada'}</span></div><div className="flex flex-wrap gap-2"><button type="button" aria-label={`Editar reserva de ${item.cliente}`} onClick={() => { setEditingReservationId(item.id); setReservationForm({ ...item, personas: String(item.personas) }); }} className="min-h-10 rounded-lg border border-white/15 px-3 text-zinc-200">Editar</button>{item.estado !== 'Confirmada' && <button type="button" onClick={() => updateReservationStatus(item.id, 'Confirmada')} className="min-h-10 rounded-lg border border-emerald-600/30 px-3 text-emerald-300">Confirmar</button>}<button type="button" onClick={() => cancelReservation(item.id)} className="min-h-10 rounded-lg border border-rose-600/30 px-3 text-rose-300">Cancelar</button></div></article>)}</section>
+            <section className="min-w-0 space-y-3" aria-labelledby="active-reservations-title"><h4 id="active-reservations-title" className="font-bold text-amber-300">Reservaciones activas</h4>{reservations.filter(item => selectedSede === 'todas' || item.sede === selectedSede).length === 0 ? <p className="rounded-xl border border-white/10 bg-black/20 p-4 text-zinc-400">No hay reservaciones activas para esta sede.</p> : reservations.filter(item => selectedSede === 'todas' || item.sede === selectedSede).map(item => <article key={item.id} className="flex min-w-0 flex-col justify-between gap-3 rounded-xl border border-white/10 bg-[#0A090C] p-4 sm:flex-row sm:items-center"><div className="min-w-0"><strong className="wrap-break-word">{item.cliente}</strong><p className="mt-1 wrap-break-word text-gray-400">{item.personas} personas · {item.fecha} {item.hora} · {branchLabels[item.sede]} · {item.mesa ? `Mesa ${String(item.mesa).padStart(2, '0')}` : 'Mesa sin asignar'}</p><span className="mt-2 inline-flex rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-200">{item.estado || 'Reservada'}</span>{item.origen === 'web' && <span className="ml-2 mt-2 inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-bold text-emerald-300" title={item.telefono ? `Tel. ${item.telefono}` : undefined}>Reserva web{item.sincronizada === false ? ' · pendiente de sincronizar' : ''}</span>}</div><div className="flex flex-wrap gap-2"><button type="button" aria-label={`Editar reserva de ${item.cliente}`} onClick={() => { setEditingReservationId(item.id); setReservationForm({ ...item, personas: String(item.personas) }); }} className="min-h-10 rounded-lg border border-white/15 px-3 text-zinc-200">Editar</button>{item.estado !== 'Confirmada' && <button type="button" onClick={() => updateReservationStatus(item.id, 'Confirmada')} className="min-h-10 rounded-lg border border-emerald-600/30 px-3 text-emerald-300">Confirmar</button>}<button type="button" onClick={() => cancelReservation(item.id)} className="min-h-10 rounded-lg border border-rose-600/30 px-3 text-rose-300">Cancelar</button></div></article>)}</section>
           </section>
         )}
 

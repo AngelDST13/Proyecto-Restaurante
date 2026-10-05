@@ -5,19 +5,21 @@ import { formatSedeName } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
 import { 
   Flame, Clock, RefreshCw, 
-  Users, ChefHat, Filter, LogOut, CheckSquare, Square,
+  Users, ChefHat, Filter, CheckSquare, Square,
   MessageSquare, BellRing, Edit3, Send, Timer
 } from 'lucide-react';
-import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import { useSharedCollection } from '../hooks/useSharedCollection';
+import { KITCHEN_ORDERS_KEY, readCollection, writeCollection } from '../services/liveSync';
 import ThemeToggleButton from '../components/ThemeToggleButton';
 
 const READY_ORDERS_STORAGE_KEY = 'cacique_ready_order_notifications';
 
 export default function KitchenDashboard() {
-  const { user, logout } = useAuth();
+  // El cierre de sesion vive solo en la barra superior (Navbar), que ya
+  // muestra el modal de confirmacion: aqui no se duplica el boton.
+  const { user } = useAuth();
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [filterSede, setFilterSede] = useState(user?.sede || 'escazu');
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // MODAL DE NOTAS Y COMENTARIOS
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
@@ -25,7 +27,7 @@ export default function KitchenDashboard() {
   const [noteText, setNoteText] = useState('');
 
   // BASE DE DATOS MUESTRA DE COMANDAS KDS
-  const [orders, setOrders] = useState([
+  const [seedOrders, setSeedOrders] = useState([
     {
       id: 'ORD-101',
       mesa: 'Mesa 02',
@@ -89,6 +91,21 @@ export default function KitchenDashboard() {
       ]
     }
   ]);
+
+  // Comandas despachadas por el Mesero en tiempo real + comandas de muestra.
+  const sharedOrders = useSharedCollection(KITCHEN_ORDERS_KEY);
+  const orders = [...sharedOrders, ...seedOrders];
+
+  // Misma firma que un setState (prev => next): las comandas del Mesero se
+  // persisten para que Caja y otras pestañas vean el cambio; las de muestra
+  // quedan en estado local.
+  const setOrders = (updater) => {
+    const currentShared = readCollection(KITCHEN_ORDERS_KEY);
+    const sharedIds = new Set(currentShared.map(order => order.id));
+    const next = updater([...currentShared, ...seedOrders]);
+    if (currentShared.length > 0) writeCollection(KITCHEN_ORDERS_KEY, next.filter(order => sharedIds.has(order.id)));
+    setSeedOrders(next.filter(order => !sharedIds.has(order.id)));
+  };
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -201,12 +218,6 @@ export default function KitchenDashboard() {
     setIsNoteModalOpen(false);
   };
 
-  // CIERRE DE SESIÓN SEGURO Y REDIRECCIÓN INMEDIATA
-  const handleConfirmLogout = () => {
-    setIsLogoutModalOpen(false);
-    logout();
-  };
-
   const filteredOrders = orders.filter(o => o.sede === filterSede);
   const totalPersonasAtendidas = filteredOrders.reduce((acc, curr) => acc + curr.personas, 0);
   const promedioEstimadoGeneral = Math.round(
@@ -273,15 +284,6 @@ export default function KitchenDashboard() {
             </button>
 
             <ThemeToggleButton />
-
-            <button
-              onClick={() => setIsLogoutModalOpen(true)}
-              aria-label="Cerrar Sesión"
-              className="p-3 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 rounded-2xl text-red-400 cursor-pointer transition-colors"
-              title="Cerrar Sesión"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
         </div>
 
@@ -520,13 +522,6 @@ export default function KitchenDashboard() {
           </div>
         </div>
       )}
-
-      {/* MODAL UNIVERSAL DE CONFIRMACIÓN DE CIERRE DE SESIÓN */}
-      <LogoutConfirmModal
-        isOpen={isLogoutModalOpen}
-        onCancel={() => setIsLogoutModalOpen(false)}
-        onConfirm={handleConfirmLogout}
-      />
 
     </div>
   );

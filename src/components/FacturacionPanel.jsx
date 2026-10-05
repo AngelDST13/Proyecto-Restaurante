@@ -168,7 +168,7 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz�
   const actionClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#D16014] px-4 py-2.5 font-bold text-white hover:bg-[#b8510f] disabled:cursor-not-allowed disabled:opacity-50';
 
   return (
-    <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 shadow-2xl sm:p-6" aria-labelledby="cashier-title">
+    <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] light:from-[#F5EFE6] light:via-[#F0E8DF] light:to-[#E8DFD8] p-4 shadow-2xl sm:p-6" aria-labelledby="cashier-title">
       <header className="flex min-w-0 flex-wrap items-center justify-between gap-4 border-b border-[#659B5E]/20 pb-4">
         <div className="min-w-0"><h2 id="cashier-title" className="flex flex-wrap items-center gap-2 text-lg font-black text-white"><Wallet className="h-5 w-5 shrink-0 text-amber-400"/>Facturación, POS y Caja Chica</h2><p className="mt-1 text-xs text-zinc-400">Arqueo Financiero Diario de Caja · movimientos de {sedeNombre}; guardado local en este dispositivo.</p></div>
         <span className={`rounded-full border px-3 py-1 text-xs font-bold ${cashOpen ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-zinc-600 bg-zinc-800 text-zinc-300'}`}>{cashOpen ? 'Caja abierta' : 'Caja cerrada'}</span>

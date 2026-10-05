@@ -7,6 +7,8 @@ import { formatSedeName } from '../services/authSecurity';
 import { CASHIER_PAYMENT_METHODS, CASHIER_TABLE_COUNTS, closeCashierRegister, getCashierOrders, getCashierState, openCashierRegister, recordCashierSale, removeCashierOrder } from '../services/cashierService';
 import { CreditCard, Lock, LogOut, Receipt, Unlock } from 'lucide-react';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
+import { useSharedCollection } from '../hooks/useSharedCollection';
+import { KITCHEN_ORDERS_KEY, activeKitchenOrders } from '../services/liveSync';
 import ThemeToggleButton from '../components/ThemeToggleButton';
 
 const PAYMENT_METHODS = CASHIER_PAYMENT_METHODS;
@@ -18,6 +20,10 @@ export default function CashierDashboard() {
   const sede = user?.sede || 'escazu';
   const sedeNombre = formatSedeName(sede);
   const [orders, setOrders] = useState(() => getCashierOrders(sede));
+  // Comandas despachadas por el Mesero que siguen en Cocina (tiempo real).
+  const sharedKitchenOrders = useSharedCollection(KITCHEN_ORDERS_KEY);
+  const kitchenOrders = activeKitchenOrders(sharedKitchenOrders, sede);
+  const kitchenItemsCount = kitchenOrders.reduce((total, order) => total + order.items.filter(item => !item.listo).reduce((sum, item) => sum + Number(item.cantidad || 0), 0), 0);
   const [cashierState, setCashierState] = useState(() => getCashierState(sede));
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [receipt, setReceipt] = useState(null);
@@ -139,7 +145,7 @@ export default function CashierDashboard() {
   });
 
   return (
-    <main className="min-h-screen w-full bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] px-4 pb-12 pt-24 text-[#F8FFE5] sm:px-6">
+    <main className="min-h-screen w-full bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] light:from-[#F5EFE6] light:via-[#F0E8DF] light:to-[#E8DFD8] px-4 pb-12 pt-24 text-[#F8FFE5] sm:px-6">
       {toast.show && <Toast message={toast.message} type={toast.type} onClose={() => setToast(previous => ({ ...previous, show: false }))} />}
       <div className="mx-auto max-w-7xl space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#659B5E]/30 bg-black/20 p-4 sm:p-5">
@@ -243,6 +249,8 @@ export default function CashierDashboard() {
           <CashierMetric label="Ventas con tarjeta" value={cardSales} />
           <CashierMetric label="Ventas SINPE" value={sinpeSales} />
           <CashierMetric label="Efectivo esperado" value={expectedCash} />
+          <CashierMetric label="Comandas en cocina" value={kitchenOrders.length} format="count" testId="cashier-kitchen-orders" />
+          <CashierMetric label="Platillos en preparación" value={kitchenItemsCount} format="count" testId="cashier-kitchen-items" />
         </section>
 
         <section aria-labelledby="cashier-table-map" className="space-y-4 rounded-2xl border border-[#659B5E]/30 bg-black/20 p-4 sm:p-5">
@@ -268,7 +276,7 @@ export default function CashierDashboard() {
           </div>
         </section>
 
-        {selectedOrder && <section aria-label={`Comanda activa ${selectedOrderSeat}`} className="space-y-4 rounded-2xl border border-amber-400/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 sm:p-5">
+        {selectedOrder && <section aria-label={`Comanda activa ${selectedOrderSeat}`} className="space-y-4 rounded-2xl border border-amber-400/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] light:from-[#F5EFE6] light:via-[#F0E8DF] light:to-[#E8DFD8] p-4 sm:p-5">
           <header className="flex flex-wrap items-start justify-between gap-2"><div><h2 className="text-lg font-black text-white">{selectedOrderSeat} · {selectedOrder.cliente || 'Cliente de mesa'}</h2><p className="text-xs text-amber-300">Comanda activa · esperando cobro</p></div><strong className="text-lg text-amber-300">{formatCurrency(selectedOrder.total)}</strong></header>
           <div className="divide-y divide-white/10 border-y border-white/10">{(selectedOrder.items || []).map((item, index) => <div key={`${item.nombre}-${index}`} className="flex justify-between gap-4 py-2 text-sm"><span>{item.cantidad} × {item.nombre}</span><span>{formatCurrency(Number(item.precio) * Number(item.cantidad))}</span></div>)}</div>
           <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4"><p>Subtotal <strong className="block">{formatCurrency(selectedOrder.subtotal)}</strong></p><p>Servicio 10% <strong className="block">{formatCurrency(selectedOrder.servicio)}</strong></p><p>IVA 13% <strong className="block">{formatCurrency(selectedOrder.iva)}</strong></p><p>Total <strong className="block text-amber-300">{formatCurrency(selectedOrder.total)}</strong></p></div>
@@ -309,6 +317,6 @@ export default function CashierDashboard() {
   );
 }
 
-function CashierMetric({ label, value }) {
-  return <div className="rounded-xl border border-[#659B5E]/30 bg-black/20 p-3"><span className="text-xs text-zinc-400">{label}</span><strong className="mt-1 block text-lg font-black text-amber-300">{formatCurrency(value)}</strong></div>;
+function CashierMetric({ label, value, format = 'currency', testId }) {
+  return <div className="rounded-xl border border-[#659B5E]/30 bg-black/20 p-3" data-testid={testId}><span className="text-xs text-zinc-400">{label}</span><strong className="mt-1 block text-lg font-black text-amber-300">{format === 'count' ? value : formatCurrency(value)}</strong></div>;
 }

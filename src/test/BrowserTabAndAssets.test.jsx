@@ -65,6 +65,12 @@ describe('Activos centralizados en src/assets/img', () => {
     ]);
   });
 
+  it('no existen carpetas de imagenes duplicadas en public/', () => {
+    expect(fs.existsSync(path.resolve(projectRoot, 'public/assets'))).toBe(false);
+    const publicImages = listFiles('public').filter((file) => /.(svg|png|jpe?g|webp|gif|ico)$/i.test(file));
+    expect(publicImages).toEqual([]);
+  });
+
   it('ningun componente importa imagenes locales fuera del indice', () => {
     const sources = listFiles('src').filter((file) =>
       /\.(jsx?|css)$/.test(file) && !file.startsWith('src/test/') && file !== 'src/assets/img/index.js');

@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { decryptData, formatSedeName } from '../services/authSecurity';
 import { subscribeToLiveEvents } from '../services/n8nService';
 import { enqueueCashierOrder } from '../services/cashierService';
+import { useSharedCollection } from '../hooks/useSharedCollection';
+import { RESERVATIONS_KEY, addKitchenOrder, createWaiterTables, reservationsByTable } from '../services/liveSync';
 import Toast from '../components/Toast';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import ThemeToggleButton from '../components/ThemeToggleButton';
@@ -43,23 +45,13 @@ export default function WaiterDashboard() {
     logout();
   };
 
-  // Mesas por Piso
-  const [tables, setTables] = useState({
-    piso1: [
-      { id: 1, numero: 'Mesa 01', capacidad: 4, estado: 'Libre', tiempo: '0 min' },
-      { id: 2, numero: 'Mesa 02', capacidad: 2, estado: 'Ocupada', total: 18500, tiempo: '25 min' },
-      { id: 3, numero: 'Mesa 03', capacidad: 6, estado: 'Libre', tiempo: '0 min' },
-      { id: 4, numero: 'Mesa 04', capacidad: 4, estado: 'Cuenta', total: 24000, tiempo: '42 min' },
-      { id: 5, numero: 'Mesa 05', capacidad: 8, estado: 'Reservada', tiempo: 'En espera' },
-      { id: 6, numero: 'Mesa 06', capacidad: 2, estado: 'Libre', tiempo: '0 min' }
-    ],
-    piso2: [
-      { id: 7, numero: 'Mesa T1', capacidad: 4, estado: 'Libre', tiempo: '0 min' },
-      { id: 8, numero: 'Mesa T2', capacidad: 4, estado: 'Ocupada', total: 32000, tiempo: '15 min' },
-      { id: 9, numero: 'Mesa T3', capacidad: 6, estado: 'Libre', tiempo: '0 min' },
-      { id: 10, numero: 'Mesa T4', capacidad: 2, estado: 'Libre', tiempo: '0 min' }
-    ]
-  });
+  // Mesas por Piso (plano compartido con la asignacion de reservas web)
+  const [tables, setTables] = useState(createWaiterTables);
+  const waiterSede = user?.sede || 'escazu';
+
+  // Reservas de hoy en tiempo real: una mesa libre con reserva se muestra como "Reservada".
+  const sharedReservations = useSharedCollection(RESERVATIONS_KEY);
+  const reservedTables = reservationsByTable(sharedReservations, waiterSede);
 
   // Catálogo Completo del POS
   const platillosMenu = [
@@ -206,7 +198,14 @@ export default function WaiterDashboard() {
   const baseSplitAmount = Math.floor(splitTotal / splitCount);
   const splitRemainder = splitTotal % splitCount;
 
-  const visibleTables = tables[selectedFloor].filter(table => {
+  const floorTables = tables[selectedFloor].map(table => {
+    const reservation = reservedTables[String(table.id)];
+    return reservation && table.estado === 'Libre'
+      ? { ...table, estado: 'Reservada', clienteNombre: reservation.cliente, tiempo: `Reserva ${reservation.hora}` }
+      : table;
+  });
+
+  const visibleTables = floorTables.filter(table => {
     const query = tableSearchTerm.trim().toLowerCase();
     return !query || table.numero.toLowerCase().includes(query) || (table.clienteNombre || '').toLowerCase().includes(query);
   });
@@ -231,6 +230,17 @@ export default function WaiterDashboard() {
           : t
       )
     }));
+
+    // La comanda aparece de inmediato en Cocina (KDS) y en los contadores de Caja.
+    addKitchenOrder({
+      mesa: selectedTable.numero,
+      piso: selectedFloor === 'piso1' ? 'Piso 1 (Salón)' : 'Piso 2 (Terraza)',
+      personas: selectedTable.capacidad,
+      mesero: user?.nombre || 'Mesero de turno',
+      sede: waiterSede,
+      tiempoEstimadoPersonalizado: Math.round(10 + selectedTable.capacidad * 2.5),
+      items: orderItems.map(item => ({ id: item.id, cantidad: item.cantidad, nombre: item.nombre, notas: orderNote.trim(), listo: false }))
+    });
 
     showToast(`Comanda enviada a Cocina para ${selectedTable.numero}`, 'success');
     setOrderItems([]);

@@ -4,8 +4,9 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import { triggerN8nAutomation } from '../services/n8nService';
-import { TEST_ACCESS_CREDENTIALS, sanitizePlainTextInput } from '../services/authSecurity';
-import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket, Store, KeyRound } from 'lucide-react';
+import { sanitizePlainTextInput } from '../services/authSecurity';
+import LoginQuickAccessModal from '../components/LoginQuickAccessModal';
+import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket, Store } from 'lucide-react';
 import { caciqueAsset as caciqueIcon } from '../assets/img';
 
 export default function Login() {
@@ -233,57 +234,8 @@ export default function Login() {
             {isRegister ? 'Registrarme y Obtener Cupón 5% OFF' : 'Iniciar Sesión'}
           </button>
         </form>
-        {!isRegister && <CredentialAccessPanel onAutofill={credential => { setIsRegister(false); setEmail(credential.email); setPassword(credential.password); }} />}
+        {!isRegister && <LoginQuickAccessModal onAutofill={credential => { setIsRegister(false); setEmail(credential.email); setPassword(credential.password); }} />}
       </motion.div>
     </div>
   );
 }
-
-function CredentialAccessPanel({ onAutofill }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeBranch, setActiveBranch] = useState('Escazú');
-  const branches = ['Escazú', 'Santa Ana', 'Cartago', 'Heredia'];
-  const branchCredentials = TEST_ACCESS_CREDENTIALS.filter(credential => credential.sede === activeBranch);
-  const administratorCredential = TEST_ACCESS_CREDENTIALS.find(credential => credential.rol === 'Administrador');
-  const clientCredential = TEST_ACCESS_CREDENTIALS.find(credential => credential.rol === 'Cliente Registrado');
-
-  return (
-    <div className="flex justify-center">
-      <button type="button" onClick={() => setIsOpen(true)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-[11px] font-bold text-zinc-400 transition-colors hover:border-amber-500/30 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-amber-400">
-        <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
-        Accesos Rápidos de Prueba
-      </button>
-      {isOpen && <div className="fixed inset-0 z-80 flex items-center justify-center bg-black/75 p-4" onMouseDown={event => { if (event.target === event.currentTarget) setIsOpen(false); }}>
-        <section role="dialog" aria-modal="true" aria-labelledby="test-credentials-title" className="w-full max-w-lg space-y-4 rounded-xl border border-amber-500/25 bg-[#07110D] p-4 text-left shadow-2xl sm:p-5">
-          <header className="flex items-start justify-between gap-3">
-            <div><h2 id="test-credentials-title" className="font-bold text-white">Accesos de prueba</h2><p className="mt-1 text-xs text-zinc-400">Seleccione sede y rol para autocompletar.</p></div>
-            <button type="button" aria-label="Cerrar accesos rápidos" onClick={() => setIsOpen(false)} className="rounded-md px-2 py-1 text-zinc-400 hover:bg-white/5 hover:text-white">×</button>
-          </header>
-          <div role="tablist" aria-label="Sedes" className="grid grid-cols-2 gap-1 rounded-lg bg-black/30 p-1 sm:grid-cols-4">
-            {branches.map(branch => <button key={branch} type="button" role="tab" aria-selected={activeBranch === branch} onClick={() => setActiveBranch(branch)} className={`min-h-9 rounded-md px-2 text-xs font-bold ${activeBranch === branch ? 'bg-[#D16014] text-white' : 'text-zinc-400 hover:text-white'}`}>{branch}</button>)}
-          </div>
-          <div role="tabpanel" className="space-y-2">
-            {/* El Cliente Registrado no se duplica: se muestra solo en su
-                tarjeta dedicada del portal de fidelización. */}
-            {branchCredentials.filter(credential => credential.rol !== 'Cliente Registrado').map(credential => <CredentialOption key={credential.email} credential={credential} onAutofill={onAutofill} onClose={() => setIsOpen(false)} />)}
-          </div>
-          {administratorCredential && <CredentialOption credential={administratorCredential} onAutofill={onAutofill} onClose={() => setIsOpen(false)} />}
-          {clientCredential && (
-            <div className="space-y-1 rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-2">
-              <p className="px-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">Portal de fidelización</p>
-              <CredentialOption credential={clientCredential} onAutofill={onAutofill} onClose={() => setIsOpen(false)} />
-            </div>
-          )}
-        </section>
-      </div>}
-    </div>
-  );
-}
-
-function CredentialOption({ credential, onAutofill, onClose }) {
-  return <article className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 p-3">
-    <div className="min-w-0"><p className="text-xs font-bold text-amber-300">{credential.rol}</p><p className="break-all font-mono text-[10px] text-zinc-300">{credential.email}</p></div>
-    <button type="button" onClick={() => { onAutofill(credential); onClose(); }} className="min-h-9 shrink-0 rounded-md border border-amber-500/30 px-3 text-xs font-bold text-amber-200 hover:bg-amber-500/10">Autocompletar</button>
-  </article>;
-}
-
