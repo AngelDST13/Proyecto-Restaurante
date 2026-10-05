@@ -147,6 +147,15 @@ export function useTalkBackEngine({ lang = DEFAULT_TALKBACK_LANG } = {}) {
       utterance.rate = options.rate ?? rate;
       utterance.pitch = options.pitch ?? 1;
 
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        setIsPaused(false);
+      };
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        setIsPaused(false);
+      };
+
       lastAnnouncementRef.current = clean;
       // Se publica en la region aria-live de forma sincrona para que los lectores
       // de pantalla reciban el texto en la misma interaccion que lo dispara.

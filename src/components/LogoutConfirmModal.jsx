@@ -37,7 +37,7 @@ export default function LogoutConfirmModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={(event) => {
         if (event.target === event.currentTarget) onCancel?.();
       }}
@@ -45,14 +45,14 @@ export default function LogoutConfirmModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Confirmar cierre de sesión"
+        aria-labelledby="logout-modal-title"
         className="w-full max-w-sm rounded-3xl border border-(--cacique-border)/40 bg-(--cacique-card) p-6 text-center text-(--cacique-text) shadow-2xl cacique-card"
       >
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/40 bg-red-500/10 text-red-600">
           <AlertCircle className="h-6 w-6" aria-hidden="true" />
         </div>
 
-        <h3 className="mt-4 text-lg font-black text-(--cacique-on-card)">{title}</h3>
+        <h3 id="logout-modal-title" className="mt-4 text-lg font-black text-(--cacique-on-card)">{title}</h3>
         <p className="mt-1 text-(--cacique-on-card-muted)">{description}</p>
 
         <div className="mt-5 flex gap-3">

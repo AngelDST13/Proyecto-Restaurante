@@ -76,7 +76,8 @@ describe('Modal de confirmacion de cierre de sesion', () => {
 
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAttribute('aria-modal', 'true');
-    expect(dialog).toHaveAccessibleName('Confirmar cierre de sesión');
+    expect(dialog).toHaveAttribute('aria-labelledby', 'logout-modal-title');
+    expect(dialog).toHaveAccessibleName('¿Está seguro que desea cerrar la sesión activa?');
     // El foco inicial cae en Cancelar para que Enter no cierre la sesion.
     expect(screen.getByRole('button', { name: 'Cancelar' })).toHaveFocus();
   });

@@ -99,8 +99,12 @@ html,
    garantiza definicion en Modo Claro (fondo beige) y en Modo Oscuro. */
 html.theme-light .cacique-logo,
 html.theme-dark .cacique-logo,
-.cacique-logo {
-  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85));
+.cacique-logo,
+img[src*="Cacique"],
+img[src*="cacique"],
+img[alt*="Cacique"],
+img[alt*="cacique"] {
+  filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.85)) !important;
 }
 
 /* ==========================================================
@@ -267,7 +271,7 @@ html.cb-alto-contraste .cacique-select option {
 
 @layer components {
   html.theme-light [class*='bg-[#0A090C]'] {
-    background-color: var(--cacique-surface);
+    background-color: var(--cacique-canvas);
   }
 
   html.theme-light [class*='bg-[#001812]'] {
@@ -279,11 +283,11 @@ html.cb-alto-contraste .cacique-select option {
   }
 
   html.theme-light [class*='text-[#659B5E]'] {
-    color: var(--cacique-accent);
+    color: var(--cacique-forest);
   }
 
   html.theme-light [class*='border-[#659B5E]'] {
-    border-color: var(--cacique-border);
+    border-color: rgba(74, 53, 37, 0.2);
   }
 
   html.theme-light [class*='bg-[#D16014]'] {

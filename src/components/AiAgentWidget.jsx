@@ -13,11 +13,9 @@ export default function AiAgentWidget() {
   const isInternalPanel = ['/admin', '/kitchen', '/waiter', '/cashier'].includes(location.pathname);
   const isStaffContext = isStaffRole || isInternalPanel;
   // La esquina inferior derecha queda reservada para el Dock de Accesibilidad.
-  // El asistente se apila SIEMPRE en la esquina inferior izquierda, encima del
-  // boton de WhatsApp (WhatsApp en `bottom-6 left-4`, launcher en `bottom-24 left-4`).
-  // No se variations por ruta: debe quedar simetrico en todas las pantallas,
-  // incluidos los paneles administrativos (/admin, /waiter, /kitchen, /cashier).
-  const positionClasses = 'bottom-24 left-4';
+  // El boton circular del asistente se ubica en la esquina inferior izquierda (`bottom-6 left-4`),
+  // y la ventana del chat se posiciona limpiamente por encima en `bottom-24 left-4`.
+  const positionClasses = 'bottom-6 left-4';
   const moduloIA = isStaffContext ? 'AGENTE_IA_INTERNO' : 'AGENTE_IA_CONSULTA';
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -137,7 +135,6 @@ export default function AiAgentWidget() {
         .cacique-sparkle { animation: caciqueSparkle 2.4s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .cacique-bot-float, .cacique-chat-enter, .cacique-sparkle, .cacique-bot-bounce { animation: none !important; } }
       `}</style>
-      // El launcher circular es un unico boton permanente: alterna el chat abierto/cerrado.
       <div className={`cacique-bot-float cacique-bot-bounce fixed ${positionClasses} z-40 flex items-center justify-center`}>
           <button
             type="button"
@@ -156,8 +153,8 @@ export default function AiAgentWidget() {
       </div>
 
       {isOpen && !isMinimized && (
-        <div ref={containerRef} className={`cacique-chat-enter fixed ${positionClasses} bottom-44 z-50 flex w-[calc(100vw-2rem)] sm:w-96 flex-col overflow-hidden rounded-3xl border border-amber-500/40 bg-zinc-950/98 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl`}>
-          <div id="cacique-chat-panel" className="pointer-events-auto flex h-120 max-h-[82vh] min-h-0 flex-col">
+        <div ref={containerRef} className="cacique-chat-enter fixed bottom-24 left-4 z-50 max-h-[80vh] w-[90vw] max-w-sm sm:max-w-md shadow-2xl rounded-2xl overflow-hidden border border-amber-500/40 bg-zinc-950/98 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl flex flex-col">
+          <div id="cacique-chat-panel" className="pointer-events-auto flex h-120 max-h-[80vh] min-h-0 flex-col">
           <div className="p-4 bg-amber-600 border-b border-amber-500/30 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-lg border border-white/20 bg-black/20 text-white">

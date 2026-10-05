@@ -14,7 +14,7 @@ export default function WhatsAppFloatButton() {
       href="https://wa.me/50622008888"
       target="_blank"
       rel="noreferrer"
-      className="group fixed bottom-6 left-4 z-65 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition-transform duration-200 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
+      className="group fixed bottom-6 left-24 z-65 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition-transform duration-200 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
     >
       <svg
         className="h-7 w-7 transition-transform duration-200 group-hover:scale-110"

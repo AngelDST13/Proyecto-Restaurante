@@ -33,7 +33,7 @@ describe('Widget del agente IA', () => {
     const { container } = renderWidget('/admin');
     const launcher = container.querySelector('.cacique-bot-float');
     expect(launcher).toHaveClass('left-4');
-    expect(launcher).toHaveClass('bottom-24');
+    expect(launcher).toHaveClass('bottom-6');
     expect(launcher).not.toHaveClass('right-4');
     expect(screen.getByText('IA Operativa Staff')).toBeInTheDocument();
   });
