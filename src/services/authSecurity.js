@@ -11,6 +11,27 @@ export function sanitizeInput(input = '') {
     .replace(/\.+$/, '');
 }
 
+/**
+ * Sanitizacion basica de texto de libre forma (nombres, telefonos, comentarios)
+ * para los formularios de Login y Reservas.
+ *
+ * Neutraliza angle brackets y entidades HTML, elimina caracteres de control y
+ * colapsa espacios. React ya escapa el contenido al renderizar, por lo que esta
+ * capa protege el valor antes de persistirlo, indexarlo o construir URLs.
+ */
+export function sanitizePlainTextInput(value = '') {
+  return String(value ?? '')
+    .replace(/[<>]/g, '')
+    .replace(/&(?![a-zA-Z]+;|#\d+;)/g, '&amp;')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001F\u007F]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120);
+}
+
 export const VALID_ACCOUNTS = {
   'admin@elcacique.com': {
     password: 'AdminCacique2026!',

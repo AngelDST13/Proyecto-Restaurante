@@ -4,7 +4,7 @@ import { caciqueAsset as caciqueIcon } from '../assets/img';
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-[#050507] border-t border-[#F8FFE5]/10 text-[#F8FFE5]/80 text-xs pt-12 pb-8 px-6 font-sans mt-auto">
+    <footer className="w-full bg-[#050507] border-t border-[#F8FFE5]/10 text-[#F8FFE5]/80 text-xs pt-12 pb-8 px-6 font-sans mt-auto cacique-footer">
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
         {/* COLUMNA 1: MARCA Y LOGO */}
         <div className="space-y-4">
@@ -68,7 +68,7 @@ export default function Footer() {
         {/* COLUMNA 4: SERVICIO DE RETIRO */}
         <div className="space-y-3">
           <h4 className="font-extrabold text-[#F8FFE5] uppercase tracking-wider text-xs border-b border-[#F8FFE5]/10 pb-2">Modalidad de Servicio</h4>
-          <div className="p-3.5 rounded-2xl bg-[#001812] border border-[#659B5E]/30 space-y-1">
+          <div className="p-3.5 rounded-2xl bg-[#001812] border border-[#659B5E]/30 space-y-1 cacique-footer-card">
             <p className="flex items-center gap-1.5 text-[#659B5E] font-bold text-[11px]">
               <Store className="w-4 h-4 text-[#D16014] shrink-0" /> Recoger en Restaurante
             </p>
@@ -78,7 +78,7 @@ export default function Footer() {
             href="https://wa.me/50622008888"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 p-2.5 rounded-xl bg-[#00241B] border border-[#F8FFE5]/10 text-white hover:text-[#D16014] font-bold text-[11px] transition-colors w-full justify-center"
+            className="inline-flex items-center gap-2 p-2.5 rounded-xl bg-[#00241B] border border-[#F8FFE5]/10 text-white hover:text-[#D16014] font-bold text-[11px] transition-colors w-full justify-center cacique-footer-cta"
           >
             <MessageSquare className="w-4 h-4 text-[#659B5E]" /> Consultas WhatsApp
           </a>

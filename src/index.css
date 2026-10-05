@@ -154,12 +154,15 @@ html.theme-light .cacique-surface {
     text-shadow: 0 0 1px currentColor;
   }
 
-  /* Contraste superior a 7:1 (WCAG AAA): fondo casi negro, texto casi blanco
-     y bordes amarillo fluorescente de alta visibilidad. */
-  html.cb-alto-contraste #cacique-app-root {
+  /* Contraste superior a 7:1 (WCAG AAA): fondo negro puro, texto blanco puro
+     y bordes amarillo fluorescente de alta visibilidad. Se garantiza que nunca
+     haya texto oscuro sobre fondo oscuro ni texto claro sobre fondo blanco. */
+  html.cb-alto-contraste #cacique-app-root,
+  html.cb-alto-contraste .cacique-login-canvas,
+  html.cb-alto-contraste .cacique-footer {
     filter: url(#cb-filter-alto-contraste) contrast(1.6);
-    background-color: #000000;
-    color: #ffffff;
+    background-color: #000000 !important;
+    color: #ffffff !important;
   }
 
   html.cb-alto-contraste .cb-hc-outline,
@@ -171,6 +174,7 @@ html.theme-light .cacique-surface {
     border: 2px solid #ffd400 !important;
     color: #ffffff !important;
     background-color: #000000 !important;
+    font-weight: 700;
   }
 
   html.cb-alto-contraste button:hover,
@@ -184,14 +188,43 @@ html.theme-light .cacique-surface {
   html.cb-alto-contraste td,
   html.cb-alto-contraste th,
   html.cb-alto-contraste label,
+  html.cb-alto-contraste legend,
+  html.cb-alto-contraste h1,
+  html.cb-alto-contraste h2,
+  html.cb-alto-contraste h3,
+  html.cb-alto-contraste h4,
+  html.cb-alto-contraste strong,
   html.cb-alto-contraste option {
     color: #ffffff !important;
+    font-weight: 700;
+    text-shadow: none;
+  }
+
+  /* Los elementos sobre fondo amarillo (hover / activo) invierten los colores
+     para no producir texto claro sobre fondo claro. */
+  html.cb-alto-contraste button:hover *,
+  html.cb-alto-contraste a:hover * {
+    color: #000000 !important;
   }
 
   html.cb-alto-contraste :focus-visible {
     outline: 3px solid #ffd400;
     outline-offset: 2px;
   }
+}
+
+/* Las etiquetas del selector de daltonismo deben ser 100% legibles en el
+   desplegable nativo: fondo blanco y texto casi negro con peso alto. */
+.cacique-select,
+.cacique-select option {
+  font-weight: 700;
+}
+
+html.cb-alto-contraste .cacique-select,
+html.cb-alto-contraste .cacique-select option {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  font-weight: 700;
 }
 
 /* ==========================================================================
@@ -277,6 +310,58 @@ html.theme-light .cacique-surface {
 
   html.theme-light [class*='bg-[#00241B]'] {
     background-color: var(--cacique-surface);
+  }
+
+  /* Login: fondo beige marfil y tarjeta blanca con borde Cafe Tostado. */
+  html.theme-light .cacique-login-canvas {
+    background-color: var(--cacique-canvas);
+  }
+
+  html.theme-light .cacique-login-card {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(74, 53, 37, 0.2);
+    box-shadow: 0 18px 40px -20px rgba(44, 26, 14, 0.35);
+  }
+
+  html.theme-light .cacique-login-banner {
+    background-color: var(--cacique-surface);
+    border-color: rgba(74, 53, 37, 0.2);
+    color: var(--cacique-forest);
+  }
+
+  html.theme-light .cacique-login-switch {
+    background-color: var(--cacique-surface);
+    border-color: rgba(74, 53, 37, 0.2);
+  }
+
+  /* Footer: superficie Verde Menta clara, sin negro fijo. */
+  html.theme-light .cacique-footer {
+    background-color: var(--cacique-surface);
+    border-top-color: rgba(74, 53, 37, 0.2);
+    color: var(--cacique-text);
+  }
+
+  html.theme-light .cacique-footer h4,
+  html.theme-light .cacique-footer span,
+  html.theme-light .cacique-footer a,
+  html.theme-light .cacique-footer strong {
+    color: var(--cacique-on-card);
+  }
+
+  html.theme-light .cacique-footer p,
+  html.theme-light .cacique-footer li {
+    color: var(--cacique-on-card-muted);
+  }
+
+  html.theme-light .cacique-footer-card {
+    background-color: var(--cacique-card);
+    border-color: rgba(74, 53, 37, 0.2);
+  }
+
+  html.theme-light .cacique-footer-cta {
+    background-color: var(--cacique-accent);
+    border-color: rgba(74, 53, 37, 0.2);
+    color: #ffffff;
   }
 }
 

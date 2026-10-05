@@ -1,15 +1,16 @@
 import { startTransition, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, Calendar, Clock, Users, MapPin, Send, 
-  Plus, Minus, User, Phone, MessageSquare, Sparkles 
+import {  sanitizePlainTextInput } from '../services/authSecurity';
+import {
+  X, Calendar, Clock, Users, MapPin, Send,
+  Plus, Minus, User, Phone, MessageSquare, Sparkles
 } from 'lucide-react';
 
-export default function ReservationModal({ 
-  isOpen = true, 
-  onClose, 
-  initialEventType = 'General', 
-  onSuccess 
+export default function ReservationModal({
+  isOpen = true,
+  onClose,
+  initialEventType = 'General',
+  onSuccess
 }) {
   const [todayStr, setTodayStr] = useState('');
 
@@ -64,7 +65,7 @@ export default function ReservationModal({
 
     if (name === 'nombre') {
       // Solo permite letras, acentos y espacios
-      const cleanVal = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+      const cleanVal = sanitizePlainTextInput(value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''));
       setFormData((prev) => ({ ...prev, nombre: cleanVal }));
       if (errors.nombre) setErrors((prev) => ({ ...prev, nombre: null }));
     } else if (name === 'telefono') {
@@ -73,7 +74,8 @@ export default function ReservationModal({
       setFormData((prev) => ({ ...prev, telefono: cleanVal }));
       if (errors.telefono) setErrors((prev) => ({ ...prev, telefono: null }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      // Campos libres (solicitudes, notas): se s\u00e1nitizan para evitar inyecci\u00f3n de c\u00f3digo.
+      setFormData((prev) => ({ ...prev, [name]: sanitizePlainTextInput(value) }));
       if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
     }
   };

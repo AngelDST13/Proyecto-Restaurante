@@ -1,5 +1,5 @@
 import { startTransition, useEffect, useRef, useState } from 'react';
-import { Bot, X, Send, Minus, Sparkles, ShieldCheck } from 'lucide-react';
+import { Bot, X, Send, Sparkles, ShieldCheck } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { triggerN8nAutomation } from '../services/n8nService';
@@ -13,7 +13,8 @@ export default function AiAgentWidget() {
   const isInternalPanel = ['/admin', '/kitchen', '/waiter'].includes(location.pathname);
   const isStaffContext = isStaffRole || isInternalPanel;
   // La esquina inferior derecha queda reservada para el Dock de Accesibilidad.
-  // El asistente se apila en la izquierda, encima del boton de WhatsApp.
+  // El asistente se apila en la izquierda, encima del boton de WhatsApp
+  // (WhatsApp en `bottom-6 left-4`, chat en `bottom-24 left-4`).
   const positionClasses = isInternalPanel
     ? 'bottom-24 right-4 sm:bottom-24 sm:right-6'
     : 'bottom-24 left-4 sm:bottom-24 sm:left-6';
@@ -173,9 +174,8 @@ export default function AiAgentWidget() {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button type="button" onClick={() => setIsMinimized(true)} title="Minimizar" aria-label="Minimizar asistente" className="rounded-lg p-1 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
-                <Minus className="w-4 h-4" />
-              </button>
+              {/* Unico control del encabezado: cerrar (X). El minimization se
+                  achieve con Escape o clic fuera del panel. */}
               <button type="button" onClick={() => { setIsOpen(false); setIsMinimized(false); }} title="Cerrar" aria-label="Cerrar asistente" className="rounded-lg p-1 text-amber-100 transition-colors hover:bg-black/20 hover:text-white">
                 <X className="w-5 h-5" />
               </button>

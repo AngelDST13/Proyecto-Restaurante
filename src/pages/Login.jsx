@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import { triggerN8nAutomation } from '../services/n8nService';
-import { TEST_ACCESS_CREDENTIALS } from '../services/authSecurity';
+import { TEST_ACCESS_CREDENTIALS, sanitizePlainTextInput } from '../services/authSecurity';
 import { Lock, Mail, Eye, EyeOff, Flame, UserPlus, Ticket, Store, KeyRound } from 'lucide-react';
 import { caciqueAsset as caciqueIcon } from '../assets/img';
 
@@ -13,12 +13,12 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isRegister, setIsRegister] = useState(false);
-  
+
   const [email, setEmail] = useState(location.state?.email || '');
   const [password, setPassword] = useState(location.state?.password || '');
   const [nombre, setNombre] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [newCoupon, setNewCoupon] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
 
@@ -102,25 +102,25 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4 flex items-center justify-center bg-[#0A090C] relative overflow-hidden font-sans">
-      
+    <div className="min-h-screen pt-24 pb-16 px-4 flex items-center justify-center bg-[#0A090C] cacique-login-canvas relative overflow-hidden font-sans">
+
       {toast.show && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
       )}
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-[#001812]/95 backdrop-blur-2xl border border-[#659B5E]/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative z-10"
+        className="w-full max-w-md bg-[#001812]/95 backdrop-blur-2xl border border-[#659B5E]/30 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative z-10 cacique-login-card"
       >
         <div className="text-center space-y-3">
-          
+
           <div className="relative w-32 h-32 mx-auto flex items-center justify-center">
             <div className="absolute inset-0 bg-[#D16014]/40 rounded-full blur-2xl animate-pulse"></div>
-            <img 
-              src={caciqueIcon} 
-              alt="Isotipo El Cacique" 
-              className="w-full h-full object-contain relative z-10 filter drop-shadow-[0_0_25px_rgba(209,96,20,0.9)] hover:scale-105 transition-transform duration-300" 
+            <img
+              src={caciqueIcon}
+              alt="Isotipo El Cacique"
+              className="w-full h-full object-contain relative z-10 filter drop-shadow-[0_0_25px_rgba(209,96,20,0.9)] hover:scale-105 transition-transform duration-300"
             />
           </div>
 
@@ -132,13 +132,13 @@ export default function Login() {
               <Flame className="w-3.5 h-3.5 text-[#D16014]" />
               <span>Chicharronera El Cacique • Tradición &amp; Sabor</span>
             </p>
-            <div className="mt-4 p-3 rounded-2xl bg-[#0A090C] border border-[#659B5E]/30 flex items-center justify-center gap-2 text-xs font-bold text-[#659B5E]">
+            <div className="mt-4 p-3 rounded-2xl bg-[#0A090C] border border-[#659B5E]/30 flex items-center justify-center gap-2 text-xs font-bold text-[#659B5E] cacique-login-banner">
               <Store className="w-4 h-4 text-[#D16014]" />
               <span>Pedidos para Mesa, Express o Recoger en Local</span>
             </div>
           </div>
 
-          <div className="flex bg-[#0A090C] p-1 rounded-xl border border-[#F8FFE5]/10 text-xs font-bold">
+          <div className="flex bg-[#0A090C] p-1 rounded-xl border border-[#F8FFE5]/10 text-xs font-bold cacique-login-switch">
             <button
               type="button"
               onClick={() => { setIsRegister(false); setEmail(''); setPassword(''); }}
@@ -172,11 +172,11 @@ export default function Login() {
               <label className="block font-bold text-[#F8FFE5]/80">Nombre Completo (Mín. 3 letras)</label>
               <div className="relative">
                 <UserPlus className="w-4 h-4 absolute left-3.5 top-3 text-[#F8FFE5]/40" />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="ej: Angel Salazar"
                   value={nombre}
-                  onChange={e => setNombre(e.target.value)}
+                  onChange={e => setNombre(sanitizePlainTextInput(e.target.value))}
                   autoComplete="off"
                   required 
                   className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl pl-10 pr-4 py-3 text-[#F8FFE5] focus:outline-none focus:border-[#D16014]" 

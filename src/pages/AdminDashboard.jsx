@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useState } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
@@ -9,6 +9,7 @@ import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { caciqueAsset as caciqueIcon, logoDarkVariant as officialLogo } from '../assets/img';
 import { decryptData, encryptData, formatSedeName, TEST_ACCESS_CREDENTIALS } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
+import { CLIENTS_STORAGE_KEY, CLIENT_BRANCH_LABELS, CLIENT_BRANCHES, DEFAULT_CLIENTS, filterClients } from '../services/clientsService';
 import { createXlsxBlob, downloadBlob, menuCsvHeaders, menuRowsForExport, normalizeMenuRows, parseCsv, parseXlsx, readFileBuffer, readFileText, rowsToCsv, sanitizePlainText } from '../services/spreadsheetService';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import {
@@ -134,6 +135,27 @@ export default function AdminDashboard() {
     ];
   });
   const [editingEmployeeId, setEditingEmployeeId] = useState(null);
+
+  // GESTIÓN DE CLIENTES REGISTRADOS
+  const [clients, setClients] = useState(() => {
+    const savedClients = decryptData(localStorage.getItem(CLIENTS_STORAGE_KEY));
+    if (Array.isArray(savedClients) && savedClients.length) return savedClients;
+    return DEFAULT_CLIENTS;
+  });
+  const [clientsSearch, setClientsSearch] = useState('');
+  const [clientsSedeFilter, setClientsSedeFilter] = useState('todas');
+
+  const visibleClients = useMemo(
+    () => filterClients(clients, { search: clientsSearch, sede: clientsSedeFilter }),
+    [clients, clientsSearch, clientsSedeFilter],
+  );
+
+  const persistClients = useCallback((next) => {
+    setClients(next);
+    try {
+      localStorage.setItem(CLIENTS_STORAGE_KEY, encryptData(next));
+    } catch { /* Modo privado: el catalogo dura la sesion. */ }
+  }, []);
 
   // BASE DE DATOS LOCAL DE INVENTARIOS CON LÍMITES
   const [inventory, setInventory] = useState(() => {
@@ -697,6 +719,7 @@ export default function AdminDashboard() {
                 { id: 'correos', label: 'Centro de Correos', icon: Mail },
                 { id: 'cupones', label: 'Cupones & Promos', icon: Ticket },
                 { id: 'resenas', label: 'Reseñas & Clientes', icon: Star },
+                { id: 'clientes', label: 'Gestión de Clientes', icon: Users },
                 { id: 'arqueo', label: 'Arqueo de Caja & POS', icon: CreditCard },
                 { id: 'personal', label: 'Personal & Planilla', icon: Users },
                 { id: 'mesas', label: 'Mesas & Reservaciones', icon: Calendar }
@@ -1251,6 +1274,114 @@ export default function AdminDashboard() {
             </form>
             <div className="overflow-x-auto rounded-xl border border-[#F8FFE5]/10"><table className="w-full text-left"><thead className="bg-[#0A090C] text-gray-300"><tr><th className="p-3">Colaborador</th><th className="p-3">Puesto / Sede</th><th className="p-3">Salario mensual</th><th className="p-3">Pago</th><th className="p-3">Banco / IBAN</th><th className="p-3">Acciones</th></tr></thead><tbody className="divide-y divide-[#F8FFE5]/10">{employees.filter(employee => selectedSede === 'todas' || !employee.sede || employee.sede === selectedSede).map(employee => <tr key={employee.id}><td className="p-3 font-bold">{employee.nombre}</td><td className="p-3">{employee.puesto}<br/><span className="text-gray-400">{branchLabels[employee.sede] || 'Escazú'}</span></td><td className="p-3">₡{employee.salario.toLocaleString('es-CR')}</td><td className="p-3">{employee.frecuenciaPago}: {employee.diaPago}</td><td className="p-3">{employee.banco}<br /><span className="text-gray-400">{employee.iban || 'Pendiente de registrar'}</span></td><td className="p-3 flex gap-3"><button type="button" aria-label={`Editar ${employee.nombre}`} onClick={() => { setEditingEmployeeId(employee.id); setEmployeeForm({ ...employee, salario: String(employee.salario) }); }} className="text-amber-300 hover:underline">Editar</button><button type="button" aria-label={`Eliminar ${employee.nombre}`} onClick={() => { const next = employees.filter(item => item.id !== employee.id); setEmployees(next); localStorage.setItem('cacique_admin_payroll', encryptData(next)); }} className="text-red-300 hover:underline">Eliminar</button></td></tr>)}</tbody></table></div>
           </div>
+        )}
+
+        {/* GESTIÓN DE CLIENTES REGISTRADOS */}
+        {activeSection === 'clientes' && (
+          <section className="min-w-0 w-full max-w-full space-y-6 overflow-hidden rounded-3xl border border-[#659B5E]/30 bg-linear-to-br from-[#001812] via-zinc-900 to-[#0A090C] p-4 text-xs shadow-2xl sm:p-6" aria-labelledby="clients-title">
+            <header className="min-w-0">
+              <h3 id="clients-title" className="font-extrabold text-lg text-[#F8FFE5]">Gestión de Clientes Registrados</h3>
+              <p className="mt-1 text-gray-400">Consulta el padrón de comensales, su sede preferida y su historial de reservas.</p>
+            </header>
+
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <article className="min-w-0 rounded-2xl border border-[#659B5E]/20 bg-[#0A090C] p-4">
+                <span className="text-gray-400">Clientes registrados</span>
+                <strong className="mt-1 block text-xl text-amber-300">{clients.length}</strong>
+              </article>
+              <article className="min-w-0 rounded-2xl border border-[#659B5E]/20 bg-[#0A090C] p-4">
+                <span className="text-gray-400">Clientes frecuentes</span>
+                <strong className="mt-1 block text-xl text-emerald-300">{clients.filter(client => client.totalReservas >= 3).length}</strong>
+              </article>
+              <article className="min-w-0 rounded-2xl border border-[#659B5E]/20 bg-[#0A090C] p-4">
+                <span className="text-gray-400">Mostrando</span>
+                <strong className="mt-1 block text-xl text-amber-300">{visibleClients.length}</strong>
+              </article>
+              <article className="min-w-0 rounded-2xl border border-[#659B5E]/20 bg-[#0A090C] p-4">
+                <span className="text-gray-400">Reservas acumuladas</span>
+                <strong className="mt-1 block text-xl text-emerald-300">{visibleClients.reduce((total, client) => total + Number(client.totalReservas || 0), 0)}</strong>
+              </article>
+            </div>
+
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
+              <label className="min-w-0 space-y-1">
+                <span>Buscar cliente por nombre o correo</span>
+                <input
+                  aria-label="Buscar cliente"
+                  value={clientsSearch}
+                  onChange={event => setClientsSearch(event.target.value)}
+                  placeholder="Ej: Angel o angel.salazar@correo.cr"
+                  className="min-w-0 w-full rounded-xl border border-[#F8FFE5]/15 bg-[#0A090C] px-4 py-2.5"
+                />
+              </label>
+              <label className="min-w-0 space-y-1">
+                <span>Filtrar por sede</span>
+                <select
+                  aria-label="Filtrar clientes por sede"
+                  value={clientsSedeFilter}
+                  onChange={event => setClientsSedeFilter(event.target.value)}
+                  className="min-w-0 cacique-select rounded-xl border border-[#F8FFE5]/15 bg-[#0A090C] px-3 py-2.5"
+                >
+                  <option value="todas">Todas las sedes</option>
+                  {CLIENT_BRANCHES.map(key => <option key={key} value={key}>{CLIENT_BRANCH_LABELS[key]}</option>)}
+                </select>
+              </label>
+            </div>
+
+            <div className="max-w-full overflow-x-auto rounded-xl border border-[#F8FFE5]/10">
+              <table className="w-full min-w-208 text-left">
+                <caption className="sr-only">Listado de clientes registrados</caption>
+                <thead className="bg-[#0A090C] text-gray-300">
+                  <tr>
+                    <th scope="col" className="p-3">Nombre Completo</th>
+                    <th scope="col" className="p-3">Correo Electrónico</th>
+                    <th scope="col" className="p-3">Teléfono / WhatsApp</th>
+                    <th scope="col" className="p-3">Sede Preferida</th>
+                    <th scope="col" className="p-3">Total de Reservas</th>
+                    <th scope="col" className="p-3">Estado del Cliente</th>
+                    <th scope="col" className="p-3">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F8FFE5]/10">
+                  {visibleClients.map(client => (
+                    <tr key={client.id} data-testid="client-row" data-client-email={client.correo}>
+                      <td className="p-3 font-bold text-[#F8FFE5]">{client.nombre}</td>
+                      <td className="p-3 break-all text-amber-300">{client.correo}</td>
+                      <td className="p-3 text-gray-300">{client.telefono}</td>
+                      <td className="p-3">{CLIENT_BRANCH_LABELS[client.sede]}</td>
+                      <td className="p-3 font-extrabold text-amber-300">{client.totalReservas}</td>
+                      <td className="p-3">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${client.estado === 'Frecuente' ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-200' : 'border-[#659B5E]/50 bg-[#659B5E]/15 text-emerald-100'}`}>{client.estado}</span>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            type="button"
+                            aria-label={`Registrar reserva de ${client.nombre}`}
+                            onClick={() => persistClients(clients.map(item => (item.id === client.id ? { ...item, totalReservas: Number(item.totalReservas || 0) + 1 } : item)))}
+                            className="text-amber-300 hover:underline"
+                          >
+                            + Reserva
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`Eliminar cliente ${client.nombre}`}
+                            onClick={() => persistClients(clients.filter(item => item.id !== client.id))}
+                            className="text-red-300 hover:underline"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {visibleClients.length === 0 && (
+                <p className="p-6 text-center text-gray-400">No hay clientes que coincidan con los filtros aplicados.</p>
+              )}
+            </div>
+          </section>
         )}
 
         {/* MESAS */}
