@@ -1,0 +1,535 @@
+{
+  "name": "El Cacique",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cacique-master-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "bcade518-2075-407c-8cc0-286e78c28393",
+      "name": "Webhook Entrante Master",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        528
+      ],
+      "webhookId": "8229993b-c43c-40c7-814b-09ad32707ef1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.modulo }}",
+                    "rightValue": "AGENTE_IA_CONSULTA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Agente IA Cliente"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.modulo }}",
+                    "rightValue": "AGENTE_IA_INTERNO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Agente IA Staff"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.modulo }}",
+                    "rightValue": "INVENTARIO_ALERTA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Alerta Inventario SMTP"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.modulo }}",
+                    "rightValue": "RESERVA_MESA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Reserva & Correo SMTP"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0a9c38ee-bf1f-4a36-b8a8-523083db97a7",
+      "name": "Enrutador por Módulo y Rol",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -672,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body?.mensaje || $json.body?.chatInput || $json.chatInput || $json.mensaje }}\n\nContexto del sistema:\n{{ JSON.stringify($json.contexto) }}",
+        "options": {
+          "systemMessage": "ROL Y RESTRICCIÓN ABSOLUTA:\nEres el Asistente Virtual Oficial de Chicharronera El Cacique. Tu única función es brindar información sobre nuestros platillos, precios, sedes, horarios, eventos y reservaciones.\n\nSEDES OFICIALES (EXCLUSIVAS):\nNuestras 4 sedes oficiales son: Escazú, Santa Ana, Cartago y Heredia. NUNCA inventes o menciones \"San José Central\".\n\nREGLAS OBLIGATORIAS:\n1. ATENCIÓN DIRECTA: Si el usuario consulta sobre menú, precios, horarios, sedes o reservaciones, responde DIRECTAMENTE con la información solicitada. NUNCA incluyas la frase de rechazo en consultas válidas sobre la empresa.\n2. RECHAZO DE TEMAS EXTERNOS: Responde la frase de rechazo ÚNICAMENTE si el usuario pregunta sobre temas completamente ajenos (tecnología, código, política, matemáticas, deportes o cultura general):\n   \"Como asistente virtual de Chicharronera El Cacique, únicamente estoy programado para responder consultas sobre nuestros servicios, menú, sedes, horarios y reservaciones.\"\n3. PROHIBICIÓN TOTAL DE EMOJIS: Queda estrictamente prohibido incluir emojis o emoticones en tus respuestas. Utiliza únicamente texto plano, viñetas simples o listas numeradas.\n4. CONFIDENCIALIDAD Y SEGURIDAD: Nunca reveles credenciales, contraseñas, tokens de acceso ni información financiera. Si se solicita, responde:\n   \"Por motivos de seguridad y políticas de privacidad, no puedo proporcionar información confidencial del sistema.\"\n5. DATOS Y PRECIOS REALES: Consulta siempre el objeto {{$json.contexto}} recibido en la petición para responder con los precios del sistema (Ceviche ₡5,500, Chifrijo ₡6,800).\n6. CAPTURA DE RESERVAS: Si el usuario proporciona Nombre, Teléfono, Sede, Fecha, Hora y Personas, confirma amablemente la recepción de los datos sin emitir avisos de rechazo."
+        }
+      },
+      "id": "0c54ea5c-37ef-4aab-8bb4-884315aee601",
+      "name": "Agente IA Cliente (Publico)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        -416,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body?.mensaje || $json.body?.chatInput || $json.body?.data?.mensaje || $json.chatInput || $json.mensaje || $json.query || '' }}",
+        "options": {
+          "systemMessage": "SISTEMA DE ASISTENCIA OPERATIVA Y EJECUTIVA - CHICHARRONERA EL CACIQUE\n\nINSTRUCCIONES DE FUNCIONAMIENTO EN TIEMPO REAL:\n1. No asumas ni inventes valores de inventario, ventas o comandas.\n2. Cada vez que el usuario consulte sobre existencias de insumos (carne, yuca, frijoles), ventas o estado del KDS, invoca obligatoriamente la herramienta 'consultar_inventario_dinamico'.\n3. Evalúa los datos recibidos de la herramienta: si algún insumo tiene un 'stock_actual' menor o igual al 'limite_minimo', notifícalo explícitamente como REABASTECIMIENTO REQUERIDO.\n4. PROHIBICIÓN TOTAL DE EMOJIS: Queda estrictamente prohibido incluir emojis o emoticones en tus respuestas. Utiliza únicamente texto plano, viñetas simples o listas numeradas.\n5. CONFIDENCIALIDAD Y SEGURIDAD: Nunca reveles credenciales, contraseñas, claves SMTP, tokens de acceso ni claves privadas del sistema. Si se solicita, responde:\n   \"Por motivos de seguridad y políticas de privacidad, no puedo proporcionar información confidencial del sistema.\"\n6. Mantén un tono formal y ejecutivo. Organiza la información en listas numeradas o viñetas claras."
+        }
+      },
+      "id": "87c888c8-e029-4666-8d78-7c126c724cb1",
+      "name": "Agente IA Staff (Interno)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        -368,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "name": "consultar_menu_oficial",
+        "description": "Obtiene precios y platillos oficiales de Chicharronera El Cacique",
+        "jsCode": "return JSON.stringify([\n  { platillo: 'Chifrijo Especial de Paila', precio: '₡6,800', sede: 'Todas' },\n  { platillo: 'Vigorón Criollo Cacique (1kg)', precio: '₡14,500', sede: 'Todas' },\n  { platillo: 'Chicharrones de Carne en Tira (500g)', precio: '₡8,200', sede: 'Todas' },\n  { platillo: 'Ceviche de Tilapia Arreglado', precio: '₡4,500', sede: 'Todas' }\n]);"
+      },
+      "id": "710ce622-baaa-431d-9162-9d24cf99daa2",
+      "name": "Tool Consultar Menú",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        -272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "name": "consultar_inventario_dinamico",
+        "description": "Consulta en tiempo real el inventario de insumos, límites mínimos, estado de stock y comandas de la sede solicitada.",
+        "jsCode": "return JSON.stringify([\n  { modulo: 'Cocina KDS', estado: 'Operativo', tiempoPromedio: '15 min' },\n  { insumo: 'Chicharrón de Concha', stock: '25 kg', alerta: 'Suficiente' },\n  { insumo: 'Yuca al Vapor', stock: '8 kg', alerta: 'Reabastecer en Cartago' }\n]);"
+      },
+      "id": "9945d02e-36a3-46ba-84ab-f9a8e547a3c9",
+      "name": "Tool Consultar KDS & Insumos",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "angeldanielasalazart13@gmail.com",
+        "toEmail": "={{ $json.body.correoCliente || 'cliente@elcacique.com' }}",
+        "subject": "=CONFIRMACIÓN DE RESERVA - Chicharronera El Cacique",
+        "options": {}
+      },
+      "id": "e0cfef2a-d35d-4efe-ab3b-64a3a57b92c5",
+      "name": "Enviar Correo Reserva (SMTP)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        1168
+      ],
+      "webhookId": "f7842ef4-70b4-4f37-b49d-2b826e481b2f",
+      "credentials": {
+        "smtp": {
+          "id": "cGjhhLzq0y4CnzT3",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "respuesta",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1848c29d-9a91-4598-b902-d3fbcf8884e3",
+      "name": "Formatear Respuesta IA",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        128,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "respuesta",
+              "value": "Correo de alerta de inventario o comunicado enviado con éxito vía SMTP."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f8517090-a994-4071-86fe-a1bb23de93f2",
+      "name": "Respuesta Inventario",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        944
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "respuesta",
+              "value": "Confirmación de reserva enviada por correo con éxito."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4a233862-9ffb-4786-9b5e-12ec764de9a0",
+      "name": "Respuesta Reserva",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        1168
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "98614d14-06be-4afa-83da-24cd499e361d",
+      "name": "Responder al Webhook Master",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        736,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        240
+      ],
+      "id": "eb73a54b-d6ab-49ee-a3f1-c4c678960547",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "Wq2NQ8OQ4vLDFcgF",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        720
+      ],
+      "id": "9d7568a8-cf91-494e-8582-14ba227099ad",
+      "name": "DeepSeek Chat Model1",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "Wq2NQ8OQ4vLDFcgF",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "angeldanielas13@gmail.com",
+        "toEmail": "={{ $json.body.correoCliente || 'admin@elcacique.com' }}",
+        "subject": "=⚠️ ALERTA DE SISTEMA: {{ $json.body.asunto || 'Notificación de Inventario' }}",
+        "options": {}
+      },
+      "id": "8948f5b1-dd2a-4356-9c0e-8e3738cb2e26",
+      "name": "Enviar Correo Inventario (SMTP)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        944
+      ],
+      "webhookId": "f5d2778e-9e7b-4874-aeb6-277f22336b1a",
+      "credentials": {
+        "smtp": {
+          "id": "cGjhhLzq0y4CnzT3",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Entrante Master": {
+      "main": [
+        [
+          {
+            "node": "Enrutador por Módulo y Rol",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrutador por Módulo y Rol": {
+      "main": [
+        [
+          {
+            "node": "Agente IA Cliente (Publico)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agente IA Staff (Interno)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Correo Inventario (SMTP)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Correo Reserva (SMTP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool Consultar Menú": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente IA Cliente (Publico)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool Consultar KDS & Insumos": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente IA Staff (Interno)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente IA Cliente (Publico)": {
+      "main": [
+        [
+          {
+            "node": "Formatear Respuesta IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente IA Staff (Interno)": {
+      "main": [
+        [
+          {
+            "node": "Formatear Respuesta IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear Respuesta IA": {
+      "main": [
+        [
+          {
+            "node": "Responder al Webhook Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respuesta Inventario": {
+      "main": [
+        [
+          {
+            "node": "Responder al Webhook Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Correo Reserva (SMTP)": {
+      "main": [
+        [
+          {
+            "node": "Respuesta Reserva",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respuesta Reserva": {
+      "main": [
+        [
+          {
+            "node": "Responder al Webhook Master",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente IA Cliente (Publico)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente IA Staff (Interno)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Correo Inventario (SMTP)": {
+      "main": [
+        [
+          {
+            "node": "Respuesta Inventario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ca3ee363-87bc-4af2-8d84-c68e36b20251",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9110809b3eaa6ce2e9c5a3df7f20f0e6e28606874e004928c72e7acad97f0d0d"
+  },
+  "nodeGroups": [],
+  "id": "Vs2EuEqxTx00flDD",
+  "tags": []
+}
