@@ -71,6 +71,20 @@ export default function Landing() {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % heroImages.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length);
 
+  // La reserva se confirma al instante; si luego falla el correo de n8n solo
+  // se informa, sin deshacer ni bloquear la confirmacion.
+  const handleReservationSuccess = (message, meta) => {
+    setToast({ show: true, message, type: meta.offline ? 'info' : 'success' });
+    // Sin servidor la reserva ya queda en cola (y su correo con ella).
+    if (meta.offline) return;
+    meta.notification.then((delivered) => {
+      if (delivered === null) {
+        // Se conserva el detalle de la confirmacion y se agrega el aviso.
+        setToast({ show: true, message: `${message} El correo de confirmación se enviará en cuanto el servicio esté disponible.`, type: 'info' });
+      }
+    });
+  };
+
   const reserve = (type = 'General') => {
     setReservationType(type);
     setIsReservationOpen(true);
@@ -314,7 +328,7 @@ export default function Landing() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {platillosPrincipales.map((item, idx) => (
-            <div key={idx} className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-5 space-y-4 shadow-2xl hover:border-[#D16014] transition-all group flex flex-col justify-between overflow-hidden">
+            <div key={idx} className="cacique-hover-lift bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-5 space-y-4 shadow-2xl hover:border-[#D16014] transition-all group flex flex-col justify-between overflow-hidden">
               <div className="h-48 sm:h-52 w-full overflow-hidden rounded-2xl relative">
                 <img 
                   src={item.imagen} 
@@ -422,7 +436,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
             {/* HALLOWEEN */}
-            <div className="bg-[#0A090C] border border-purple-500/40 rounded-3xl p-6 space-y-4 hover:border-purple-400 transition-all flex flex-col justify-between shadow-2xl group">
+            <div className="cacique-hover-lift bg-[#0A090C] border border-purple-500/40 rounded-3xl p-6 space-y-4 hover:border-purple-400 transition-all flex flex-col justify-between shadow-2xl group">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="px-3 py-1 rounded-full bg-purple-900/60 text-purple-300 text-[10px] font-black uppercase tracking-wider border border-purple-500/30">
@@ -451,7 +465,7 @@ export default function Landing() {
             </div>
 
             {/* DICIEMBRE */}
-            <div className="bg-[#0A090C] border border-amber-500/40 rounded-3xl p-6 space-y-4 hover:border-amber-400 transition-all flex flex-col justify-between shadow-2xl group">
+            <div className="cacique-hover-lift bg-[#0A090C] border border-amber-500/40 rounded-3xl p-6 space-y-4 hover:border-amber-400 transition-all flex flex-col justify-between shadow-2xl group">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="px-3 py-1 rounded-full bg-amber-900/60 text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-500/30">
@@ -480,7 +494,7 @@ export default function Landing() {
             </div>
 
             {/* SEMANA SANTA */}
-            <div className="bg-[#0A090C] border border-[#659B5E]/40 rounded-3xl p-6 space-y-4 hover:border-[#659B5E] transition-all flex flex-col justify-between shadow-2xl group">
+            <div className="cacique-hover-lift bg-[#0A090C] border border-[#659B5E]/40 rounded-3xl p-6 space-y-4 hover:border-[#659B5E] transition-all flex flex-col justify-between shadow-2xl group">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="px-3 py-1 rounded-full bg-[#001812] text-[#659B5E] text-[10px] font-black uppercase tracking-wider border border-[#659B5E]/30">
@@ -552,7 +566,7 @@ export default function Landing() {
                     img: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=600&q=80'
                   }
                 ].map((item, i) => (
-                  <div key={i} className="bg-[#001812] border border-amber-400/30 rounded-3xl overflow-hidden shadow-2xl group hover:border-amber-400 transition-all flex flex-col">
+                  <div key={i} className="cacique-hover-lift bg-[#001812] border border-amber-400/30 rounded-3xl overflow-hidden shadow-2xl group hover:border-amber-400 transition-all flex flex-col">
                     <div className="h-44 overflow-hidden relative">
                       <img src={item.img} alt={item.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-linear-to-t from-[#001812] via-transparent to-transparent"></div>
@@ -607,7 +621,7 @@ export default function Landing() {
                     img: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80'
                   }
                 ].map((item, i) => (
-                  <div key={i} className="bg-[#001812] border border-[#659B5E]/40 rounded-3xl overflow-hidden shadow-2xl group hover:border-[#659B5E] transition-all flex flex-col">
+                  <div key={i} className="cacique-hover-lift bg-[#001812] border border-[#659B5E]/40 rounded-3xl overflow-hidden shadow-2xl group hover:border-[#659B5E] transition-all flex flex-col">
                     <div className="h-44 overflow-hidden relative">
                       <img src={item.img} alt={item.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-linear-to-t from-[#001812] via-transparent to-transparent"></div>
@@ -645,7 +659,7 @@ export default function Landing() {
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                <article className="p-6 rounded-2xl bg-[#001812] border border-amber-400/30 space-y-3 hover:border-amber-400 hover:-translate-y-1 transition-all group">
+                <article className="cacique-hover-lift p-6 rounded-2xl bg-[#001812] border border-amber-400/30 space-y-3 hover:border-amber-400 hover:-translate-y-1 transition-all group">
                   <div className="flex justify-between items-center gap-3">
                     <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">PRÓXIMA TEMPORADA</span>
                     <span className="px-3 py-1 rounded-full bg-amber-400/10 text-amber-400 text-[10px] font-bold">DICIEMBRE</span>
@@ -656,7 +670,7 @@ export default function Landing() {
                     <Calendar className="w-4 h-4" /> PRE-ORDENAR CON ANTICIPACIÓN <ChevronRight className="w-4 h-4" />
                   </button>
                 </article>
-                <article className="p-6 rounded-2xl bg-[#001812] border border-[#659B5E]/30 space-y-3 hover:border-[#659B5E] hover:-translate-y-1 transition-all group">
+                <article className="cacique-hover-lift p-6 rounded-2xl bg-[#001812] border border-[#659B5E]/30 space-y-3 hover:border-[#659B5E] hover:-translate-y-1 transition-all group">
                   <div className="flex justify-between items-center gap-3">
                     <span className="text-[10px] font-black text-[#659B5E] uppercase tracking-widest">TEMPORADA SANTA</span>
                     <span className="px-3 py-1 rounded-full bg-[#659B5E]/10 text-[#659B5E] text-[10px] font-bold">MARZO / ABRIL</span>
@@ -679,7 +693,7 @@ export default function Landing() {
           isOpen={isReservationOpen}
           onClose={() => setIsReservationOpen(false)}
           initialEventType={reservationType}
-          onSuccess={(message, meta) => setToast({ show: true, message, type: meta?.offline ? 'info' : 'success' })}
+          onSuccess={handleReservationSuccess}
         />
       )}
 

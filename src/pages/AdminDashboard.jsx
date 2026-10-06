@@ -8,13 +8,13 @@ import FacturacionPanel from '../components/FacturacionPanel';
 import LogoutConfirmModal from '../components/LogoutConfirmModal';
 import { useSharedCollection } from '../hooks/useSharedCollection';
 import { RESERVATIONS_KEY, writeCollection } from '../services/liveSync';
-import { aggregateBranchMetrics, averageRating, filterReviewsBySede, loadReviews, saveReviews } from '../services/adminInsights';
+import { BRANCH_DETAILS as branchDetails, BRANCH_METRICS_BY_PERIOD as metricsByPeriod, aggregateBranchMetrics, averageRating, computeOccupancy, filterReviewsBySede, loadReviews, saveReviews } from '../services/adminInsights';
 import ThemeToggleButton from '../components/ThemeToggleButton';
 import { ADMIN_SEDES, createAdminRegister, getAdminRegistersBySede, removeAdminRegister } from '../services/adminRegistersService';
 import CaciqueLogo from '../components/CaciqueLogo';
 import { decryptData, encryptData, formatSedeName, TEST_ACCESS_CREDENTIALS } from '../services/authSecurity';
 import { triggerN8nAutomation } from '../services/n8nService';
-import { CLIENTS_STORAGE_KEY, CLIENT_BRANCH_LABELS, CLIENT_BRANCHES, DEFAULT_CLIENTS, filterClients } from '../services/clientsService';
+import { CLIENTS_STORAGE_KEY, CLIENT_BRANCH_LABELS, CLIENT_BRANCHES, filterClients, loadClients } from '../services/clientsService';
 import { createXlsxBlob, downloadBlob, menuCsvHeaders, menuRowsForExport, normalizeMenuRows, parseCsv, parseXlsx, readFileBuffer, readFileText, rowsToCsv, sanitizePlainText } from '../services/spreadsheetService';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import {
@@ -165,11 +165,7 @@ export default function AdminDashboard() {
   };
 
   // GESTIÓN DE CLIENTES REGISTRADOS
-  const [clients, setClients] = useState(() => {
-    const savedClients = decryptData(localStorage.getItem(CLIENTS_STORAGE_KEY));
-    if (Array.isArray(savedClients) && savedClients.length) return savedClients;
-    return DEFAULT_CLIENTS;
-  });
+  const [clients, setClients] = useState(() => loadClients());
   const [clientsSearch, setClientsSearch] = useState('');
   const [clientsSedeFilter, setClientsSedeFilter] = useState('todas');
 
@@ -247,33 +243,7 @@ export default function AdminDashboard() {
     showToast(`Reseña de ${review.cliente} eliminada`, 'info');
   };
 
-  const metricsByPeriod = {
-    dia: {
-      escazu: { ventas: 785400, comandas: 189, clientes: 420, coccion: '15 min', completados: 165, pendientes: 18, cancelados: 6 },
-      santa_ana: { ventas: 540200, comandas: 132, clientes: 310, coccion: '17 min', completados: 115, pendientes: 12, cancelados: 5 },
-      cartago: { ventas: 610900, comandas: 145, clientes: 350, coccion: '16 min', completados: 130, pendientes: 11, cancelados: 4 },
-      heredia: { ventas: 485250, comandas: 118, clientes: 280, coccion: '18 min', completados: 102, pendientes: 12, cancelados: 4 }
-    },
-    semana: {
-      escazu: { ventas: 5497800, comandas: 1320, clientes: 2940, coccion: '14 min', completados: 1210, pendientes: 80, cancelados: 30 },
-      santa_ana: { ventas: 3781400, comandas: 924, clientes: 2170, coccion: '16 min', completados: 850, pendientes: 50, cancelados: 24 },
-      cartago: { ventas: 4276300, comandas: 1015, clientes: 2450, coccion: '15 min', completados: 940, pendientes: 55, cancelados: 20 },
-      heredia: { ventas: 3396750, comandas: 826, clientes: 1960, coccion: '17 min', completados: 760, pendientes: 46, cancelados: 20 }
-    },
-    mes: {
-      escazu: { ventas: 23562000, comandas: 5670, clientes: 12600, coccion: '15 min', completados: 5190, pendientes: 340, cancelados: 140 },
-      santa_ana: { ventas: 16206000, comandas: 3960, clientes: 9300, coccion: '16 min', completados: 3640, pendientes: 220, cancelados: 100 },
-      cartago: { ventas: 18327000, comandas: 4350, clientes: 10500, coccion: '15 min', completados: 4030, pendientes: 230, cancelados: 90 },
-      heredia: { ventas: 14557500, comandas: 3540, clientes: 8400, coccion: '17 min', completados: 3260, pendientes: 200, cancelados: 80 }
-    }
-  };
 
-  const branchDetails = {
-    escazu: { personal: 12, mesasLibres: 8, mesasTotal: 24 },
-    santa_ana: { personal: 8, mesasLibres: 4, mesasTotal: 18 },
-    cartago: { personal: 10, mesasLibres: 6, mesasTotal: 20 },
-    heredia: { personal: 9, mesasLibres: 3, mesasTotal: 16 }
-  };
   const historicalMonthOptions = [
     ['2026-01', 'Enero 2026'], ['2026-02', 'Febrero 2026'], ['2026-03', 'Marzo 2026'],
     ['2026-04', 'Abril 2026'], ['2026-05', 'Mayo 2026'], ['2026-06', 'Junio 2026'],
@@ -898,7 +868,7 @@ export default function AdminDashboard() {
         {activeSection === 'resumen' && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5 gap-6">
-              <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
+              <div className="cacique-hover-lift bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
                   <span>Ventas ({timePeriod})</span>
                   <DollarSign className="w-4 h-4 text-[#659B5E]" />
@@ -909,7 +879,7 @@ export default function AdminDashboard() {
                 </span>
               </div>
 
-              <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
+              <div className="cacique-hover-lift bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
                   <span>Comandas ({timePeriod})</span>
                   <ShoppingBag className="w-4 h-4 text-[#D16014]" />
@@ -918,7 +888,7 @@ export default function AdminDashboard() {
                 <span className="text-[10px] text-[#659B5E] font-bold flex items-center gap-1"><ArrowUpRight className="w-3 h-3" /> +8.2% incremento diario</span>
               </div>
 
-              <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
+              <div className="cacique-hover-lift bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
                   <span>Clientes Atendidos</span>
                   <Users className="w-4 h-4 text-amber-400" />
@@ -927,7 +897,7 @@ export default function AdminDashboard() {
                 <span className="text-[10px] text-[#659B5E] font-bold flex items-center gap-1"><ArrowUpRight className="w-3 h-3" /> +15.3% preferencia</span>
               </div>
 
-              <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
+              <div className="cacique-hover-lift bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400">
                   <span>Tiempo Prom. Entrega</span>
                   <Clock className="w-4 h-4 text-cyan-400" />
@@ -935,7 +905,7 @@ export default function AdminDashboard() {
                 <div className="text-3xl font-black text-[#F8FFE5]">{currentMetrics.coccion}</div>
                 <span className="text-[10px] text-gray-400">Objetivo: &lt; 20 min</span>
               </div>
-              {selectedHistoryMonth && <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
+              {selectedHistoryMonth && <div className="cacique-hover-lift bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-3 shadow-xl">
                 <div className="flex justify-between items-center text-xs font-bold text-gray-400"><span>Insumos consumidos · {historicalMonthOptions.find(([month]) => month === selectedHistoryMonth)?.[1]}</span><Package className="w-4 h-4 text-amber-400" /></div>
                 <div className="text-3xl font-black text-amber-400">{Math.round(historicalSuppliesConsumed / historyScale).toLocaleString('es-CR')}</div>
                 <span className="text-[10px] text-gray-400">Unidades estimadas en periodo {timePeriod}</span>
@@ -1518,9 +1488,7 @@ export default function AdminDashboard() {
 
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {branchKeys.map(key => {
-                const reserved = reservations.filter(item => item.sede === key && item.estado !== 'Cancelada').length;
-                const occupied = Math.min(branchDetails[key].mesasTotal, branchDetails[key].mesasTotal - branchDetails[key].mesasLibres + reserved);
-                const percent = Math.round(occupied / branchDetails[key].mesasTotal * 100);
+                const { occupied, percent } = computeOccupancy(key, reservations);
                 return <article key={key} className="min-w-0 rounded-2xl border border-[#659B5E]/20 bg-[#0A090C] p-4"><div className="flex items-center justify-between gap-2"><strong className="text-sm">{branchLabels[key]}</strong><span className="text-amber-300">{percent}% ocupación</span></div><div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-label={`Ocupación ${branchLabels[key]}`} aria-valuenow={percent} aria-valuemin="0" aria-valuemax="100"><div className="h-full rounded-full bg-linear-to-r from-emerald-600 to-amber-400" style={{ width: `${percent}%` }} /></div><p className="mt-2 text-gray-400">{occupied}/{branchDetails[key].mesasTotal} mesas ocupadas o reservadas</p></article>;
               })}
             </div>

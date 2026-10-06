@@ -101,6 +101,22 @@ describe('Landing — accesos al menú', () => {
     expect(screen.getByTestId('path')).toHaveTextContent('/menu');
   });
 
+  it('si falla el correo de n8n informa sin deshacer la reserva confirmada', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((url, options) => (String(url).endsWith('/reservaciones')
+      ? Promise.resolve({ ok: true, status: 201, json: async () => ({ id: 1, ...JSON.parse(options.body) }) })
+      : Promise.reject(new TypeError('n8n caído')))));
+    renderAt('/', <Landing />);
+    fireEvent.click(screen.getAllByRole('button', { name: /AGENDAR RESERVA/i })[0]);
+    fireEvent.change(screen.getByPlaceholderText(/Angel Salazar/i), { target: { value: 'Ana Pérez' } });
+    fireEvent.change(screen.getByPlaceholderText(/8888-8888/i), { target: { value: '88881234' } });
+    fireEvent.click(screen.getByRole('button', { name: /CONFIRMAR RESERVACIÓN/i }));
+    // El aviso conserva el detalle de la confirmación y agrega el estado del correo.
+    expect(await screen.findByText(/¡Reserva confirmada con éxito para Ana Pérez.*El correo de confirmación se enviará en cuanto el servicio esté disponible\./)).toBeInTheDocument();
+    // La reserva sigue registrada para Admin y Mesero.
+    expect(JSON.parse(localStorage.getItem('cacique_admin_reservations'))).toHaveLength(1);
+  });
+
   it('confirma la reserva en línea con un aviso de éxito', async () => {
     vi.stubGlobal('fetch', vi.fn().mockImplementation((url, options) => Promise.resolve({
       ok: true,

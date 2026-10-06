@@ -225,7 +225,7 @@ export default function Menu() {
           {filteredItems.map(item => (
             <div 
               key={item.id} 
-              className="bg-[#001812]/80 border border-[#659B5E]/30 rounded-3xl p-6 flex flex-col justify-between space-y-4 hover:border-[#D16014] transition-all group shadow-lg"
+              className="cacique-hover-lift bg-[#001812]/80 border border-[#659B5E]/30 rounded-3xl p-6 flex flex-col justify-between space-y-4 hover:border-[#D16014] transition-all group shadow-lg"
             >
               <div className="space-y-2">
                 <div className="flex justify-between items-start">

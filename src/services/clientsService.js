@@ -6,6 +6,8 @@
  * poblar el panel desde el primer arranque.
  */
 
+import { decryptData } from './authSecurity';
+
 export const CLIENTS_STORAGE_KEY = 'cacique_admin_clients';
 
 export const CLIENT_BRANCHES = ['escazu', 'santa_ana', 'cartago', 'heredia'];
@@ -91,3 +93,13 @@ export const filterClients = (clients, { search = '', sede = 'todas' } = {}) => 
     })
     .map((client) => ({ ...client, estado: getClientStatus(client.totalReservas) }));
 };
+
+/**
+ * Clientes registrados: la lista guardada (cifrada) o la semilla de
+ * demostracion si aun no hay ninguna. Compartido por el AdminDashboard y el
+ * asistente de IA interno.
+ */
+export function loadClients(storage = localStorage) {
+  const savedClients = decryptData(storage.getItem(CLIENTS_STORAGE_KEY));
+  return Array.isArray(savedClients) && savedClients.length ? savedClients : DEFAULT_CLIENTS;
+}

@@ -108,7 +108,7 @@ export default function ReservationModal({
     // createReservation nunca lanza: sin servidor guarda la reserva en la
     // cola local y devuelve `offline: true`.
     setIsSubmitting(true);
-    const { data: reservation, offline } = await createReservation({
+    const { data: reservation, offline, notification } = await createReservation({
       ...formData,
       nombre: formData.nombre.trim(),
       telefono: formData.telefono.trim()
@@ -123,7 +123,7 @@ export default function ReservationModal({
       : `¡Reserva confirmada con éxito ${detalle}!`;
 
     if (onSuccess) {
-      onSuccess(confirmationMsg, { offline, reservation });
+      onSuccess(confirmationMsg, { offline, reservation, notification });
     } else {
       alert(confirmationMsg);
     }

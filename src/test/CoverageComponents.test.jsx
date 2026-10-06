@@ -101,26 +101,27 @@ describe('AiAgentWidget', () => {
     expect(triggerMock).not.toHaveBeenCalled();
   });
 
-  it('envía con Enter y usa una respuesta por defecto si el bot no responde texto', async () => {
+  it('envía con Enter y responde con la información local si el bot no responde texto', async () => {
     triggerMock.mockResolvedValue({ success: true, respuesta: '' });
     renderWidget();
     open();
     const input = screen.getByPlaceholderText('Escriba su consulta...');
     fireEvent.change(input, { target: { value: '¿Horario de Escazú?' } });
     fireEvent.submit(input.closest('form'));
-    expect(await screen.findByText(/¡Gracias por contactarnos!/)).toBeInTheDocument();
+    expect(await screen.findByText(/Horarios de atención:/)).toBeInTheDocument();
+    expect(screen.getByText(/Escazú: Lunes a Domingo: 11:30 AM - 11:00 PM/)).toBeInTheDocument();
   });
 
   it('muestra el estado de consulta del personal mientras espera', async () => {
     let resolve;
     triggerMock.mockImplementation(() => new Promise((done) => { resolve = done; }));
-    renderWidget('/admin');
+    renderWidget('/kitchen');
     open();
     const input = screen.getByPlaceholderText('Consulte sobre KDS, inventario o comandas...');
     fireEvent.change(input, { target: { value: 'Stock de chicharrón' } });
     fireEvent.submit(input.closest('form'));
     expect(await screen.findByText('Consultando datos del dashboard...')).toBeInTheDocument();
-    await act(async () => resolve({ respuesta: 'Stock suficiente' }));
+    await act(async () => resolve({ success: true, respuesta: 'Stock suficiente' }));
     expect(screen.getByText('Stock suficiente')).toBeInTheDocument();
   });
 });

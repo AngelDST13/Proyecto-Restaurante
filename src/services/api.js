@@ -13,6 +13,8 @@
  *   n8n master webhook          -> VITE_N8N_WEBHOOK_URL
  */
 
+import { logFailedAutomation } from './automationLog';
+
 const env = import.meta.env;
 
 export const API_BASE_URL = env.VITE_JSON_SERVER_URL || 'http://localhost:3001';
@@ -78,7 +80,7 @@ export function notifyWebhook(modulo, payload = {}) {
     body: { modulo, evento: modulo, timestamp: new Date().toISOString(), ...payload },
     timeoutMs: 4000
   }).catch((error) => {
-    console.warn(`n8n webhook ${modulo} fuera de linea:`, error.message);
+    logFailedAutomation(modulo, error.message);
     return null;
   });
 }
@@ -123,8 +125,10 @@ export async function createReservation(reservation) {
     }
   );
 
-  notifyWebhook('RESERVA_CREADA', { reserva: result.data, offline: result.offline });
-  return result;
+  // El correo de confirmacion (n8n) no bloquea la reserva: la UI recibe la
+  // promesa y, si falla, solo muestra un aviso informativo.
+  const notification = notifyWebhook('RESERVA_CREADA', { reserva: result.data, offline: result.offline });
+  return { ...result, notification };
 }
 
 /* --------------------------------------------------------------------------

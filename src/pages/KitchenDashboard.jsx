@@ -403,7 +403,7 @@ export default function KitchenDashboard() {
                             onClick={() => handleToggleItemStatus(order.id, item.id)}
                             aria-pressed={item.listo}
                             aria-label={`${item.cantidad}x ${item.nombre}: ${item.listo ? 'listo' : 'pendiente'}`}
-                            className="flex items-start gap-2.5 cursor-pointer flex-grow text-left rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                            className="flex items-start gap-2.5 cursor-pointer grow text-left rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                           >
                             <span className="mt-0.5 text-[#659B5E]" aria-hidden="true">
                               {item.listo ? <CheckSquare className="w-4 h-4 text-[#659B5E]" /> : <Square className="w-4 h-4 text-gray-500" />}
@@ -413,7 +413,7 @@ export default function KitchenDashboard() {
                                 {item.cantidad}x {item.nombre}
                               </span>
                               {item.notas && (
-                                <span className="text-[10px] text-amber-400 font-mono block mt-0.5 flex items-center gap-1">
+                                <span className="text-[10px] text-amber-400 font-mono block mt-0.5 items-center gap-1">
                                   Nota: {item.notas}
                                 </span>
                               )}

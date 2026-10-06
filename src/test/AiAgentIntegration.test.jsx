@@ -35,6 +35,12 @@ describe('Widget del agente IA', () => {
     expect(launcher).toHaveClass('left-4');
     expect(launcher).toHaveClass('bottom-24');
     expect(launcher).not.toHaveClass('right-4');
+    // En /admin el asistente es la analitica interna; Cocina/Mesero usan el operativo.
+    expect(screen.getByText('IA Analítica Administrativa')).toBeInTheDocument();
+  });
+
+  it('en Cocina usa el asistente operativo del personal', () => {
+    renderWidget('/kitchen');
     expect(screen.getByText('IA Operativa Staff')).toBeInTheDocument();
   });
 
@@ -54,9 +60,11 @@ describe('Widget del agente IA', () => {
     expect(await screen.findByText('¡Hola !')).toBeInTheDocument();
     expect(triggerMock).toHaveBeenCalledOnce();
 
-    triggerMock.mockRejectedValueOnce(new Error('offline'));
+    // n8n caido: el cliente recibe la respuesta local, nunca el error tecnico.
+    triggerMock.mockResolvedValueOnce({ success: false, offline: true, respuesta: 'Verifique que el workflow esté en estado Published.' });
     fireEvent.change(input, { target: { value: 'Sedes del restaurante' } });
     fireEvent.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
-    expect(await screen.findByText(/alta demanda/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Nuestras sedes:/)).toBeInTheDocument();
+    expect(screen.queryByText(/Published/)).not.toBeInTheDocument();
   });
 });

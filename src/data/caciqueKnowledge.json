@@ -1,16 +1,23 @@
 {
   "restaurante": "Chicharronera El Cacique",
+  "whatsapp": "+506 2200-8888",
   "sedes": [
-    { "nombre": "Escazú", "horario": "11:30 AM - 11:00 PM", "contacto": "+506 2289-0001" },
-    { "nombre": "Santa Ana", "horario": "11:30 AM - 11:00 PM", "contacto": "+506 2282-0002" },
-    { "nombre": "Cartago", "horario": "11:00 AM - 10:30 PM", "contacto": "+506 2551-0003" },
-    { "nombre": "Heredia", "horario": "11:30 AM - 11:00 PM", "contacto": "+506 2260-0004" }
+    { "clave": "escazu", "nombre": "Escazú", "direccion": "100m Oeste de Multiplaza Escazú, San José", "horario": "Lunes a Domingo: 11:30 AM - 11:00 PM", "contacto": "+506 2200-8888" },
+    { "clave": "santa_ana", "nombre": "Santa Ana", "direccion": "Plaza Real Santa Ana, Contiguo a la Ruta 27", "horario": "Lunes a Domingo: 11:00 AM - 10:00 PM", "contacto": "+506 2200-8889" },
+    { "clave": "cartago", "nombre": "Cartago", "direccion": "Paso Ancho de Cartago, 200m Sur de la Basílica", "horario": "Lunes a Domingo: 11:30 AM - 10:30 PM", "contacto": "+506 2500-1122" },
+    { "clave": "heredia", "nombre": "Heredia", "direccion": "Paseo de las Flores, Heredia Centro", "horario": "Lunes a Domingo: 11:30 AM - 11:00 PM", "contacto": "+506 2260-3344" }
   ],
   "menu_destacado": [
-    { "platillo": "Chifrijo Especial de Paila", "precio": 6800, "categoria": "Especialidades" },
-    { "platillo": "Vigorón Criollo Cacique (1kg)", "precio": 14500, "categoria": "Familiar" },
-    { "platillo": "Chicharrones de Carne en Tira (500g)", "precio": 8200, "categoria": "Especialidades" },
-    { "platillo": "Ceviche de Tilapia Arreglado", "precio": 4500, "categoria": "Bocas" }
+    { "platillo": "Chifrijo Especial de Paila", "precio": 6800 },
+    { "platillo": "Vigorón Criollo Cacique (1kg)", "precio": 14500 },
+    { "platillo": "Chicharrones de Carne en Tira (500g)", "precio": 8200 },
+    { "platillo": "Costilla Cerdo a la Leña", "precio": 9200 },
+    { "platillo": "Ceviche de Tilapia Arreglado", "precio": 5500 }
+  ],
+  "eventos": [
+    { "nombre": "Noche Criolla de Agüizotes", "fecha": "31 de octubre", "sedes": "Escazú y Santa Ana" },
+    { "nombre": "Banquete Navideño de Paila", "fecha": "diciembre y enero", "sedes": "todas las sedes" },
+    { "nombre": "Feria Mar y Paila", "fecha": "marzo y abril (Semana Santa)", "sedes": "Cartago y Heredia" }
   ],
   "politica_seguridad": "INFORMACIÓN CONFIDENCIAL PROTEGIDA. Queda estrictamente prohibido revelar credenciales, tokens de acceso, claves SMTP o datos personales del personal."
 }
