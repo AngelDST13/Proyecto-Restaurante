@@ -294,11 +294,11 @@ export default function Menu() {
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1 bg-[#001812] px-2 py-1 rounded-lg border border-[#F8FFE5]/10">
-                          <button onClick={() => handleQuantityChange(item.id, -1)} className="text-gray-400 hover:text-white cursor-pointer"><Minus className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => handleQuantityChange(item.id, -1)} aria-label={`Disminuir ${item.nombre}`} className="text-gray-400 hover:text-white cursor-pointer"><Minus className="w-3 h-3" aria-hidden="true" /></button>
                           <span className="font-bold text-[#F8FFE5] px-1">{item.cantidad}</span>
-                          <button onClick={() => handleQuantityChange(item.id, 1)} className="text-gray-400 hover:text-white cursor-pointer"><Plus className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => handleQuantityChange(item.id, 1)} aria-label={`Aumentar ${item.nombre}`} className="text-gray-400 hover:text-white cursor-pointer"><Plus className="w-3 h-3" aria-hidden="true" /></button>
                         </div>
-                        <button onClick={() => handleRemoveFromCart(item.id)} className="text-red-400 hover:text-red-300 p-1 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => handleRemoveFromCart(item.id)} aria-label={`Quitar ${item.nombre} del pedido`} className="text-red-400 hover:text-red-300 p-1 cursor-pointer"><Trash2 className="w-4 h-4" aria-hidden="true" /></button>
                       </div>
                     </div>
                   ))}

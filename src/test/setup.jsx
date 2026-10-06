@@ -1,5 +1,11 @@
 import '@testing-library/jest-dom';
+import { configure } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+
+// Con 60+ archivos en paralelo e instrumentacion de cobertura, algunos flujos
+// (parseo de Excel, paneles grandes) superan el segundo por defecto de
+// findBy/waitFor. 5 s evita falsos negativos sin ocultar fallos reales.
+configure({ asyncUtilTimeout: 5000 });
 
 // Red deshabilitada por defecto: ninguna prueba debe salir a internet
 // (Open-Meteo, json-server, n8n). Se simula un servidor caido, de modo que

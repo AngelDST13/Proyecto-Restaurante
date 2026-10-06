@@ -63,10 +63,7 @@ export const DOUBLE_TAP_WINDOW_MS = 320;
 
 export const isActivationKey = (key) => ACTIVATION_KEYS.includes(key);
 
-export const getSpeechSynthesis = () => {
-  if (typeof window === 'undefined') return null;
-  return window.speechSynthesis ?? null;
-};
+export const getSpeechSynthesis = () => window.speechSynthesis ?? null;
 
 export const isSpeechSynthesisAvailable = () => getSpeechSynthesis() !== null;
 

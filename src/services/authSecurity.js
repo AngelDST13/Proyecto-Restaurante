@@ -141,7 +141,9 @@ export function formatSedeName(sedeKey = 'escazu') {
     escazu: 'Escazú',
     santa_ana: 'Santa Ana',
     cartago: 'Cartago',
-    heredia: 'Heredia'
+    heredia: 'Heredia',
+    // Vista consolidada del Admin: antes caia en el valor por defecto (Escazú).
+    todas: 'Todas las sedes'
   };
   return names[cleanSedeKey] || 'Escazú';
 }
@@ -164,7 +166,7 @@ export const TEST_ACCESS_CREDENTIALS = Object.entries(VALID_ACCOUNTS).map(([emai
   email,
   password: account.password,
   sede: account.rol === 'administrador' ? 'Todas las sedes' : formatSedeName(account.sede),
-  rol: ROLE_LABELS[account.rol] || 'Mesero'
+  rol: ROLE_LABELS[account.rol]
 }));
 
 export function sanitizeUserForSession(userObj) {

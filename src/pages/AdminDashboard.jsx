@@ -144,9 +144,9 @@ export default function AdminDashboard() {
   const [editingEmployeeId, setEditingEmployeeId] = useState(null);
 
   // CONFIGURACIÓN DE CAJAS Y CREDENCIALES POR SEDE
-  const [registersSede, setRegistersSede] = useState(selectedSede === 'todas' ? 'escazu' : selectedSede);
-  const [registers, setRegisters] = useState(() => getAdminRegistersBySede(selectedSede === 'todas' ? 'escazu' : selectedSede));
-  const [registerForm, setRegisterForm] = useState({ label: '', email: '', password: '', sede: selectedSede === 'todas' ? 'escazu' : selectedSede });
+  const [registersSede, setRegistersSede] = useState(selectedSede);
+  const [registers, setRegisters] = useState(() => getAdminRegistersBySede(selectedSede));
+  const [registerForm, setRegisterForm] = useState({ label: '', email: '', password: '', sede: selectedSede });
   const [registerError, setRegisterError] = useState('');
 
   const refreshRegisters = targetSede => setRegisters(getAdminRegistersBySede(targetSede));
@@ -302,6 +302,8 @@ export default function AdminDashboard() {
     ? historicalData.filter(row => row.month === selectedHistoryMonth && (selectedSede === 'todas' || row.sede === selectedSede))
     : [];
   const historyScale = timePeriod === 'dia' ? 30 : timePeriod === 'semana' ? 4 : 1;
+  // Etiqueta legible de la sede elegida para encabezados y textos.
+  const selectedSedeLabel = selectedSede === 'todas' ? 'Todas las sedes' : `Sede ${formatSedeName(selectedSede)}`;
   const baseMetrics = aggregateBranchMetrics(metricsByPeriod[timePeriod], branchDetails, selectedSede);
   const currentMetrics = selectedHistoricalRows.length
     ? { ...baseMetrics,
@@ -312,7 +314,8 @@ export default function AdminDashboard() {
     : baseMetrics;
   const historicalSuppliesConsumed = selectedHistoricalRows.reduce((total, row) => total + row.insumosConsumidos, 0);
   const salesByBranch = branchKeys.map(key => ({ sede: branchLabels[key], ventas: metricsByPeriod[timePeriod][key].ventas, clientes: metricsByPeriod[timePeriod][key].clientes }));
-  const averageTicket = currentMetrics.comandas ? Math.round(currentMetrics.ventas / currentMetrics.comandas) : 0;
+  // Los datos de cada periodo siempre registran comandas (> 0).
+  const averageTicket = Math.round(currentMetrics.ventas / currentMetrics.comandas);
   const salesTrendByPeriod = {
     dia: [58, 66, 52, 78, 70, 92],
     semana: [64, 72, 68, 86, 80, 100],
@@ -343,7 +346,7 @@ export default function AdminDashboard() {
   };
 
   const exportReport = (format) => {
-    const costs = invoices.reduce((total, invoice) => total + Number(invoice.monto || 0), 0);
+    const costs = invoices.reduce((total, invoice) => total + Number(invoice.monto), 0);
     const financeRows = [{ sede: formatSedeName(selectedSede), periodo: timePeriod, ventas: currentMetrics.ventas, costos: costs }];
     const report = {
       restaurante: 'Chicharronera El Cacique',
@@ -398,6 +401,9 @@ export default function AdminDashboard() {
     showToast(`Comprobante ${invoice.archivoNombre} descargado`, 'info');
   };
 
+  // n8n responde con `respuesta` cuando falla; los errores locales usan `message`.
+  const describeEmailError = response => response.message || response.respuesta || 'No se pudo procesar el comunicado';
+
   const handleSendEmail = async (event) => {
     event.preventDefault();
     const requiresSelection = ['clientes_seleccionados', 'proveedores_seleccionados'].includes(emailData.destinatarioTipo);
@@ -422,13 +428,13 @@ export default function AdminDashboard() {
                 : emailContacts.map(contact => contact.correo),
         correoCliente: emailData.destinatarioTipo === 'especifico' ? emailData.especifico : '',
         producto: 'Comunicado Admin',
-        sede: formatSedeName(selectedSede) || 'Central',
+        sede: formatSedeName(selectedSede),
         remitente: 'admin@elcacique.com'
       });
       setEmailResponse(response);
 
       if (!response.success) {
-        showToast(response.message || response.respuesta || 'No se pudo procesar el comunicado', 'error');
+        showToast(describeEmailError(response), 'error');
         return;
       }
 
@@ -643,7 +649,7 @@ export default function AdminDashboard() {
     setMenuItems(previous => editingMenuItemId
       ? previous.map(item => item.id === editingMenuItemId ? savedItem : item)
       : [...previous, savedItem]);
-    setNewMenuItem({ nombre: '', categoria: menuCategories[0] || '', precio: '', descripcion: '', sedesNoDisponibles: [] });
+    setNewMenuItem({ nombre: '', categoria: menuCategories[0], precio: '', descripcion: '', sedesNoDisponibles: [] });
     showToast(editingMenuItemId ? 'Platillo actualizado correctamente' : 'Platillo agregado al menú', 'success');
     setEditingMenuItemId(null);
   };
@@ -674,7 +680,8 @@ export default function AdminDashboard() {
       setMenuItems(items);
       showToast(`${items.length} platillos importados y validados`, 'success');
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'No se pudo importar el menú.', 'error');
+      // Los lectores y normalizadores de menu siempre lanzan Error.
+      showToast(error.message, 'error');
     } finally {
       event.target.value = '';
     }
@@ -875,7 +882,7 @@ export default function AdminDashboard() {
               <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
               <div>
                 <strong className="font-extrabold block">Atención: Reabastecimiento Requerido</strong>
-                <span>Hay {criticalItemsCount} insumo(s) en Sede {formatSedeName(selectedSede)} por debajo de su Límite Mínimo.</span>
+                <span>Hay {criticalItemsCount} insumo(s) en {selectedSedeLabel} por debajo de su Límite Mínimo.</span>
               </div>
             </div>
             <button
@@ -937,7 +944,7 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-[#001812] border border-[#659B5E]/30 rounded-2xl p-5"><p className="text-xs text-gray-400">Ticket promedio</p><p className="text-2xl font-black text-amber-400">₡{averageTicket.toLocaleString('es-CR')}</p></div>
-              <div className="bg-[#001812] border border-[#659B5E]/30 rounded-2xl p-5"><p className="text-xs text-gray-400">Ocupación de mesas</p><p className="text-2xl font-black text-[#659B5E]">{currentMetrics.mesasTotal ? Math.round((currentMetrics.mesasTotal - currentMetrics.mesasLibres) / currentMetrics.mesasTotal * 100) : 0}% <span className="text-xs text-gray-400 font-normal">({currentMetrics.mesasTotal - currentMetrics.mesasLibres}/{currentMetrics.mesasTotal})</span></p></div>
+              <div className="bg-[#001812] border border-[#659B5E]/30 rounded-2xl p-5"><p className="text-xs text-gray-400">Ocupación de mesas</p><p className="text-2xl font-black text-[#659B5E]">{Math.round((currentMetrics.mesasTotal - currentMetrics.mesasLibres) / currentMetrics.mesasTotal * 100)}% <span className="text-xs text-gray-400 font-normal">({currentMetrics.mesasTotal - currentMetrics.mesasLibres}/{currentMetrics.mesasTotal})</span></p></div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <section className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6"><h3 className="font-extrabold mb-4">Comparativo de Ventas por Sede</h3><div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={salesByBranch}><CartesianGrid stroke="#659B5E" strokeOpacity={0.18} vertical={false} /><XAxis dataKey="sede" stroke="#9ca3af" /><YAxis stroke="#9ca3af" /><Tooltip /><Bar dataKey="ventas" fill="#D16014" radius={[6,6,0,0]} /></BarChart></ResponsiveContainer></div></section>
@@ -949,11 +956,11 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-center border-b border-[#F8FFE5]/10 pb-4">
                   <div>
                     <h3 className="font-extrabold text-base text-[#F8FFE5]">Tendencia de Ventas</h3>
-                    <p className="text-xs text-gray-400">Evolución del periodo {timePeriod} en Sede {formatSedeName(selectedSede)}.</p>
+                    <p className="text-xs text-gray-400">Evolución del periodo {timePeriod} en {selectedSedeLabel}.</p>
                   </div>
                   <TrendingUp className="w-5 h-5 text-[#659B5E]" />
                 </div>
-                <div className="h-56 w-full" role="img" aria-label={`Gráfico de ventas para el periodo ${timePeriod} en Sede ${formatSedeName(selectedSede)}`}>
+                <div className="h-56 w-full" role="img" aria-label={`Gráfico de ventas para el periodo ${timePeriod} en ${selectedSedeLabel}`}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={monthlySalesData} margin={{ top: 12, right: 12, left: 4, bottom: 0 }}>
                       <defs>
@@ -1052,7 +1059,7 @@ export default function AdminDashboard() {
               <input required type="number" min="1" step="1" value={newMenuItem.precio} onChange={event => setNewMenuItem({ ...newMenuItem, precio: event.target.value })} placeholder="Precio en colones" className="min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
               <input value={newMenuItem.descripcion} onChange={event => setNewMenuItem({ ...newMenuItem, descripcion: event.target.value })} placeholder="Descripción breve" className="min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />
               <fieldset className="sm:col-span-2 min-w-0 rounded-2xl border border-[#659B5E]/25 bg-black/20 p-4"><legend className="px-2 font-bold text-amber-300">Restricción de disponibilidad por sede</legend><p className="mb-3 text-[11px] text-gray-400">Activa una tarjeta para excluir el platillo de esa sede.</p><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">{sedesDisponibles.map(sede => { const excluded = newMenuItem.sedesNoDisponibles.includes(sede); return <label key={sede} className={`relative flex min-h-24 min-w-0 cursor-pointer flex-col justify-between gap-3 rounded-2xl border p-4 text-xs transition-colors focus-within:ring-2 focus-within:ring-amber-400 ${excluded ? 'border-rose-600/40 bg-rose-950/40 text-rose-400' : 'border-emerald-600/40 bg-emerald-950/40 text-emerald-400'}`}><span className="flex min-w-0 items-start justify-between gap-2"><span className="wrap-break-word font-bold">{sede}</span><input aria-label={`No disponible en ${sede}`} type="checkbox" checked={excluded} onChange={() => handleToggleExcludedBranch(sede)} className="mt-0.5 h-4 w-4 shrink-0 accent-rose-500"/></span><span className="inline-flex items-center gap-1.5 font-bold uppercase tracking-wider">{excluded ? <XCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> : <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}{excluded ? 'No Disponible' : 'Disponible'}</span></label>; })}</div></fieldset>
-              <div className="sm:col-span-2 flex flex-wrap justify-end gap-2"><button type="submit" className="min-h-11 rounded-xl bg-[#D16014] px-5 py-2.5 font-extrabold text-white">{editingMenuItemId ? 'Guardar cambios del platillo' : 'Guardar platillo'}</button>{editingMenuItemId && <button type="button" onClick={() => { setEditingMenuItemId(null); setNewMenuItem({ nombre: '', categoria: menuCategories[0] || '', precio: '', descripcion: '', sedesNoDisponibles: [] }); }} className="min-h-11 rounded-xl border border-white/15 px-4 py-2.5 font-bold">Cancelar edición</button>}</div>
+              <div className="sm:col-span-2 flex flex-wrap justify-end gap-2"><button type="submit" className="min-h-11 rounded-xl bg-[#D16014] px-5 py-2.5 font-extrabold text-white">{editingMenuItemId ? 'Guardar cambios del platillo' : 'Guardar platillo'}</button>{editingMenuItemId && <button type="button" onClick={() => { setEditingMenuItemId(null); setNewMenuItem({ nombre: '', categoria: menuCategories[0], precio: '', descripcion: '', sedesNoDisponibles: [] }); }} className="min-h-11 rounded-xl border border-white/15 px-4 py-2.5 font-bold">Cancelar edición</button>}</div>
             </form>
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]"><input aria-label="Buscar platillos" value={menuSearch} onChange={event => setMenuSearch(event.target.value)} placeholder="Buscar platillo, descripción o categoría..." className="min-w-0 rounded-xl border border-white/15 bg-[#0A090C] px-4 py-2.5"/><select aria-label="Filtrar por categoría" value={menuCategoryFilter} onChange={event => setMenuCategoryFilter(event.target.value)} className="min-w-0 rounded-xl border border-white/15 bg-[#0A090C] px-4 py-2.5"><option value="todas">Todas las categorías ({menuItems.length})</option>{menuCategories.map(category => <option key={category} value={category}>{category}</option>)}</select></div>
             <div className="max-h-144 w-full max-w-full divide-y divide-[#F8FFE5]/10 overflow-x-hidden overflow-y-auto scroll-smooth border-y border-[#F8FFE5]/10">{visibleMenuItems.length ? visibleMenuItems.map(item => <article key={item.id} className="flex min-w-0 flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center"><div className="min-w-0"><strong className="wrap-break-word text-white">{item.nombre}</strong><span className="ml-2 text-[#659B5E]">{item.categoria}</span><p className="mt-1 wrap-break-word text-gray-400">{item.descripcion}</p>{item.sedesNoDisponibles?.length > 0 && <p className="mt-1 wrap-break-word text-amber-300">No disponible en: {item.sedesNoDisponibles.join(', ')}</p>}</div><div className="flex shrink-0 flex-wrap items-center gap-3"><strong className="text-amber-300">₡{item.precio.toLocaleString('es-CR')}</strong><button type="button" aria-label={`Editar ${item.nombre}`} onClick={() => editMenuItem(item)} className="min-h-10 rounded-lg border border-amber-500/20 px-3 text-amber-200 hover:bg-amber-500/10"><Pencil className="h-4 w-4"/></button><button type="button" aria-label={`Eliminar ${item.nombre}`} onClick={() => setMenuItems(previous => previous.filter(current => current.id !== item.id))} className="min-h-10 min-w-10 rounded-lg border border-red-500/20 px-3 text-gray-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button></div></article>) : <p className="p-6 text-center text-zinc-400">No hay platillos que coincidan con los filtros.</p>}</div>
@@ -1075,7 +1082,8 @@ export default function AdminDashboard() {
               <label className="block space-y-1"><span className="text-gray-400">Audiencia</span><select aria-label="Audiencia" value={emailData.destinatarioTipo} onChange={event => { setEmailData({ ...emailData, destinatarioTipo: event.target.value }); setEmailSelectedRecipients([]); }} className="w-full min-w-0 bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5"><option value="todos_clientes">Todos los clientes registrados ({emailContacts.length})</option><option value="clientes_seleccionados">Clientes seleccionados</option><option value="todos_proveedores">Todos los proveedores ({suppliers.length})</option><option value="proveedores_seleccionados">Proveedores seleccionados</option><option value="personal_meseros">Personal y cocina ({employees.length})</option><option value="especifico">Correo específico</option></select></label>
               {['clientes_seleccionados', 'proveedores_seleccionados'].includes(emailData.destinatarioTipo) && <fieldset className="max-h-48 w-full max-w-full space-y-2 overflow-y-auto rounded-xl border border-[#659B5E]/20 bg-[#0A090C] p-3"><legend className="px-1 font-bold text-amber-300">Selecciona uno o varios destinatarios</legend>{(emailData.destinatarioTipo === 'clientes_seleccionados' ? emailContacts : suppliers).map(recipient => {
                 const email = recipient.correo || recipient.email;
-                const label = `${recipient.nombre || recipient.contacto || recipient.empresa || 'Destinatario'} — ${email}`;
+                // Contactos y proveedores siempre tienen nombre (validado al crearlos).
+                const label = `${recipient.nombre} — ${email}`;
                 return <label key={email} className="flex min-w-0 items-start gap-2 rounded-lg px-2 py-2 hover:bg-white/5"><input type="checkbox" aria-label={label} checked={emailSelectedRecipients.includes(email)} onChange={() => setEmailSelectedRecipients(previous => previous.includes(email) ? previous.filter(value => value !== email) : [...previous, email])} className="mt-0.5 shrink-0 accent-amber-500"/><span className="min-w-0 break-all text-zinc-300">{label}</span></label>;
               })}{(emailData.destinatarioTipo === 'clientes_seleccionados' ? emailContacts : suppliers).length === 0 && <p className="text-zinc-400">No hay destinatarios disponibles.</p>}</fieldset>}
               {emailData.destinatarioTipo === 'especifico' && <input aria-label="Correo del destinatario" type="email" placeholder="destinatario@correo.cr" value={emailData.especifico} onChange={event => setEmailData({ ...emailData, especifico: event.target.value })} required className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5" />}
@@ -1098,7 +1106,7 @@ export default function AdminDashboard() {
             {emailResponse && (
               <div className={`max-w-2xl rounded-2xl border p-4 text-xs ${emailResponse.success ? 'border-[#659B5E]/40 bg-[#659B5E]/10 text-[#B9E3B3]' : 'border-red-500/40 bg-red-500/10 text-red-300'}`}>
                 <strong className="block font-extrabold">{emailResponse.success ? 'Respuesta del envío' : 'Error del envío'}</strong>
-                <span>{emailResponse.success ? `Comunicado aceptado por ${emailResponse.mode === 'n8n_online' ? 'n8n' : 'el modo local de respaldo'}.` : emailResponse.message}</span>
+                <span>{emailResponse.success ? `Comunicado aceptado por ${emailResponse.mode === 'n8n_online' ? 'n8n' : 'el modo local de respaldo'}.` : describeEmailError(emailResponse)}</span>
               </div>
             )}
           </div>
@@ -1136,6 +1144,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-[#659B5E]" />
                 <select
+                  aria-label="Filtrar por estado de stock"
                   value={filterState}
                   onChange={e => setFilterState(e.target.value)}
                   className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5 text-[#F8FFE5] font-bold focus:outline-none focus:border-[#D16014] cursor-pointer"
@@ -1218,7 +1227,7 @@ export default function AdminDashboard() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#F8FFE5]/10 pb-4">
               <div>
                 <h3 className="font-extrabold text-lg text-[#F8FFE5] flex items-center gap-2"><Ticket className="w-5 h-5 text-[#D16014]" /> Cupones y Promociones</h3>
-                <p className="text-gray-400 text-[11px]">Gestiona campañas activas y mide su uso en Sede {formatSedeName(selectedSede)}.</p>
+                <p className="text-gray-400 text-[11px]">Gestiona campañas activas y mide su uso en {selectedSedeLabel}.</p>
               </div>
               <button
                 onClick={() => showToast('Formulario de nueva promoción disponible próximamente', 'info')}
@@ -1310,7 +1319,7 @@ export default function AdminDashboard() {
         {/* PERSONAL */}
         {activeSection === 'personal' && (
           <div className="bg-[#001812] border border-[#659B5E]/30 rounded-3xl p-6 space-y-6 text-xs shadow-2xl">
-            <h3 className="font-extrabold text-lg text-[#F8FFE5]">Personal y planilla — Sede {formatSedeName(selectedSede)}</h3>
+            <h3 className="font-extrabold text-lg text-[#F8FFE5]">Personal y planilla — {selectedSedeLabel}</h3>
             <form onSubmit={handleSaveEmployee} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <label className="space-y-1"><span>Nombre completo</span><input required aria-label="Nombre completo" value={employeeForm.nombre} onChange={event => setEmployeeForm({ ...employeeForm, nombre: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5" /></label>
               <label className="space-y-1"><span>Puesto / rol</span><select aria-label="Puesto / rol" value={employeeForm.puesto} onChange={event => setEmployeeForm({ ...employeeForm, puesto: event.target.value })} className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-3 py-2.5"><option>Mesero de Salón &amp; Terraza</option><option>Cocinero / Chef de Paila</option><option>Cajero POS</option><option>Administrador de Sede</option></select></label>
@@ -1362,7 +1371,7 @@ export default function AdminDashboard() {
               <table className="w-full text-left">
                 <thead className="bg-[#0A090C] text-gray-300"><tr><th className="p-3">Caja / Cajero</th><th className="p-3">Correo</th><th className="p-3">Sede</th><th className="p-3">Acciones</th></tr></thead>
                 <tbody className="divide-y divide-white/10">
-                  {registers.length ? registers.map(register => (
+                  {registers.map(register => (
                     <tr key={register.id}>
                       <td className="p-3 font-bold text-white">{register.label}</td>
                       <td className="p-3 break-all font-mono text-[10px] text-zinc-300">{register.email}</td>
@@ -1387,7 +1396,7 @@ export default function AdminDashboard() {
                         ) : <span className="text-gray-400">Caja base del catálogo</span>}
                       </td>
                     </tr>
-                  )) : <tr><td className="p-3 text-gray-400" colSpan={4}>No hay cajas creadas para {formatSedeName(registersSede)}.</td></tr>}
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -1563,7 +1572,8 @@ export default function AdminDashboard() {
                 <label className="block font-bold text-gray-300">Nombre del Insumo</label>
                 <input
                   type="text"
-                  placeholder="ej: Carne de Cerdo para Chicharrón"
+                  aria-label="Nombre del insumo"
+                    placeholder="ej: Carne de Cerdo para Chicharrón"
                   value={itemForm.nombre}
                   onChange={e => setItemForm({ ...itemForm, nombre: e.target.value })}
                   required
@@ -1576,6 +1586,7 @@ export default function AdminDashboard() {
                   <label className="block font-bold text-gray-300">Stock Actual</label>
                   <input
                     type="number"
+                    aria-label="Stock actual"
                     placeholder="Cantidad..."
                     value={itemForm.stock}
                     onChange={e => setItemForm({ ...itemForm, stock: e.target.value })}
@@ -1587,6 +1598,7 @@ export default function AdminDashboard() {
                 <div className="space-y-1">
                   <label className="block font-bold text-gray-300">Unidad de Medida</label>
                   <select
+                    aria-label="Unidad de medida"
                     value={itemForm.unidad}
                     onChange={e => setItemForm({ ...itemForm, unidad: e.target.value })}
                     className="w-full bg-[#0A090C] border border-[#F8FFE5]/15 rounded-xl px-4 py-2.5 text-[#F8FFE5] focus:outline-none focus:border-[#D16014]"
@@ -1603,6 +1615,7 @@ export default function AdminDashboard() {
                   <label className="block font-bold text-amber-400">Límite Mínimo (Alerta)</label>
                   <input
                     type="number"
+                    aria-label="Límite mínimo"
                     placeholder="ej: 30"
                     value={itemForm.minLimit}
                     onChange={e => setItemForm({ ...itemForm, minLimit: e.target.value })}
@@ -1615,6 +1628,7 @@ export default function AdminDashboard() {
                   <label className="block font-bold text-[#659B5E]">Límite Máximo (Capacidad)</label>
                   <input
                     type="number"
+                    aria-label="Límite máximo"
                     placeholder="ej: 200"
                     value={itemForm.maxLimit}
                     onChange={e => setItemForm({ ...itemForm, maxLimit: e.target.value })}

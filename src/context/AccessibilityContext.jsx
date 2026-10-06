@@ -168,7 +168,8 @@ export function AccessibilityProvider({ children }) {
 
   // Escala tipográfica sobre el elemento raíz.
   useEffect(() => {
-    document.documentElement.style.fontSize = FONT_SIZE_MAP[String(fontSizeLevel)] ?? '100%';
+    // fontSizeLevel siempre esta validado (-1..2), por lo que existe en el mapa.
+    document.documentElement.style.fontSize = FONT_SIZE_MAP[String(fontSizeLevel)];
     writeStoredValue(FONT_SIZE_STORAGE_KEY, String(fontSizeLevel));
   }, [fontSizeLevel]);
 
@@ -193,7 +194,7 @@ export function AccessibilityProvider({ children }) {
     root.style.setProperty('--cacique-on-card', palette.onCard);
     root.style.setProperty('--cacique-on-card-muted', palette.onCardMuted);
     root.style.setProperty('--cacique-muted', palette.muted);
-    root.style.setProperty('--cacique-forest', palette.forest ?? DARK_PALETTE.forest);
+    root.style.setProperty('--cacique-forest', palette.forest);
     root.style.setProperty('--cacique-border-alpha', `${palette.border}33`);
     root.style.setProperty('--cacique-accent-alpha', `${palette.accent}26`);
     // Sombra perimetral difuminada oscura: el vector del Cacique mantiene su
@@ -209,7 +210,8 @@ export function AccessibilityProvider({ children }) {
   // Filtro de daltonismo: clase + atributo en <html>.
   useEffect(() => {
     const root = document.documentElement;
-    const mode = COLOR_BLIND_MODES.find((item) => item.id === colorBlindMode) ?? COLOR_BLIND_MODES[0];
+    // colorBlindMode solo admite ids validos (ver setColorBlindMode).
+    const mode = COLOR_BLIND_MODES.find((item) => item.id === colorBlindMode);
 
     COLOR_BLIND_MODES.forEach((item) => root.classList.remove(item.className));
     root.classList.add(mode.className);
@@ -233,7 +235,7 @@ export function AccessibilityProvider({ children }) {
       resetColorBlindMode,
       colorBlindModes: COLOR_BLIND_MODES,
       activeColorBlindClass:
-        COLOR_BLIND_MODES.find((item) => item.id === colorBlindMode)?.className ?? 'cb-none',
+        COLOR_BLIND_MODES.find((item) => item.id === colorBlindMode).className,
     }),
     [
       fontSizeLevel,

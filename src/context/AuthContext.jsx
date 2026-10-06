@@ -94,7 +94,7 @@ export function AuthProvider({ children }) {
         // Sin sessionStorage la sesion se cierra igual, solo sin el aviso.
       }
     }
-    if (timerRef.current) clearTimeout(timerRef.current);
+    clearTimeout(timerRef.current);
     window.location.href = '/login';
   }, []);
 
@@ -116,12 +116,12 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!user || user.rol !== 'cliente') {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      clearTimeout(timerRef.current);
       return;
     }
 
     const resetTimer = () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
         logout(INACTIVITY_REASON);
       }, 180000);
@@ -133,7 +133,7 @@ export function AuthProvider({ children }) {
 
     return () => {
       events.forEach(ev => window.removeEventListener(ev, resetTimer));
-      if (timerRef.current) clearTimeout(timerRef.current);
+      clearTimeout(timerRef.current);
     };
   }, [user, logout]);
 

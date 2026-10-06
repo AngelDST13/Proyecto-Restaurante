@@ -84,7 +84,8 @@ export default function Login() {
         return;
       }
 
-      showToast(`¡Bienvenido ${res.user.nombre || res.user.alias}!`, 'success');
+      // login() siempre fija nombre (o el prefijo del correo).
+      showToast(`¡Bienvenido ${res.user.nombre}!`, 'success');
 
       setTimeout(() => {
         if (res.user.rol === 'administrador') {

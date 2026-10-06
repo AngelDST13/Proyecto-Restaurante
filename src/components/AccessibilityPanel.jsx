@@ -208,8 +208,9 @@ function VisionTab() {
   const handleChange = useCallback(
     (modeId) => {
       setColorBlindMode(modeId);
+      // modeId siempre proviene de las opciones generadas desde colorBlindModes.
       const mode = colorBlindModes.find((item) => item.id === modeId);
-      if (mode) announce(`Filtro visual activado: ${mode.label}. ${mode.description}`);
+      announce(`Filtro visual activado: ${mode.label}. ${mode.description}`);
     },
     [announce, colorBlindModes, setColorBlindMode],
   );
@@ -312,7 +313,8 @@ export default function AccessibilityPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('voz');
   const dockRef = useRef(null);
-  const ActiveTab = TAB_COMPONENTS[activeTab] ?? TalkBackTab;
+  // activeTab solo toma ids de ACCESSIBILITY_TABS, todos presentes en el mapa.
+  const ActiveTab = TAB_COMPONENTS[activeTab];
 
   useEffect(() => {
     if (!isOpen) return undefined;

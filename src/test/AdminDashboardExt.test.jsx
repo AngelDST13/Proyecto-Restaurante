@@ -217,7 +217,7 @@ describe('AdminDashboard secondary modules', () => {
     ]));
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar Colaborador Editado' }));
     expect(screen.queryByText('Colaborador Editado')).not.toBeInTheDocument();
-  }, 15000);
+  });
 
   it('despacha las audiencias dinámicas de proveedores y personal', async () => {
     localStorage.removeItem('cacique_admin_payroll');
@@ -239,5 +239,5 @@ describe('AdminDashboard secondary modules', () => {
         expect.objectContaining({ destinatarios: expectedEmails })
       );
     }
-  }, 15000);
+  });
 });

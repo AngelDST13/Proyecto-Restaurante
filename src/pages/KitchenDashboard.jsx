@@ -203,7 +203,7 @@ export default function KitchenDashboard() {
   // GUARDAR COMENTARIO EN PLATILLO
   const handleSaveNote = (e) => {
     e.preventDefault();
-    if (!activeNoteTarget) return;
+    // El formulario solo existe con el modal abierto, que siempre fija activeNoteTarget.
 
     setOrders(prev => prev.map(o => {
       if (o.id === activeNoteTarget.orderId) {
@@ -397,14 +397,18 @@ export default function KitchenDashboard() {
                             item.listo ? 'bg-[#659B5E]/10 border-[#659B5E]/40 opacity-75' : 'bg-[#0A090C] border-[#F8FFE5]/10'
                           }`}
                         >
-                          <div 
+                          {/* Boton real (antes un div clicable): accesible con teclado y lector de pantalla. */}
+                          <button
+                            type="button"
                             onClick={() => handleToggleItemStatus(order.id, item.id)}
-                            className="flex items-start gap-2.5 cursor-pointer flex-grow"
+                            aria-pressed={item.listo}
+                            aria-label={`${item.cantidad}x ${item.nombre}: ${item.listo ? 'listo' : 'pendiente'}`}
+                            className="flex items-start gap-2.5 cursor-pointer flex-grow text-left rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                           >
-                            <div className="mt-0.5 text-[#659B5E]">
+                            <span className="mt-0.5 text-[#659B5E]" aria-hidden="true">
                               {item.listo ? <CheckSquare className="w-4 h-4 text-[#659B5E]" /> : <Square className="w-4 h-4 text-gray-500" />}
-                            </div>
-                            <div className="text-xs">
+                            </span>
+                            <span className="text-xs block">
                               <span className={`font-bold block ${item.listo ? 'line-through text-gray-400' : 'text-[#F8FFE5]'}`}>
                                 {item.cantidad}x {item.nombre}
                               </span>
@@ -413,10 +417,11 @@ export default function KitchenDashboard() {
                                   Nota: {item.notas}
                                 </span>
                               )}
-                            </div>
-                          </div>
+                            </span>
+                          </button>
 
                           <button
+                            type="button"
                             onClick={() => handleOpenNoteModal(order.id, item.id, item.notas)}
                             className="p-1.5 text-gray-400 hover:text-[#D16014] hover:bg-[#F8FFE5]/5 rounded-lg shrink-0 cursor-pointer"
                             title="Añadir/Editar Nota del Platillo"

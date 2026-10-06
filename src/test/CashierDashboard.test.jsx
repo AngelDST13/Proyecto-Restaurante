@@ -79,7 +79,8 @@ describe('CashierDashboard y acceso por roles', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Mesa 07: Pidiendo Cuenta' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cobrar Efectivo' }));
 
-    const invoice = await screen.findByRole('article', { name: 'Factura electrónica de demostración' });
+    // Cobro normal: el comprobante se anuncia como recibo, no como factura electrónica.
+    const invoice = await screen.findByRole('article', { name: 'Recibo de caja' });
     expect(within(invoice).getByText('Cliente: Cliente QA')).toBeInTheDocument();
     expect(within(invoice).getByText('Forma de pago: Efectivo')).toBeInTheDocument();
     expect(within(invoice).getByText(/Clave de Hacienda de demostración/).parentElement).toHaveTextContent(/\d{50}/);
@@ -167,7 +168,7 @@ describe('CashierDashboard y acceso por roles', () => {
 
     expect(screen.getByText('La caja de esta sede está cerrada.')).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem(CASHIER_ORDERS_STORAGE_KEY))).toHaveLength(1);
-    expect(screen.queryByRole('article', { name: 'Factura electrónica de demostración' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: /Factura electrónica de demostración|Recibo de caja/ })).not.toBeInTheDocument();
   });
 
   it('refresca la cola solo para cambios de caja y normaliza el alias de ruta', async () => {

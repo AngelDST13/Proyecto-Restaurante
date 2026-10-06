@@ -8,7 +8,7 @@ export const ADMIN_SEDES = ['escazu', 'santa_ana', 'cartago', 'heredia'];
 const isValidSede = sede => ADMIN_SEDES.includes(sede);
 
 const notifyRegistersChange = () => {
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cacique-admin-registers-updated'));
+  window.dispatchEvent(new Event('cacique-admin-registers-updated'));
 };
 
 /**

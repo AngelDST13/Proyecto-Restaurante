@@ -35,8 +35,6 @@ export async function triggerN8nAutomation(modulo, payload) {
 
 // Función requerida por WaiterDashboard.jsx para la escucha de eventos en vivo
 export function subscribeToLiveEvents(callback) {
-  if (typeof window === 'undefined') return () => {};
-
   const handleCustomEvent = (event) => {
     if (callback && typeof callback === 'function') {
       callback(event.detail);

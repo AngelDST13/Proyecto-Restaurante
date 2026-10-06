@@ -121,7 +121,8 @@ export default function Landing() {
     }
   };
 
-  const selectedSedeObj = sedesInfo[activeSedeMap] || sedesInfo['ESCAZÚ'];
+  // activeSedeMap solo toma claves de sedesInfo (botones de sede).
+  const selectedSedeObj = sedesInfo[activeSedeMap];
 
   const platillosPrincipales = [
     {

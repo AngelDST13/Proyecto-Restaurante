@@ -128,15 +128,15 @@ export default function CashierDashboard() {
   };
 
   const sales = cashierState?.sales || [];
-  const cashSales = sales.filter(sale => sale.pago === 'Efectivo').reduce((sum, sale) => sum + Number(sale.total || 0), 0);
-  const cardSales = sales.filter(sale => sale.pago === 'Tarjeta').reduce((sum, sale) => sum + Number(sale.total || 0), 0);
-  const sinpeSales = sales.filter(sale => sale.pago === 'SINPE Móvil').reduce((sum, sale) => sum + Number(sale.total || 0), 0);
+  const cashSales = sales.filter(sale => sale.pago === 'Efectivo').reduce((sum, sale) => sum + Number(sale.total), 0);
+  const cardSales = sales.filter(sale => sale.pago === 'Tarjeta').reduce((sum, sale) => sum + Number(sale.total), 0);
+  const sinpeSales = sales.filter(sale => sale.pago === 'SINPE Móvil').reduce((sum, sale) => sum + Number(sale.total), 0);
   const cashMovements = (cashierState?.movements || []).reduce((sum, movement) => sum + (movement.tipo === 'Entrada' ? Number(movement.monto) : -Number(movement.monto)), 0);
   const cashExpenses = (cashierState?.expenses || []).filter(expense => expense.pagadoEfectivo).reduce((sum, expense) => sum + Number(expense.costo), 0);
   const expectedCash = Number(cashierState?.openingAmount || 0) + cashSales + cashMovements - cashExpenses;
   const selectedOrder = orders.find(order => order.id === selectedOrderId);
   const selectedOrderSeat = selectedOrder
-    ? selectedOrder.mesa || `Mesa ${String(Number(selectedOrder.tableId) || 0).padStart(2, '0')}`
+    ? selectedOrder.mesa || `Mesa ${String(Number(selectedOrder.tableId)).padStart(2, '0')}`
     : null;
   const tableCount = CASHIER_TABLE_COUNTS[sede] || CASHIER_TABLE_COUNTS.escazu;
   const orderByTable = new Map(orders.map(order => [Number(order.tableId), order]));
@@ -289,7 +289,7 @@ export default function CashierDashboard() {
         </section>}
 
         {receipt && (
-          <article id="cashier-invoice" aria-label="Factura electrónica de demostración" className="space-y-4 rounded-xl border border-amber-500/25 bg-white p-5 text-zinc-900 sm:p-7">
+          <article id="cashier-invoice" aria-label={receipt.issueElectronicInvoice ? 'Factura electrónica de demostración' : 'Recibo de caja'} className="space-y-4 rounded-xl border border-amber-500/25 bg-white p-5 text-zinc-900 sm:p-7">
             <div className="flex flex-wrap items-start justify-between gap-4 border-b border-zinc-200 pb-3">
               <div><h2 className="font-black">CHICHARRONERA EL CACIQUE</h2><p className="text-sm text-zinc-500">{receipt.issueElectronicInvoice ? 'Factura electrónica de demostración' : 'Recibo de caja'} · {sedeNombre}</p></div>
               <div className="text-right"><strong>{receipt.consecutive}</strong><p className="text-[10px] text-zinc-500">Clave de Hacienda de demostración</p><p className="break-all font-mono text-xs">{receipt.key}</p></div>

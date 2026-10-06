@@ -11,7 +11,9 @@ const LEGACY_AUTH_AES_KEY = 'GourmetSyncAESKey2026!#SecureStorage';
 export const encryptData = (data) => {
   try {
     if (data == null) return null;
-    const jsonString = typeof data === 'string' ? data : JSON.stringify(data);
+    // Siempre JSON (tambien las cadenas): decryptData usa JSON.parse, asi que
+    // cifrar una cadena sin serializar no se podia volver a leer.
+    const jsonString = JSON.stringify(data);
     return `aes2:${CryptoJS.AES.encrypt(jsonString, SECRET_KEY).toString()}`;
   } catch {
     return null;

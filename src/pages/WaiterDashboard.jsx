@@ -172,15 +172,13 @@ export default function WaiterDashboard() {
   const storedCustomers = decryptData(localStorage.getItem('cacique_registered_clients')) || {};
   const normalizedCustomerEmail = customerEmail.trim().toLowerCase();
   const registeredCustomer = normalizedCustomerEmail ? storedCustomers[normalizedCustomerEmail] : null;
-  const welcomeCoupon = registeredCustomer?.coupon || (
-    user?.rol === 'cliente' && user?.email?.toLowerCase() === normalizedCustomerEmail ? user.coupon : null
-  );
+  const welcomeCoupon = registeredCustomer?.coupon ?? null;
   const welcomeCouponKey = welcomeCoupon && normalizedCustomerEmail
     ? `cacique_coupon_used_${normalizedCustomerEmail}_${welcomeCoupon.code}`
     : null;
   const welcomeCouponAvailable = Boolean(welcomeCoupon && welcomeCouponKey && !localStorage.getItem(welcomeCouponKey));
   const welcomeDiscountRate = welcomeCouponAvailable && applyWelcomeDiscount
-    ? (welcomeCoupon.discountPercentage || 5) / 100
+    ? welcomeCoupon.discountPercentage / 100
     : 0;
   const previousSubtotal = selectedTable?.subtotal ?? selectedTable?.total ?? 0;
   const receiptGrossSubtotal = previousSubtotal + subtotal;
@@ -207,8 +205,6 @@ export default function WaiterDashboard() {
   });
 
   const handleSendToKitchen = () => {
-    if (!selectedTable || orderItems.length === 0) return;
-
     setTables(prev => ({
       ...prev,
       [selectedFloor]: prev[selectedFloor].map(t =>
@@ -245,11 +241,6 @@ export default function WaiterDashboard() {
   };
 
   const handleGenerarPrecuenta = (mesa) => {
-    if (!mesa) {
-      showToast('Por favor seleccione una mesa ocupada para generar la pre-cuenta.', 'error');
-      return;
-    }
-
     if (isElectronicInvoice && (!(billingLegalName.trim() || customerName.trim()) || !customerId.trim() || !businessActivityCode.trim() || !normalizedCustomerEmail)) {
       showToast('Para la factura electrónica en borrador, complete nombre o razón social, cédula, actividad económica y correo.', 'error');
       return;
@@ -287,19 +278,18 @@ export default function WaiterDashboard() {
   };
 
   const handleSendReceiptToCashier = () => {
-    if (!precuentaTable) return;
     const result = enqueueCashierOrder({
       sede: user?.sede || 'escazu',
       tableId: precuentaTable.id,
       mesa: precuentaTable.numero,
       cliente: precuentaTable.clienteNombre || precuentaTable.clienteCorreo || 'Cliente de mesa',
-      cedula: precuentaTable.cedulaCliente || '',
-      descripcion: (precuentaTable.items || []).map(item => `${item.cantidad} x ${item.nombre}`).join(', '),
-      items: precuentaTable.items || [],
-      subtotal: Number(precuentaTable.subtotal ?? precuentaTable.total ?? 0),
-      iva: Number(precuentaTable.iva || 0),
-      servicio: Number(precuentaTable.servicio || 0),
-      total: Number(precuentaTable.subtotal ?? precuentaTable.total ?? 0) + Number(precuentaTable.iva || 0) + Number(precuentaTable.servicio || 0),
+      cedula: precuentaTable.cedulaCliente,
+      descripcion: precuentaTable.items.map(item => `${item.cantidad} x ${item.nombre}`).join(', '),
+      items: precuentaTable.items,
+      subtotal: precuentaTable.subtotal,
+      iva: precuentaTable.iva,
+      servicio: precuentaTable.servicio,
+      total: precuentaTable.total,
       pago: precuentaTable.metodoPago === 'Sinpe Móvil' ? 'SINPE Móvil' : precuentaTable.metodoPago,
       tipoComprobante: precuentaTable.tipoComprobante,
       clienteCorreo: precuentaTable.clienteCorreo,
@@ -333,11 +323,14 @@ export default function WaiterDashboard() {
       )}
 
       {precuentaTable && (() => {
-        const subtotalPrecuenta = precuentaTable.subtotal ?? precuentaTable.total ?? 0;
-        const servicioPrecuenta = precuentaTable.servicio ?? Math.round(subtotalPrecuenta * 0.1);
-        const ivaPrecuenta = precuentaTable.iva ?? Math.round(subtotalPrecuenta * 0.13);
-        const totalPrecuenta = subtotalPrecuenta + servicioPrecuenta + ivaPrecuenta;
-        const precuentaItems = precuentaTable.items || [];
+        // handleGenerarPrecuenta siempre fija subtotal, servicio, iva, total e items.
+        const {
+          subtotal: subtotalPrecuenta,
+          servicio: servicioPrecuenta,
+          iva: ivaPrecuenta,
+          total: totalPrecuenta,
+          items: precuentaItems
+        } = precuentaTable;
         const precuentaItemsCount = precuentaItems.reduce((total, item) => total + item.cantidad, 0);
 
         return (
@@ -353,7 +346,7 @@ export default function WaiterDashboard() {
             >
               <div className="mb-5 flex items-start justify-between gap-4 border-b border-[#F8FFE5]/10 pb-4">
                 <div>
-                  <h2 id="precuenta-title" className="text-lg font-black text-white">{precuentaTable.tipoComprobante || 'Pre-cuenta'}</h2>
+                  <h2 id="precuenta-title" className="text-lg font-black text-white">{precuentaTable.tipoComprobante}</h2>
                   <p className="mt-1 text-xs text-gray-400">Chicharronera El Cacique</p>
                 </div>
                 <button
@@ -386,7 +379,7 @@ export default function WaiterDashboard() {
                     <span>{formatCurrency(item.precio * item.cantidad)}</span>
                   </div>
                 ))}
-                <div className="flex justify-between"><span className="text-gray-400">Subtotal bruto</span><span>{formatCurrency(precuentaTable.subtotalBruto ?? subtotalPrecuenta)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Subtotal bruto</span><span>{formatCurrency(precuentaTable.subtotalBruto)}</span></div>
                 {precuentaTable.descuento > 0 && <div className="flex justify-between text-emerald-400"><span>Descuento registro (5%)</span><span>−{formatCurrency(precuentaTable.descuento)}</span></div>}
                 <div className="flex justify-between"><span className="text-gray-400">Subtotal</span><span>{formatCurrency(subtotalPrecuenta)}</span></div>
                 <div className="flex justify-between"><span className="text-gray-400">Servicio (10%)</span><span>{formatCurrency(servicioPrecuenta)}</span></div>
@@ -399,7 +392,7 @@ export default function WaiterDashboard() {
                 </div>
               </div>
 
-              {precuentaTable.tipoComprobante?.startsWith('Factura electrónica') && (
+              {precuentaTable.tipoComprobante.startsWith('Factura electrónica') && (
                 <p className="mt-3 rounded-lg bg-amber-500/10 p-2 text-[11px] text-amber-300">
                   Borrador local: requiere integración con un proveedor autorizado para su emisión ante Hacienda.
                 </p>
@@ -714,11 +707,11 @@ export default function WaiterDashboard() {
                             
                             <div className="flex items-center gap-2">
                               <div className="flex items-center gap-1 bg-[#001812] rounded-lg p-0.5 border border-[#F8FFE5]/10">
-                                <button onClick={() => handleQuantityChange(item.id, -1)} className="p-1 text-gray-400 hover:text-white"><Minus className="w-3 h-3" /></button>
+                                <button type="button" onClick={() => handleQuantityChange(item.id, -1)} aria-label={`Disminuir ${item.nombre}`} className="p-1 text-gray-400 hover:text-white"><Minus className="w-3 h-3" aria-hidden="true" /></button>
                                 <span className="font-black text-[#F8FFE5] px-1 text-xs">{item.cantidad}</span>
-                                <button onClick={() => handleQuantityChange(item.id, 1)} className="p-1 text-gray-400 hover:text-white"><Plus className="w-3 h-3" /></button>
+                                <button type="button" onClick={() => handleQuantityChange(item.id, 1)} aria-label={`Aumentar ${item.nombre}`} className="p-1 text-gray-400 hover:text-white"><Plus className="w-3 h-3" aria-hidden="true" /></button>
                               </div>
-                              <button onClick={() => handleRemoveItem(item.id)} className="p-1 text-red-400 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                              <button type="button" onClick={() => handleRemoveItem(item.id)} aria-label={`Quitar ${item.nombre} de la comanda`} className="p-1 text-red-400 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-3.5 h-3.5" aria-hidden="true" /></button>
                             </div>
                           </div>
                         ))}
@@ -810,7 +803,7 @@ export default function WaiterDashboard() {
                     {welcomeCouponAvailable ? (
                       <label className="flex items-center gap-2 text-emerald-300">
                         <input type="checkbox" checked={applyWelcomeDiscount} onChange={event => setApplyWelcomeDiscount(event.target.checked)} className="accent-emerald-500" />
-                        Aplicar cupón de bienvenida ({welcomeCoupon.discountPercentage || 5}%)
+                        Aplicar cupón de bienvenida ({welcomeCoupon.discountPercentage}%)
                       </label>
                     ) : (
                       <p className="text-[10px] text-gray-500">Sin cupón de bienvenida válido para este correo.</p>

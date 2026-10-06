@@ -40,7 +40,7 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz√
 
   const updatePersistedState = (updates) => {
     const next = { openingAmount, cashOpen, sales, movements, expenses, financeImports, cashierName, openedAt, openedAtLabel, countedAmount, ...updates };
-    setOpeningAmount(String(next.openingAmount ?? ''));
+    setOpeningAmount(String(next.openingAmount));
     setCashOpen(Boolean(next.cashOpen));
     setSales(next.sales);
     setMovements(next.movements);
@@ -108,8 +108,8 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz√
     setError('');
   };
 
+  // Solo se invoca desde el boton de cierre, que existe unicamente con la caja abierta.
   const closeCash = () => {
-    if (!cashOpen) { setError('La caja ya est√° cerrada.'); return; }
     const counted = Number(countedAmount);
     if (!Number.isFinite(counted) || counted < 0 || countedAmount === '') { setError('Ingrese un monto contado v√°lido para cerrar la caja.'); return; }
     const grossSales = sales.reduce((total, sale) => total + Number(sale.total || 0), 0);
@@ -158,7 +158,8 @@ export default function FacturacionPanel({ sede = 'escazu', sedeNombre = 'Escaz√
       updatePersistedState({ financeImports: [...financeImports, ...normalized] });
       setError(`${normalized.length} registros financieros importados y validados.`);
     } catch (importError) {
-      setError(importError instanceof Error ? importError.message : 'No se pudo importar el archivo financiero.');
+      // Los lectores y validadores de importacion siempre lanzan Error.
+      setError(importError.message);
     } finally {
       event.target.value = '';
     }

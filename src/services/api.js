@@ -13,7 +13,7 @@
  *   n8n master webhook          -> VITE_N8N_WEBHOOK_URL
  */
 
-const env = import.meta.env ?? {};
+const env = import.meta.env;
 
 export const API_BASE_URL = env.VITE_JSON_SERVER_URL || 'http://localhost:3001';
 export const N8N_WEBHOOK_MASTER =

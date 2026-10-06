@@ -6,11 +6,11 @@ export const CASHIER_TABLE_COUNTS = { escazu: 24, santa_ana: 18, cartago: 20, he
 const PAYMENT_METHODS = new Set(['Efectivo', 'Tarjeta', 'SINPE Móvil']);
 
 function notifyCashierOrderChange() {
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cacique-cashier-orders-updated'));
+  window.dispatchEvent(new Event('cacique-cashier-orders-updated'));
 }
 
 function notifyCashierStateChange() {
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cacique-cashier-state-updated'));
+  window.dispatchEvent(new Event('cacique-cashier-state-updated'));
 }
 
 /** Metodos de pago admitidos en el arqueo de cierre de caja. */

@@ -15,7 +15,8 @@ export function sanitizePlainText(value) {
 export function readFileText(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ''));
+    // readAsText siempre entrega una cadena en onload.
+    reader.onload = () => resolve(reader.result);
     reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
     reader.readAsText(file);
   });
@@ -139,7 +140,8 @@ function zipStored(files) {
   }
   const centralSize = centrals.reduce((sum, record) => sum + record.length, 0);
   const end = new Uint8Array(22); const endView = new DataView(end.buffer);
-  endView.setUint32(0, 0x06054b50, true); endView.setUint16(8, files ? Object.keys(files).length : 0, true); endView.setUint16(10, Object.keys(files).length, true); endView.setUint32(12, centralSize, true); endView.setUint32(16, offset, true);
+  const entryCount = Object.keys(files).length;
+  endView.setUint32(0, 0x06054b50, true); endView.setUint16(8, entryCount, true); endView.setUint16(10, entryCount, true); endView.setUint32(12, centralSize, true); endView.setUint32(16, offset, true);
   return new Blob([...locals, ...centrals, end], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
 
